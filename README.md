@@ -35,7 +35,7 @@
     </ol>
     The purpose of this project is to implement: 1. Transaction Management, 2. Stock Management, 3. Finance Report, and 4. System Security for a small minimarket establishment.
     <br>
-    How to run: Look up <a href="www.google.com">This Website!</a> or, <a href="chat.openai.com">This Other Website!</a>
+    How to run: Look up google
 
   </p>
 
