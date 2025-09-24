@@ -8,6 +8,7 @@
   <img src="https://img.shields.io/badge/Liquibase-2962FF?logo=liquibase&logoColor=fff&style=plastic" alt="Liquibase Badge">
   <img src="https://img.shields.io/badge/MariaDB-003545?style=for-the-badge&logo=mariadb&logoColor=white&style=plastic">
 </div>
+<h1 align="center"><b>!!!JANGAN LUPA FETCH AND PULL SEBELUM MENGERJAKAN!!!</b></h1>
 <h3>Statistics :</h3>
 <div>
   <img alt="GitHub Created At" src="https://img.shields.io/github/created-at/sh1re-3201/ambatushop_1.0?color=black">
