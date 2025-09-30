@@ -1,6 +1,5 @@
 databaseChangeLog:
-  - changeSet:
-      id: 0
-      author: admin
-      changes:
-        -
+  - include:
+      file: db/changelog/001-create-akun.yaml
+  - include:
+      file:db/changelog/002-create-produk.yaml
