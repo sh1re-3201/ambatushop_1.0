@@ -1,0 +1,29 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2
+      author: Mosses 
+      changes:
+        - createTable:
+            tableName: produk
+            columns:
+              - column:
+                  name: id_produk
+                  type: BIGINT AUTO_INCREMENT
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: nama_produk
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: harga
+                  type: DECIMAL(15,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: stok
+                  type: INT
+                  constraints:
+                    nullable: false
