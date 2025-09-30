@@ -1,0 +1,41 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0
+      author: anugrah
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: akses_log
+      changes:
+        - createTable:
+            tableName: akses_log
+            columns:
+              - column:
+                  name: id_log
+                  type: BIGINT AUTO_INCREMENT
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: aktivitas
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: waktu
+                  type: datetime
+                  constraints:
+                    nullable: false
+              - column:
+                  name: id_pegawai
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+        - addForeignKeyConstraint:
+            baseTableName: akses_log
+            baseColumnNames: id_pegawai
+            constraintName: fk_akseslog_akun
+            referencedTableName: akun
+            referencedColumnNames: id_pegawai
