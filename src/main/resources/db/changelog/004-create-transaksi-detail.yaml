@@ -1,0 +1,58 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4
+      author: Mosses 
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: transaksi_detail
+      changes:
+        - createTable:
+            tableName: transaksi_detail
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT AUTO_INCREMENT
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: transaksi_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: produk_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: jumlah
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: harga_satuan
+                  type: DECIMAL(12,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: subtotal
+                  type: DECIMAL(12,2)
+                  constraints:
+                    nullable: false
+
+        - addForeignKeyConstraint:
+            baseTableName: transaksi_detail
+            baseColumnNames: transaksi_id
+            constraintName: fk_detail_transaksi
+            referencedTableName: transaksi
+            referencedColumnNames: id
+
+        - addForeignKeyConstraint:
+            baseTableName: transaksi_detail
+            baseColumnNames: produk_id
+            constraintName: fk_detail_produk
+            referencedTableName: produk
+            referencedColumnNames: id

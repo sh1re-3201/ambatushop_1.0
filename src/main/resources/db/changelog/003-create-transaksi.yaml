@@ -1,41 +1,46 @@
 databaseChangeLog:
   - changeSet:
-      id: 1
-      author: Mosses
+      id: 3
+      author: Mosses  
       preConditions:
         onFail: MARK_RAN
         not:
           tableExists:
-            tableName: akun
+            tableName: transaksi
       changes:
         - createTable:
-            tableName: akun
+            tableName: transaksi
             columns:
               - column:
-                  name: id_pegawai
+                  name: id
                   type: BIGINT AUTO_INCREMENT
                   constraints:
                     primaryKey: true
                     nullable: false
               - column:
-                  name: username
+                  name: tanggal
+                  type: DATETIME
+                  constraints:
+                    nullable: false
+              - column:
+                  name: total
+                  type: DECIMAL(12,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: metode_pembayaran
                   type: VARCHAR(50)
                   constraints:
                     nullable: false
-                    unique: true
               - column:
-                  name: password
-                  type: VARCHAR(100)
+                  name: akun_id
+                  type: BIGINT
                   constraints:
                     nullable: false
-              - column:
-                  name: email
-                  type: VARCHAR(100)
-                  constraints:
-                    nullable: false
-                    unique: true
-              - column:
-                  name: role
-                  type: VARCHAR(20)
-                  constraints:
-                    nullable: false
+
+        - addForeignKeyConstraint:
+            baseTableName: transaksi
+            baseColumnNames: akun_id
+            constraintName: fk_transaksi_akun
+            referencedTableName: akun
+            referencedColumnNames: id_pegawai
