@@ -1,0 +1,51 @@
+databaseChangeLog:
+  - changeSet:
+      id: 5
+      author: anugrah
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: keuangan
+      changes:
+        - createTable:
+            tableName: keuangan
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT AUTO_INCREMENT
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: jenis
+                  type: boolean # 0 = Cash, 1 = QRIS
+                  constraints:
+                    nullable: false
+              - column:
+                  name: keterangan
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: nominal
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: tanggal
+                  type: datetime
+                  constraints:
+                    nullable: false
+              - column:
+                  name: id_pegawai
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+        - addForeignKeyConstraint:
+            baseTableName: keuangan
+            baseColumnNames: id_pegawai
+            constraintName: fk_pegawai_keuangan
+            referencedTableName: akun
+            referencedColumnNames: id_pegawai
