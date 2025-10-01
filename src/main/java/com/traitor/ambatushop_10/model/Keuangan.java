@@ -10,7 +10,7 @@ import lombok.Setter;
 public class Keuangan {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long idKeuangan;
 
     // 0 = Cash, 1 = QRIS
     @Column(nullable = false)
@@ -27,7 +27,7 @@ public class Keuangan {
 
     // Relasi ke model akun
     @ManyToOne
-    @JoinColumn(name = "id_pegawai", nullable = false)
+    @JoinColumn(name = "idPegawai", nullable = false)
     private Akun akun;
 
 }

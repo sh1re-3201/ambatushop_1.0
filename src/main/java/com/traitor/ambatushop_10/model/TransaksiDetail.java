@@ -11,10 +11,10 @@ public class TransaksiDetail {
 
     @Id
     @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
-    private Long id;
+    private Long idTransaksiDetail;
 
     @ManyToOne
-    @JoinColumn(name = "id", nullable = false)
+    @JoinColumn(name = "idTransaksi", nullable = false)
     private Transaksi transaksiId;
 
     @ManyToOne
@@ -30,5 +30,7 @@ public class TransaksiDetail {
     @Column(nullable = false)
     private double subtotal;
 
-
+//    @ManyToOne
+//    @JoinColumn(name = "transaksi_id", nullable = false)
+//    private Transaksi transaksi;
 }
