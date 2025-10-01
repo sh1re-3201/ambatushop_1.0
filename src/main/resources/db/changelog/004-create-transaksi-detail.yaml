@@ -29,7 +29,7 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: jumlah
-                  type: INT
+                  type: SMALLINT
                   constraints:
                     nullable: false
               - column:

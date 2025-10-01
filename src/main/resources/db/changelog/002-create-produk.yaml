@@ -24,6 +24,6 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: stok
-                  type: INT
+                  type: SMALLINT
                   constraints:
                     nullable: false
