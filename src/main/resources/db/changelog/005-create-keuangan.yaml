@@ -19,7 +19,7 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: jenis
-                  type: boolean # 0 = Cash, 1 = QRIS
+                  type: boolean # 0 = pemasukan, 1 = pengeluaran
                   constraints:
                     nullable: false
               - column:
