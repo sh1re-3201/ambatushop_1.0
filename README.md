@@ -36,10 +36,49 @@
     </ol>
     The purpose of this project is to implement: 1. Transaction Management, 2. Stock Management, 3. Finance Report, and 4. System Security for a small minimarket establishment.
     <br>
-    How to run: Look up google
+    How to run:
+    <ol>
+        <li>
+        Migrate the database using liquibase.<br>
+        On the terminal, run the command below:
+        <pre><code>mvn liquibase:update</code></pre>
+        </li>
+        <li>
+        Run the application.<br>
+        <ol>
+            <li>
+            Via IDE :<br>
+            Run the Application.java file
+            </li>
+            <li>
+            Via Terminal :<br>
+            On the terminal, run the command below:
+            <pre><code>mvn spring-boot:run</code></pre>
+            </li>
+        </ol>
+        </li>
+    </ol>
 
-  </p>
+Database configuration could be found and modified in the application.properties file.
 
+
+</div>
+<div>
+<h2 align="center">Group Members and Role</h2>
+<ol>
+    <li>
+        <b>Angelo Arvelio Ariesto Mandaru (Frontend) </b>
+    </li>
+    <li>
+        <b>Hermanus Wattimena (Frontend, Prompt Engineer)</b>
+    </li>
+    <li>
+        <b>Anugrah Frumensius Gansalangi (Backend)</b>
+    </li>
+    <li>
+        <b>Michael Mosses Christanto (Backend, Leader)</b>
+    </li>
+</ol>
 </div>
 
 
