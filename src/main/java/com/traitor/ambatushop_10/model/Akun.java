@@ -11,7 +11,7 @@ public class Akun {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private long idPegawai;
 
     @Column(unique = true, nullable = false)
     private String username;

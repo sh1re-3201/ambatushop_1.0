@@ -11,7 +11,7 @@ public class Transaksi {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long idTransaksi;
 
     @Column(nullable = false)
     private LocalDateTime tanggal;
@@ -23,10 +23,10 @@ public class Transaksi {
     private boolean metode_pembayaran; // true = tunai, false = QRIS
 
     @ManyToOne
-    @JoinColumn(name = "idPegawai", nullable = false)
+    @JoinColumn(name = "id", nullable = false)
     private Akun idPegawai;
 
-    @OneToMany(mappedBy = "transaksi", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "idTransaksiDetail", cascade = CascadeType.ALL)
     private List<TransaksiDetail> details;
 
 }
