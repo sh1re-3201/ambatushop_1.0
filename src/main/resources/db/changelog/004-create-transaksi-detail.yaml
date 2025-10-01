@@ -33,7 +33,7 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
-                  name: harga_satuan
+                  name: harga_satuan # Nanti bakalan dicopy didalam service transaction misal : detailsetHargaSatuan(produk.getHarga()); 
                   type: DECIMAL(12,2)
                   constraints:
                     nullable: false
