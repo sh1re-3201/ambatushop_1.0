@@ -23,10 +23,10 @@ public class Transaksi {
     private boolean metode_pembayaran; // true = tunai, false = QRIS
 
     @ManyToOne
-    @JoinColumn(name = "id", nullable = false)
-    private Akun idPegawai;
+    @JoinColumn(name = "id_pegawai", nullable = false)
+    private Akun akun; // Menggunakan akun agar nanti dipakainya bukan langsung idPegawad tapi akundPegawai
 
-    @OneToMany(mappedBy = "idTransaksiDetail", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "transaksi", cascade = CascadeType.ALL)
     private List<TransaksiDetail> details;
 
 }
