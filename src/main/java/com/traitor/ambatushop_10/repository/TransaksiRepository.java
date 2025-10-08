@@ -7,6 +7,12 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * TransaksiRepository akan extends JpaRepository untuk mendapatkan CRUD Operation-nya
+ * <Transaksi, Long>
+ * "Transaksi" adalah entity type and "Long" adalah ID type.
+ */
+
 @Repository
 public interface TransaksiRepository extends JpaRepository<Transaksi, Long> {
     List<Transaksi> findByIdPegawai(Akun akun);

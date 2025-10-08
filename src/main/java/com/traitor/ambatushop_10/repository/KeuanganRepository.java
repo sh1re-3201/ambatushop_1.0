@@ -6,6 +6,12 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * KeuanganRepository akan extends JpaRepository untuk mendapatkan CRUD Operation-nya
+ * <Keuangan, Long>
+ * "Keuangan" adalah entity type and "Long" adalah ID type.
+ */
+
 @Repository
 public interface KeuanganRepository extends JpaRepository<Keuangan, Long> {
     List<Keuangan> findByTanggalBetween(LocalDateTime start, LocalDateTime end);
