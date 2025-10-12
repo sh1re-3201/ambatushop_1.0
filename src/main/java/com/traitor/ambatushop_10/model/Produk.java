@@ -11,6 +11,7 @@ public class Produk {
 
     @Id
     @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
+    // @Column(name = "id_produk")
     private Long idProduk;
 
     @Column(nullable = false)

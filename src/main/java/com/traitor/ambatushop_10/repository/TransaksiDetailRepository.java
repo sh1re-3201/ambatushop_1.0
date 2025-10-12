@@ -14,5 +14,5 @@ import java.util.List;
 
 @Repository
 public interface TransaksiDetailRepository extends JpaRepository<TransaksiDetail, Long> {
-    List<TransaksiDetail> findByTransaksiId(Transaksi transaksi);
+    List<TransaksiDetail> findByTransaksi(Transaksi transaksi);
 }

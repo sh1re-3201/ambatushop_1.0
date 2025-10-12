@@ -15,6 +15,6 @@ import java.util.List;
 
 @Repository
 public interface TransaksiRepository extends JpaRepository<Transaksi, Long> {
-    List<Transaksi> findByIdPegawai(Akun akun);
+    List<Transaksi> findByAkun(Akun akun); //nama property sesuai sama entitynya yaitu akun.
     List<Transaksi> findByTanggalBetween(LocalDateTime start, LocalDateTime end);
 }

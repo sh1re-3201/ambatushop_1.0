@@ -17,7 +17,7 @@ public class TransaksiDetail {
     // `mappedBy` itu harus menunjuk ke nama variabel many to one di
     // TransaksiDetail, bukan ke nama ID-nya.
     @ManyToOne
-    @JoinColumn(name = "idTransaksi", nullable = false)
+    @JoinColumn(name = "transaksi_id", nullable = false)
     private Transaksi transaksi; // Sama seperti di akun, nanti yg dipanggila bukan idTransaksi.id tapi transaksi,idTransaksi
 
     @ManyToOne
