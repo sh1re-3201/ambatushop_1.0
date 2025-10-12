@@ -11,6 +11,7 @@ public class Transaksi {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    // @Column(name = "id")
     private Long idTransaksi;
 
     @Column(nullable = false)
@@ -23,10 +24,11 @@ public class Transaksi {
     private boolean metode_pembayaran; // true = tunai, false = QRIS
 
     @ManyToOne
-    @JoinColumn(name = "id", nullable = false)
-    private Akun idPegawai;
+    @JoinColumn(name = "akun_id", nullable = false) // Sesuai dengan dbnya, dikita itu base columnnya akun_id di db transaksi liquibase
+    private Akun akun; // Menggunakan akun agar nanti dipakainya bukan langsung idPegawad tapi akundPegawai
 
-    @OneToMany(mappedBy = "idTransaksiDetail", cascade = CascadeType.ALL)
+    // nunjuk ke field transaksi di TransaksiDetail
+    @OneToMany(mappedBy = "transaksi", cascade = CascadeType.ALL)
     private List<TransaksiDetail> details;
 
 }

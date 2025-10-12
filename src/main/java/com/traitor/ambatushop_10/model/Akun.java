@@ -11,6 +11,7 @@ public class Akun {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    // @Column(name = "id_pegawai")
     private long idPegawai;
 
     @Column(unique = true, nullable = false)
@@ -26,7 +27,7 @@ public class Akun {
     @Column(name = "role")
     private Role role;
 
-    enum Role {
+    public enum Role {
         KASIR,
         MANAJER,
         ADMIN

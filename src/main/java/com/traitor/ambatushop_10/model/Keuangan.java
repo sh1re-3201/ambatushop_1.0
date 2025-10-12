@@ -27,7 +27,7 @@ public class Keuangan {
 
     // Relasi ke model akun
     @ManyToOne
-    @JoinColumn(name = "idPegawai", nullable = false)
+    @JoinColumn(name = "id_pegawai", nullable = false)
     private Akun akun;
 
 }
