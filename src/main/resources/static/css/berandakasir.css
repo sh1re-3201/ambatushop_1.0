@@ -1,0 +1,402 @@
+/* ...existing code... */
+:root {
+  --sidebar-w: 220px;
+  --sidebar-mini-w: 76px;
+  --sidebar-bg: #3a3a3a;
+  --sidebar-radius: 18px;
+  --accent: #2b7cff;
+  --green: #36b37e;
+  --muted: #9aa0a6;
+  --page-bg: #f5f6f8;
+  --card: #fff;
+  --transition: 200ms;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+html,
+body {
+  height: 100%;
+  font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: var(--page-bg);
+  color: #222;
+  overflow-x: hidden;
+}
+
+.page {
+  display: flex;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* Sidebar */
+.sidebar {
+  width: var(--sidebar-w);
+  background: var(--sidebar-bg);
+  color: #fff;
+  position: fixed;
+  left: 20px;
+  top: 20px;
+  bottom: 20px;
+  border-radius: var(--sidebar-radius);
+  padding: 18px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+  transition: width var(--transition), padding var(--transition);
+}
+
+/* collapsed -> mini sidebar */
+.sidebar.collapsed {
+  width: var(--sidebar-mini-w);
+  padding: 18px 10px;
+}
+
+/* Sidebar header */
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+.brand h1 {
+  font-size: 20px;
+  font-weight: 800;
+  color: #fff;
+  margin: 0;
+  transition: opacity var(--transition);
+}
+
+/* hide brand text when mini */
+.sidebar.collapsed .brand h1 {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Menu pills */
+.menu {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 8px 6px;
+}
+.pill {
+  padding: 8px 18px;
+  border-radius: 20px;
+  border: 0;
+  cursor: pointer;
+  font-weight: 700;
+  text-align: center;
+  transition: all 0.18s ease;
+}
+.neutral {
+  background: #f1f2f3;
+  color: #333;
+}
+.pill.active,
+.pill.active:hover {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(43, 124, 255, 0.18);
+}
+.green {
+  background: #3aa86f;
+  color: #fff;
+}
+.menu-item {
+  font-size: 14px;
+}
+
+/* In mini sidebar hide pill text and show compact indicator */
+.sidebar.collapsed .menu .pill {
+  padding: 10px 6px;
+  border-radius: 10px;
+  text-align: center;
+  font-size: 12px;
+}
+.sidebar.collapsed .menu .pill .menu-text {
+  display: none;
+}
+
+/* Sidebar content */
+.sidebar-content {
+  flex: 1;
+  padding-top: 14px;
+}
+.sidebar-section h3 {
+  color: #ddd;
+  font-size: 15px;
+  font-weight: 700;
+  margin: 14px 0;
+  opacity: 0.9;
+}
+.sidebar.collapsed .sidebar-section {
+  display: none;
+}
+
+/* Content */
+.content {
+  flex: 1;
+  margin-left: calc(var(--sidebar-w) + 60px);
+  padding: 32px;
+  transition: margin-left var(--transition);
+}
+.content.sidebar-collapsed {
+  margin-left: calc(var(--sidebar-mini-w) + 60px);
+}
+
+/* Topbar */
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 10px;
+}
+.top-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sidebar-toggle {
+  border: 0;
+  background: #fff;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+.top-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.icon-btn {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+}
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ff6b6b;
+  color: #fff;
+  cursor: pointer;
+}
+
+/* small open button (hidden when sidebar visible) */
+.sidebar-open {
+  display: none;
+  background: transparent;
+  border: 0;
+  font-size: 20px;
+  padding: 6px;
+  cursor: pointer;
+}
+
+/* Grid and cards */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+  align-items: start;
+  transition: opacity var(--transition);
+}
+.card {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 22px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.06);
+  border: 1px solid #f0f0f0;
+  transition: transform var(--transition), box-shadow var(--transition), opacity var(--transition);
+  cursor: pointer;
+}
+.card.selected {
+  transform: scale(1.035);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.12);
+}
+.card:focus {
+  outline: 2px solid rgba(43, 124, 255, 0.12);
+  outline-offset: 4px;
+}
+.card-header {
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.card-header.with-icon {
+  display: flex;
+  align-items: center;
+}
+.icon-box {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #efefef;
+}
+.icon-box.blue {
+  background: #2b7cff;
+  color: #fff;
+}
+.icon-box.green {
+  background: #36b37e;
+  color: #fff;
+}
+.card-header h2 {
+  font-size: 22px;
+  margin: 0;
+  font-weight: 800;
+}
+.card-subtitle {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 2px 0 0;
+}
+
+/* Transactions */
+.transaction-details {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.transaction-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 20px;
+}
+.transaction-value {
+  font-weight: 800;
+  font-size: 15px;
+}
+.transaction-label {
+  color: var(--muted);
+  font-size: 12px;
+}
+.divider {
+  height: 1px;
+  background: #f0f0f0;
+  width: 100%;
+}
+
+/* Finance */
+.finance-details {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 20px;
+  align-items: center;
+}
+.finance-label {
+  color: var(--muted);
+  font-size: 14px;
+}
+.finance-values {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+.finance-amount {
+  font-weight: 800;
+  font-size: 18px;
+}
+
+/* card-icons (shown when sidebar is mini) */
+.card-icons {
+  display: none;
+  gap: 20px;
+  margin-bottom: 18px;
+}
+.card-icons .icon-rep {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 10px;
+}
+.icon-box-mini {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  background: #efefef;
+}
+.icon-box-mini.blue {
+  background: #2b7cff;
+  color: #fff;
+}
+.icon-box-mini.green {
+  background: #36b37e;
+  color: #fff;
+}
+.icon-label {
+  margin-top: 8px;
+  color: #6b6b6b;
+  font-size: 13px;
+}
+
+/* when content indicates sidebar-collapsed show icons and hide cards */
+.content.sidebar-collapsed .grid {
+  display: none;
+}
+.content.sidebar-collapsed .card-icons {
+  display: flex;
+}
+.content:not(.sidebar-collapsed) .card-icons {
+  display: none;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .sidebar {
+    left: 12px;
+    top: 12px;
+    bottom: 12px;
+  }
+  .content {
+    margin-left: calc(var(--sidebar-w) + 48px);
+    padding: 20px;
+  }
+  .sidebar-open {
+    display: inline-block;
+  }
+}
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-260px);
+    position: fixed;
+    left: 12px;
+  }
+  .sidebar.collapsed {
+    transform: translateX(-260px);
+  }
+  .sidebar-open {
+    display: inline-block;
+  }
+  .content {
+    margin-left: 20px;
+    padding: 16px;
+  }
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+}
+/* ...existing code... */
