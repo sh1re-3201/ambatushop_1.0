@@ -1,0 +1,223 @@
+:root{
+  --page-bg:#f6f7f9;
+  --card:#fff;
+  --muted:#9aa0a6;
+
+  --sidebar-width:240px;
+  --sidebar-collapsed-width:72px;
+  --sidebar-radius:22px;
+  --icon-wrap-size:56px;
+  --icon-svg-size:34px;
+  --avatar-size:40px;
+  --transition: 220ms ease;
+}
+
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;background:var(--page-bg);color:#222}
+
+/* layout */
+.page{display:flex;gap:28px;padding:28px 36px;align-items:stretch;min-height:100vh}
+
+/* Sidebar (gelap kotak kiri) */
+.sidebar{
+  width:var(--sidebar-width);
+  background:#4a4a4a;
+  border-radius:var(--sidebar-radius);
+  padding:22px;
+  color:#fff;
+  position:relative;
+  box-shadow:0 8px 24px rgba(0,0,0,0.12);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  transition: width var(--transition), transform var(--transition), opacity var(--transition);
+}
+.sidebar.closed{
+  width:var(--sidebar-collapsed-width);
+  transform:translateX(0) scale(.995);
+  opacity:1;
+  padding-top:18px;
+}
+
+/* close button / circle */
+.close-circle{
+  position:absolute;
+  right:12px;
+  top:10px;
+  width:28px;
+  height:28px;
+  border-radius:50%;
+  background:transparent;
+  color:#fff;
+  border:2px solid rgba(255,255,255,0.18);
+  font-size:18px;
+  line-height:22px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition: opacity var(--transition);
+}
+
+/* hide close control when collapsed (optional) */
+.sidebar.closed .close-circle{
+  opacity:0;
+  pointer-events:none;
+}
+
+/* brand */
+.brand{width:100%;text-align:center;margin-top:8px;transition:opacity var(--transition)}
+.brand h1{margin:6px 0 18px;font-size:20px;letter-spacing:0.6px}
+.sidebar.closed .brand h1 { display:none }
+
+/* Menu (pill buttons) */
+.menu{display:flex;flex-direction:column;gap:14px;width:100%;align-items:center;margin-top:6px;transition:gap var(--transition)}
+.menu-item.pill{
+  width:76%;
+  border-radius:26px;
+  padding:10px 12px;
+  border:0;
+  cursor:pointer;
+  color:#111;
+  font-weight:700;
+  text-align:center;
+  box-shadow:inset 0 -2px 0 rgba(0,0,0,0.03);
+  display:flex;
+  align-items:center;
+  gap:12px;
+  justify-content:flex-start;
+  transition: all var(--transition);
+}
+/* icon and text inside menu-item */
+.mi-icon{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px}
+.mi-icon svg{width:20px;height:20px;display:block}
+.mi-text{white-space:nowrap;display:inline-block}
+
+/* color pills */
+.menu-item.pill:nth-child(1){background:#efefef}
+.menu-item.pill:nth-child(2){background:#2b7cff;color:#fff}
+.menu-item.pill:nth-child(3){background:#10b759;color:#fff}
+.menu-item.pill:nth-child(4){background:#f6b24a;color:#111}
+.menu-item.pill:nth-child(5){background:#ff5252;color:#fff}
+.menu-item.active{transform:translateX(2px);box-shadow:0 10px 20px rgba(0,0,0,0.06)}
+
+/* When collapsed: show only icons stacked vertically, center them */
+.sidebar.closed .menu{
+  gap:18px;
+  align-items:center;
+}
+.sidebar.closed .menu-item.pill{
+  width:48px;
+  height:48px;
+  border-radius:14px;
+  padding:0;
+  justify-content:center;
+  background:transparent;
+  box-shadow:none;
+}
+.sidebar.closed .menu-item.pill .mi-text{
+  display:none;
+}
+.sidebar.closed .menu-item.pill .mi-icon{
+  width:40px;
+  height:40px;
+  border-radius:10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:rgba(255,255,255,0.06);
+}
+
+/* Keep a subtle colored background for the icon of active item when collapsed */
+.sidebar.closed .menu-item.pill.active .mi-icon{
+  background: rgba(255,255,255,0.12);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+}
+
+/* Content */
+.content{flex:1;display:flex;flex-direction:column;gap:18px}
+.topbar{display:flex;justify-content:flex-end;padding:6px 12px}
+.top-actions{display:flex;align-items:center;gap:12px}
+.icon-btn{border:0;background:transparent;cursor:pointer;padding:8px;border-radius:8px}
+.avatar{width:var(--avatar-size);height:var(--avatar-size);border-radius:50%;display:flex;align-items:center;justify-content:center;background:#ff4d4d;color:#fff;cursor:pointer;padding:6px}
+
+/* Grid and cards */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:26px;
+  align-items:start;
+  padding-top:6px;
+}
+
+.card{
+  background:var(--card);
+  border-radius:12px;
+  display:flex;
+  gap:14px;
+  padding:18px;
+  min-height:120px;
+  box-shadow:0 12px 30px rgba(27,31,35,0.04);
+  align-items:flex-start;
+}
+
+/* (pakai file Anda yang sudah ada; tambahkan/replace bagian ini) */
+
+.hamburger{
+  position:absolute;
+  left:12px;
+  top:12px;
+  width:36px;
+  height:36px;
+  border-radius:8px;
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.06);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  z-index:10;
+  transition: transform 180ms ease, background 180ms ease;
+}
+.hamburger svg path{ stroke:#fff }
+
+.hamburger:hover{
+  transform:translateY(-2px);
+  background:rgba(255,255,255,0.06);
+}
+
+/* adjust when sidebar collapsed to keep hamburger visible and centered horizontally */
+.sidebar.closed .hamburger{
+  left: calc((var(--sidebar-collapsed-width) - 36px) / 2);
+  top:10px;
+}
+
+/* hide topbar open button if still present */
+#sidebar-open{ display:none !important; }
+
+
+.icon-wrap{
+  width:var(--icon-wrap-size);
+  height:var(--icon-wrap-size);
+  border-radius:12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#efefef;
+  flex:0 0 var(--icon-wrap-size);
+}
+.icon-wrap svg{width:var(--icon-svg-size);height:var(--icon-svg-size);display:block}
+
+/* responsive */
+@media (max-width:900px){
+  .page{flex-direction:column;padding:16px}
+  .sidebar{width:100%;border-radius:12px;flex-direction:row;justify-content:flex-start;align-items:center;padding:12px}
+  .menu{flex-direction:row;gap:8px;flex-wrap:wrap;margin-left:8px}
+  .menu-item.pill{width:auto;padding:8px 10px;min-width:84px}
+  .grid{grid-template-columns:1fr;gap:16px}
+}
+/* small screens: when collapsed, keep icons small */
+@media (max-width:480px){
+  .sidebar.closed{ width:56px }
+  .sidebar.closed .menu-item.pill .mi-icon{ width:36px;height:36px }
+}
