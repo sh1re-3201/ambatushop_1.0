@@ -16,7 +16,7 @@ public class Transaksi {
     // @Column(name = "id")
     private Long idTransaksi;
 
-    public Transaksi(MetodePembayaran metode_pembayaran, LocalDateTime tanggal, Double total) {
+    public Transaksi(MetodePembayaran metode_pembayaran, LocalDateTime tanggal, Double total,Akun akun) {
         this.metode_pembayaran = metode_pembayaran;
         this.tanggal = tanggal;
         this.total = total;

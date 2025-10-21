@@ -49,10 +49,11 @@ public class DataLoader implements CommandLineRunner {
             produkRepository.save(new Produk("Marlboro Filter Black", 39000.0, (short) 56));
             produkRepository.save(new Produk("Tepung Lingkaran Hitam 1000G", 15000.0, (short) 98));
         }
-
+        Akun kasir = akunRepository.findByUsername("kasir").orElseThrow();
         // Transaksi
         if (transaksiRepository.count() == 0) {
-            transaksiRepository.save(new Transaksi(Transaksi.MetodePembayaran.TUNAI, LocalDateTime.now(), 27500.0));
+            Transaksi transaksi = transaksiRepository.save(new Transaksi(Transaksi.MetodePembayaran.TUNAI, LocalDateTime.now(), 27500.0, kasir));
+            transaksiRepository.save(transaksi);
         }
     }
 }
