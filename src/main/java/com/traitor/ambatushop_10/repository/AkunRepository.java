@@ -15,7 +15,10 @@ import java.util.Optional; /* Untuk menyertakan alternatif ketika mereferensikan
 
 @Repository
 public interface AkunRepository extends JpaRepository<Akun, Long> {
+
+
     Optional<Akun> findByUsername(String username);
+    Optional<Akun> getAkunByIdPegawai(long idPegawai);
     Optional<Akun> findByEmail(String email);
     boolean existsByUsername(String username);
 }

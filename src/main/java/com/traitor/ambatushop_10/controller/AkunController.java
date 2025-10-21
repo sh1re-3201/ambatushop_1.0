@@ -16,6 +16,10 @@ public class AkunController {
         this.akunRepository = akunRepository;
     }
 
+//    public String getAkunByUsername(String username) {
+//        return akunRepository.getAkunByUsername();
+//    }
+
     @GetMapping("/akun")
     public List<Akun> getAkun() {
         return akunRepository.findAll(); // menampilkan data dari database dengan format JSON

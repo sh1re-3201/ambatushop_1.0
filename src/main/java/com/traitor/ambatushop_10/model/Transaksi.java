@@ -36,6 +36,9 @@ public class Transaksi {
     @JoinColumn(name = "akun_id", nullable = false) // Sesuai dengan dbnya, dikita itu base columnnya akun_id di db transaksi liquibase
     private Akun akun; // Menggunakan akun agar nanti dipakainya bukan langsung idPegawad tapi akundPegawai
 
+    private long akunId = akun.getIdPegawai();
+
+
     // nunjuk ke field transaksi di TransaksiDetail
     @OneToMany(mappedBy = "transaksi", cascade = CascadeType.ALL)
     private List<TransaksiDetail> details;
