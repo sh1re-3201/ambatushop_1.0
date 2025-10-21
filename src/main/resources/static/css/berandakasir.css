@@ -352,6 +352,31 @@ body {
   font-size: 13px;
 }
 
+/* warna khusus untuk kartu di beranda kasir */
+#card-transaksi .icon-box,
+#card-transaksi .icon-wrap {
+  background: #2b7cff !important; /* biru */
+  color: #fff !important;
+  /* pastikan ikon putih */
+}
+#card-transaksi .icon-box svg,
+#card-transaksi .icon-wrap svg {
+  fill: none;
+  stroke: #ffffff !important;
+}
+
+/* warna untuk keuangan -> hijau */
+#card-keuangan .icon-box,
+#card-keuangan .icon-wrap {
+  background: #36b37e !important; /* hijau */
+  color: #fff !important;
+}
+#card-keuangan .icon-box svg,
+#card-keuangan .icon-wrap svg {
+  fill: none;
+  stroke: #ffffff !important;
+}
+
 /* when content indicates sidebar-collapsed show icons and hide cards */
 .content.sidebar-collapsed .grid {
   display: none;

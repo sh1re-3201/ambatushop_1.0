@@ -38,8 +38,9 @@
         <button class="menu-item pill" data-tab="keuangan" title="Keuangan">
           <span class="mi-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
-              <path d="M5 8h14v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8z" stroke="#0aa14a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-              <circle cx="12" cy="13" r="2" stroke="#0aa14a" stroke-width="1.2" fill="none"/>
+              <path d="M12 1v4" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>
+              <path d="M5 8h14v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8z" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="12" cy="13" r="2" stroke="#fff" stroke-width="1.2" fill="none"/>
             </svg>
           </span>
           <span class="mi-text">Keuangan</span>
@@ -48,7 +49,7 @@
         <button class="menu-item pill" data-tab="stok" title="Stok">
           <span class="mi-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
-              <path d="M21 16V8l-9-5-9 5v8l9 5 9-5z" stroke="#f6b24a" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M21 16V8l-9-5-9 5v8l9 5 9-5z" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </span>
           <span class="mi-text">Stok</span>
@@ -57,8 +58,8 @@
         <button class="menu-item pill" data-tab="pengguna" title="Pengguna">
           <span class="mi-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
-              <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" stroke="#ff5252" stroke-width="1.6" fill="none"/>
-              <path d="M4 20a8 8 0 0 1 16 0" stroke="#ff5252" stroke-width="1.2" fill="none"/>
+              <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" stroke="#fff" stroke-width="1.6" fill="none"/>
+              <path d="M4 20a8 8 0 0 1 16 0" stroke="#fff" stroke-width="1.2" fill="none"/>
             </svg>
           </span>
           <span class="mi-text">Pengguna</span>
@@ -70,12 +71,13 @@
       <header class="topbar">
         <div class="top-actions">
           <!-- tombol open di topbar dihapus agar hamburger hanya ada di sidebar -->
-          <button class="icon-btn" title="Pengaturan" aria-label="Pengaturan">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
-              <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z" stroke="#666" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09c.67 0 1.26-.39 1.51-1a1.65 1.65 0 0 0-.33-1.82L4.32 4.9A2 2 0 1 1 7.15 2.07l.06.06c.5.5 1.2.73 1.93.58.65-.13 1.24-.04 1.79.32l.03.02c.52.32.9.8 1.04 1.36.2.82 0 1.64-.54 2.23l-.06.06c-.5.5-.73 1.2-.58 1.93.13.65.04 1.24-.32 1.79l-.03.02c-.32.52-.8.9-1.36 1.04-.82.2-1.64 0-2.23-.54l-.06-.06z" stroke="#666" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </button>
+          <!-- Replace the existing settings button in the topbar with this gear icon -->
+<button class="icon-btn" title="Pengaturan" aria-label="Pengaturan">
+  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
+    <path d="M19.14 12.94c.04-.31.06-.63.06-.94s-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.11-.2-.35-.28-.56-.22l-2.39.96a7.02 7.02 0 0 0-1.6-.94L14.5 2.5a.48.48 0 0 0-.48-.5h-3.95c-.24 0-.45.15-.48.39L9.9 5.07c-.57.2-1.11.48-1.6.83L5.91 4.94c-.21-.09-.45 0-.56.22L3.43 8.48c-.11.2-.06.46.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94L3.55 15.6c-.18.14-.23.41-.12.61l1.92 3.32c.11.2.35.28.56.22l2.39-.96c.49.35 1.03.63 1.6.83l.7 2.57c.03.24.24.39.48.39h3.95c.24 0 .45-.15.48-.39l.7-2.57c.57-.2 1.11-.48 1.6-.83l2.39.96c.21.09.45 0 .56-.22l1.92-3.32c.11-.2.06-.46-.12-.61l-2.03-1.58zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5S10.07 8.5 12 8.5s3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"
+          stroke="#666" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+</button>
 
           <div class="avatar" title="Akun" aria-hidden="true">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none">

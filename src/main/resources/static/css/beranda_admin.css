@@ -1,24 +1,28 @@
+/* Beranda Admin/Manajer — gaya menyerupai beranda.html, tanpa kartu Transaksi */
 :root{
+  --bg:#fff;
   --page-bg:#f6f7f9;
   --card:#fff;
   --muted:#9aa0a6;
+  --accent:#2b7cff;
 
   --sidebar-width:240px;
   --sidebar-collapsed-width:72px;
-  --sidebar-radius:22px;
-  --icon-wrap-size:56px;
-  --icon-svg-size:34px;
+  --sidebar-radius:28px;
+  --pill-radius:18px;
+  --icon-wrap-size:78px;   /* match beranda.css */
+  --icon-svg-size:42px;
   --avatar-size:40px;
-  --transition: 220ms ease;
+  --transition:220ms ease;
 }
 
 *{box-sizing:border-box}
 html,body{height:100%;margin:0;font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;background:var(--page-bg);color:#222}
 
 /* layout */
-.page{display:flex;gap:28px;padding:28px 36px;align-items:stretch;min-height:100vh}
+.page{display:flex;gap:36px;padding:28px 40px;align-items:stretch;min-height:100vh}
 
-/* Sidebar (gelap kotak kiri) */
+/* Sidebar container */
 .sidebar{
   width:var(--sidebar-width);
   background:#4a4a4a;
@@ -31,139 +35,21 @@ html,body{height:100%;margin:0;font-family: "Segoe UI", Roboto, "Helvetica Neue"
   flex-direction:column;
   align-items:center;
   transition: width var(--transition), transform var(--transition), opacity var(--transition);
+  overflow:visible;
 }
+/* reserve vertical space at top when collapsed so hamburger won't overlap icons */
 .sidebar.closed{
   width:var(--sidebar-collapsed-width);
   transform:translateX(0) scale(.995);
   opacity:1;
-  padding-top:18px;
+  /* increase top padding to make room for the hamburger area */
+  padding-top:64px; /* <-- increase this value to create more/less gap */
 }
 
-/* close button / circle */
-.close-circle{
-  position:absolute;
-  right:12px;
-  top:10px;
-  width:28px;
-  height:28px;
-  border-radius:50%;
-  background:transparent;
-  color:#fff;
-  border:2px solid rgba(255,255,255,0.18);
-  font-size:18px;
-  line-height:22px;
-  cursor:pointer;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  transition: opacity var(--transition);
-}
-
-/* hide close control when collapsed (optional) */
-.sidebar.closed .close-circle{
-  opacity:0;
-  pointer-events:none;
-}
-
-/* brand */
-.brand{width:100%;text-align:center;margin-top:8px;transition:opacity var(--transition)}
-.brand h1{margin:6px 0 18px;font-size:20px;letter-spacing:0.6px}
-.sidebar.closed .brand h1 { display:none }
-
-/* Menu (pill buttons) */
-.menu{display:flex;flex-direction:column;gap:14px;width:100%;align-items:center;margin-top:6px;transition:gap var(--transition)}
-.menu-item.pill{
-  width:76%;
-  border-radius:26px;
-  padding:10px 12px;
-  border:0;
-  cursor:pointer;
-  color:#111;
-  font-weight:700;
-  text-align:center;
-  box-shadow:inset 0 -2px 0 rgba(0,0,0,0.03);
-  display:flex;
-  align-items:center;
-  gap:12px;
-  justify-content:flex-start;
-  transition: all var(--transition);
-}
-/* icon and text inside menu-item */
-.mi-icon{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px}
-.mi-icon svg{width:20px;height:20px;display:block}
-.mi-text{white-space:nowrap;display:inline-block}
-
-/* color pills */
-.menu-item.pill:nth-child(1){background:#efefef}
-.menu-item.pill:nth-child(2){background:#2b7cff;color:#fff}
-.menu-item.pill:nth-child(3){background:#10b759;color:#fff}
-.menu-item.pill:nth-child(4){background:#f6b24a;color:#111}
-.menu-item.pill:nth-child(5){background:#ff5252;color:#fff}
-.menu-item.active{transform:translateX(2px);box-shadow:0 10px 20px rgba(0,0,0,0.06)}
-
-/* When collapsed: show only icons stacked vertically, center them */
-.sidebar.closed .menu{
-  gap:18px;
-  align-items:center;
-}
-.sidebar.closed .menu-item.pill{
-  width:48px;
-  height:48px;
-  border-radius:14px;
-  padding:0;
-  justify-content:center;
-  background:transparent;
-  box-shadow:none;
-}
-.sidebar.closed .menu-item.pill .mi-text{
-  display:none;
-}
-.sidebar.closed .menu-item.pill .mi-icon{
-  width:40px;
-  height:40px;
-  border-radius:10px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background:rgba(255,255,255,0.06);
-}
-
-/* Keep a subtle colored background for the icon of active item when collapsed */
-.sidebar.closed .menu-item.pill.active .mi-icon{
-  background: rgba(255,255,255,0.12);
-  box-shadow: 0 6px 14px rgba(0,0,0,0.08);
-}
-
-/* Content */
-.content{flex:1;display:flex;flex-direction:column;gap:18px}
-.topbar{display:flex;justify-content:flex-end;padding:6px 12px}
-.top-actions{display:flex;align-items:center;gap:12px}
-.icon-btn{border:0;background:transparent;cursor:pointer;padding:8px;border-radius:8px}
-.avatar{width:var(--avatar-size);height:var(--avatar-size);border-radius:50%;display:flex;align-items:center;justify-content:center;background:#ff4d4d;color:#fff;cursor:pointer;padding:6px}
-
-/* Grid and cards */
-.grid{
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:26px;
-  align-items:start;
-  padding-top:6px;
-}
-
-.card{
-  background:var(--card);
-  border-radius:12px;
-  display:flex;
-  gap:14px;
-  padding:18px;
-  min-height:120px;
-  box-shadow:0 12px 30px rgba(27,31,35,0.04);
-  align-items:flex-start;
-}
-
-/* (pakai file Anda yang sudah ada; tambahkan/replace bagian ini) */
-
+/* ---------- Behavior: show hamburger only when sidebar is collapsed ---------- */
+/* hide hamburger by default (sidebar terbuka) */
 .hamburger{
+  display: none;                 /* <-- HIDDEN saat sidebar terbuka */
   position:absolute;
   left:12px;
   top:12px;
@@ -172,52 +58,205 @@ html,body{height:100%;margin:0;font-family: "Segoe UI", Roboto, "Helvetica Neue"
   border-radius:8px;
   background:rgba(255,255,255,0.04);
   border:1px solid rgba(255,255,255,0.06);
-  display:flex;
   align-items:center;
   justify-content:center;
   cursor:pointer;
-  z-index:10;
+  z-index:20;
   transition: transform 180ms ease, background 180ms ease;
 }
-.hamburger svg path{ stroke:#fff }
 
-.hamburger:hover{
-  transform:translateY(-2px);
-  background:rgba(255,255,255,0.06);
-}
-
-/* adjust when sidebar collapsed to keep hamburger visible and centered horizontally */
+/* tampilkan hamburger hanya ketika sidebar collapsed */
 .sidebar.closed .hamburger{
+  display:flex; /* visible when collapsed */
   left: calc((var(--sidebar-collapsed-width) - 36px) / 2);
-  top:10px;
+  top:18px;            /* sedikit turunkan supaya berada di area padding-top */
+  z-index:80;          /* pastikan hamburger di atas semua ikon */
 }
 
-/* hide topbar open button if still present */
-#sidebar-open{ display:none !important; }
+/* hover */
+.hamburger svg path{ stroke:#fff }
+.hamburger:hover{ transform:translateY(-2px); background:rgba(255,255,255,0.06); }
 
+/* pastikan tombol close tidak terlihat saat collapsed */
+/* close button (X) — tampil seperti semula, berada di pojok kanan atas sidebar */
+.close-circle{
+  position:absolute;
+  right:12px;
+  top:12px;
 
-.icon-wrap{
-  width:var(--icon-wrap-size);
-  height:var(--icon-wrap-size);
-  border-radius:12px;
+  width:34px;
+  height:34px;
+  padding:0;
+  border-radius:50%;
+
+  /* visual */
+  background: rgba(255,255,255,0.06);   /* lembut, seperti desain sebelumnya */
+  border: 2px solid rgba(255,255,255,0.14);
+  color: #ffffff;
+  font-size:18px;
+  font-weight:600;
+  line-height:1;
+
   display:flex;
   align-items:center;
   justify-content:center;
-  background:#efefef;
-  flex:0 0 var(--icon-wrap-size);
+
+  cursor:pointer;
+  z-index:60; /* pastikan di atas elemen lain */
+
+  /* hapus gaya default browser supaya tampil konsisten */
+  -webkit-appearance: none;
+  appearance: none;
+  outline: none;
+  transition: background 150ms ease, transform 120ms ease;
 }
-.icon-wrap svg{width:var(--icon-svg-size);height:var(--icon-svg-size);display:block}
+
+/* hover/focus states */
+.close-circle:hover,
+.close-circle:focus{
+  background: rgba(255,255,255,0.12);
+  transform: translateY(-2px);
+}
+
+/* tetap sembunyikan saat sidebar collapsed */
+.sidebar.closed .close-circle{
+  opacity:0;
+  pointer-events:none;
+}
+
+/* jika Anda sudah menggunakan padding-top untuk .menu, gunakan padding-top instead of margin-top */
+/* contoh alternatif:
+.sidebar.closed .menu{ padding-top:46px; }
+*/
+
+/* brand */
+.brand h1{margin:6px 0 18px;font-size:22px;letter-spacing:0.6px}
+.sidebar.closed .brand h1{ display:none }
+
+/* Menu (make pills look the same as beranda.css) */
+.menu{display:flex;flex-direction:column;gap:14px;width:100%;align-items:center;margin-top:6px}
+.menu-item.pill{
+  border-radius:var(--pill-radius);
+  padding:12px 18px;
+  border:0;
+  cursor:pointer;
+  color:#111;
+  font-weight:600;
+  text-align:left;
+  min-width:160px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  transition:transform 200ms ease, box-shadow 200ms ease;
+}
+
+/* map pill position -> warna (no transaksi here) */
+/* Note: keep same order as HTML: Dasbor, Keuangan, Stok, Pengguna */
+.menu-item.pill:nth-child(1){background:#efefef;color:#111}    /* Dasbor */
+.menu-item.pill:nth-child(2){background:#10b759;color:#fff}    /* Keuangan (green) */
+.menu-item.pill:nth-child(3){background:#f6b24a;color:#fff}    /* Stok (orange) */
+.menu-item.pill:nth-child(4){background:#ff5252;color:#fff}    /* Pengguna (red) */
+
+.menu-item.pill.active{ transform:translateX(4px); box-shadow:0 6px 18px rgba(0,0,0,0.1); }
+
+/* icon and text inside pill */
+.mi-icon{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px}
+.mi-icon svg{width:20px;height:20px;display:block}
+.mi-text{white-space:nowrap;display:inline-block}
+
+/* collapsed sidebar: icon-only vertical */
+/* menu layout when collapsed: icons start below reserved header space */
+.sidebar.closed .menu{
+  gap:12px;
+  align-items:center;
+  margin-top:0;    /* reset kalau ada margin sebelumnya */
+  /* menu akan otomatis mulai di bawah karena sidebar padding-top yang besar */
+}
+.sidebar.closed .menu-item.pill{
+  width:48px; height:48px; min-width:0; border-radius:14px; padding:0; justify-content:center; background:transparent; box-shadow:none;
+}
+.sidebar.closed .menu-item.pill .mi-text{ display:none; }
+.sidebar.closed .menu-item.pill .mi-icon{
+  width:40px; height:40px; border-radius:10px; display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.06);
+}
+.sidebar.closed .menu-item.pill.active .mi-icon{ background: rgba(255,255,255,0.12); box-shadow:0 6px 14px rgba(0,0,0,0.08); }
+
+/* Content area styling matches beranda.css */
+.content{flex:1;display:flex;flex-direction:column;gap:18px}
+.topbar{display:flex;justify-content:flex-end;padding:6px 12px}
+.top-actions{display:flex;align-items:center;gap:12px}
+.icon-btn{border:0;background:transparent;cursor:pointer;padding:8px;border-radius:8px}
+.avatar{width:var(--avatar-size);height:var(--avatar-size);border-radius:50%;display:flex;align-items:center;justify-content:center;background:#ff4d4d;color:#fff;cursor:pointer;padding:6px}
+
+/* Grid and cards — match beranda.css sizes */
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:26px;align-items:start}
+.card{background:var(--card);border-radius:12px;display:flex;gap:14px;padding:18px;min-height:140px;box-shadow:0 6px 18px rgba(27,31,35,0.04);align-items:flex-start}
+.icon-wrap{min-width:var(--icon-wrap-size);min-height:var(--icon-wrap-size);border-radius:14px;display:flex;align-items:center;justify-content:center;background:#efefef}
+.icon-wrap svg{width:var(--icon-svg-size);height:var(--icon-svg-size)}
+.icon-wrap.green{background:rgba(10,161,74,0.06)}
+.icon-wrap.orange{background:rgba(246,178,74,0.06)}
+.icon-wrap.red{background:rgba(255,82,82,0.06)}
+.icon-wrap.blue{background:rgba(43,124,255,0.08)}
+
+.card-body h3{margin:0;font-size:20px}
+.card-body .muted{color:var(--muted);margin-top:6px;margin-bottom:12px}
+.finance-row{display:flex;gap:28px;margin-top:10px}
+.large{font-weight:800;font-size:20px;margin-top:6px}
+.users-row{display:flex;gap:30px;margin-top:10px}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-left:8px;vertical-align:middle}
+.dot.green{background:#2ecc71}
+.dot.red{background:#ff4d4d}
+.count{font-weight:800;font-size:20px;margin-top:6px}
 
 /* responsive */
 @media (max-width:900px){
   .page{flex-direction:column;padding:16px}
-  .sidebar{width:100%;border-radius:12px;flex-direction:row;justify-content:flex-start;align-items:center;padding:12px}
-  .menu{flex-direction:row;gap:8px;flex-wrap:wrap;margin-left:8px}
-  .menu-item.pill{width:auto;padding:8px 10px;min-width:84px}
+  .sidebar{width:100%;border-radius:12px;display:flex;flex-direction:row;align-items:center;gap:12px;padding:12px}
+  .menu{flex-direction:row;gap:8px;flex-wrap:wrap}
+  .menu-item.pill{min-width:100px;padding:8px 12px}
   .grid{grid-template-columns:1fr;gap:16px}
 }
-/* small screens: when collapsed, keep icons small */
-@media (max-width:480px){
-  .sidebar.closed{ width:56px }
-  .sidebar.closed .menu-item.pill .mi-icon{ width:36px;height:36px }
+
+/* Khusus halaman kasir: ubah warna pill di sidebar */
+body.role-kasir .menu-item.pill[data-tab="transaksi"]{
+  background: #2b7cff !important; /* biru */
+  color: #fff !important;
+}
+body.role-kasir .menu-item.pill[data-tab="transaksi"] .mi-icon svg,
+body.role-kasir .menu-item.pill[data-tab="transaksi"] .mi-icon svg * {
+  stroke: #ffffff !important;
+  fill: none !important;
+}
+
+/* Keuangan -> hijau */
+body.role-kasir .menu-item.pill[data-tab="keuangan"]{
+  background: #10b759 !important; /* hijau */
+  color: #fff !important;
+}
+body.role-kasir .menu-item.pill[data-tab="keuangan"] .mi-icon svg,
+body.role-kasir .menu-item.pill[data-tab="keuangan"] .mi-icon svg * {
+  stroke: #ffffff !important;
+  fill: none !important;
+}
+
+/* Ensure kasir collapsed sidebar uses the neutral icon-box look (same as admin) */
+
+/* When sidebar is collapsed, cancel per-role pill background and use neutral mi-icon bg */
+body.role-kasir .sidebar.closed .menu-item.pill[data-tab="transaksi"],
+body.role-kasir .sidebar.closed .menu-item.pill[data-tab="keuangan"] {
+  background: transparent !important; /* remove full-pill color */
+  color: inherit !important;
+}
+
+/* Make the icon container match the neutral collapsed style from beranda_admin */
+body.role-kasir .sidebar.closed .menu-item.pill[data-tab="transaksi"] .mi-icon,
+body.role-kasir .sidebar.closed .menu-item.pill[data-tab="keuangan"] .mi-icon {
+  background: rgba(255,255,255,0.06) !important;
+  box-shadow: none !important;
+}
+
+/* Keep the 'active' visual (slightly brighter) consistent with admin when collapsed */
+body.role-kasir .sidebar.closed .menu-item.pill.active .mi-icon {
+  background: rgba(255,255,255,0.12) !important;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.08) !important;
 }
