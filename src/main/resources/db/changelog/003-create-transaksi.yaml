@@ -29,7 +29,7 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: metode_pembayaran
-                  type: boolean
+                  type: VARCHAR(20)
                   constraints:
                     nullable: false
               - column:

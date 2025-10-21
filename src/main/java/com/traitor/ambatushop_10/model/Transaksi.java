@@ -2,17 +2,25 @@ package com.traitor.ambatushop_10.model;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Entity @Table(name = "transaksi") @Getter @Setter
+@Entity @Table(name = "transaksi")
+@Getter @Setter @NoArgsConstructor
 public class Transaksi {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     // @Column(name = "id")
     private Long idTransaksi;
+
+    public Transaksi(MetodePembayaran metode_pembayaran, LocalDateTime tanggal, Double total) {
+        this.metode_pembayaran = metode_pembayaran;
+        this.tanggal = tanggal;
+        this.total = total;
+    }
 
     @Column(nullable = false)
     private LocalDateTime tanggal;
@@ -21,7 +29,7 @@ public class Transaksi {
     private Double total;
 
     @Column(nullable = false)
-    private boolean metode_pembayaran; // true = tunai, false = QRIS
+    private MetodePembayaran metode_pembayaran; // true = tunai, false = QRIS
 
     @ManyToOne
     @JoinColumn(name = "akun_id", nullable = false) // Sesuai dengan dbnya, dikita itu base columnnya akun_id di db transaksi liquibase
@@ -30,5 +38,10 @@ public class Transaksi {
     // nunjuk ke field transaksi di TransaksiDetail
     @OneToMany(mappedBy = "transaksi", cascade = CascadeType.ALL)
     private List<TransaksiDetail> details;
+
+    public enum MetodePembayaran {
+        TUNAI,
+        NON_TUNAI
+    }
 
 }

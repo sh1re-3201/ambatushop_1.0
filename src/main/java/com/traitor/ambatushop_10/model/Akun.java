@@ -2,11 +2,12 @@ package com.traitor.ambatushop_10.model;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 
 @Entity @Table(name = "akun") 
-@Getter @Setter
+@Getter @Setter @NoArgsConstructor
 public class Akun {
 
     @Id
@@ -26,6 +27,13 @@ public class Akun {
     @Enumerated(EnumType.STRING)
     @Column(name = "role")
     private Role role;
+
+    public Akun(String username, String password, String email, Role role) {
+        this.username = username;
+        this.password = password;
+        this.email = email;
+        this.role = role;
+    }
 
     public enum Role {
         KASIR,
