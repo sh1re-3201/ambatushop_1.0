@@ -19,7 +19,7 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: jenis
-                  type: boolean # 0 = pemasukan, 1 = pengeluaran
+                  type: varchar(20) # ENUM Pemasukan atau Pengeluaran
                   constraints:
                     nullable: false
               - column:

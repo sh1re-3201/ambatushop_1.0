@@ -53,6 +53,12 @@ public class DataLoader implements CommandLineRunner {
         // Transaksi
         if (transaksiRepository.count() == 0) {
             transaksiRepository.save(new Transaksi(Transaksi.MetodePembayaran.TUNAI, LocalDateTime.now(), 27500.0));
+            transaksiRepository.save(new Transaksi(Transaksi.MetodePembayaran.TUNAI, LocalDateTime.now(), 12500.0));
+            transaksiRepository.save(new Transaksi(Transaksi.MetodePembayaran.NON_TUNAI, LocalDateTime.now(), 39000.0));
+
         }
+
+        // Keuangan
+//        if ()
     }
 }
