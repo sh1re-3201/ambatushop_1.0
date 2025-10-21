@@ -55,5 +55,8 @@ public class DataLoader implements CommandLineRunner {
             Transaksi transaksi = transaksiRepository.save(new Transaksi(Transaksi.MetodePembayaran.TUNAI, LocalDateTime.now(), 27500.0, kasir));
             transaksiRepository.save(transaksi);
         }
+
+        // Keuangan
+//        if ()
     }
 }

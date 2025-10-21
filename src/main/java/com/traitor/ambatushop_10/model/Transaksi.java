@@ -29,7 +29,7 @@ public class Transaksi {
     private Double total;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, name = "metode_pembayaran")
     private MetodePembayaran metode_pembayaran; // true = tunai, false = QRIS
 
     @ManyToOne
