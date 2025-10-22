@@ -2,11 +2,12 @@ package com.traitor.ambatushop_10.model;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
 @Table(name = "produk")
-@Getter @Setter
+@Getter @Setter @NoArgsConstructor
 public class Produk {
 
     @Id
@@ -22,4 +23,10 @@ public class Produk {
 
     @Column(nullable = false)
     private short stok;
+
+    public Produk(String namaProduk, Double harga, short stok) {
+        this.namaProduk = namaProduk;
+        this.harga = harga;
+        this.stok = stok;
+    }
 }

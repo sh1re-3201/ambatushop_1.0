@@ -2,12 +2,13 @@ package com.traitor.ambatushop_10.model;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
 @Table(name = "transaksi_detail")
 @Getter
-@Setter
+@Setter @NoArgsConstructor
 public class TransaksiDetail {
 
     @Id
@@ -33,4 +34,11 @@ public class TransaksiDetail {
     @Column(nullable = false)
     private double subtotal;
 
+    public TransaksiDetail(Long idTransaksiDetail, short jumlah, Produk produkId, double subtotal, Transaksi transaksi) {
+        this.idTransaksiDetail = idTransaksiDetail;
+        this.jumlah = jumlah;
+        this.produkId = produkId;
+        this.subtotal = subtotal;
+        this.transaksi = transaksi;
+    }
 }
