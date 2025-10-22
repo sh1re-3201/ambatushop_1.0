@@ -13,11 +13,12 @@ public class TransaksiDetail {
 
     @Id
     @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long idTransaksiDetail;
 
     // `mappedBy` itu harus menunjuk ke nama variabel many to one di
     // TransaksiDetail, bukan ke nama ID-nya.
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "transaksi_id", nullable = false)
     private Transaksi transaksi; // Sama seperti di akun, nanti yg dipanggila bukan idTransaksi.id tapi transaksi,idTransaksi
 
