@@ -13,13 +13,14 @@ public class Transaksi {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    // @Column(name = "id")
+    @Column(name = "id")
     private Long idTransaksi;
 
     public Transaksi(MetodePembayaran metode_pembayaran, LocalDateTime tanggal, Double total,Akun akun) {
         this.metode_pembayaran = metode_pembayaran;
         this.tanggal = tanggal;
         this.total = total;
+        this.akun = akun;
     }
 
     @Column(nullable = false)
@@ -36,8 +37,10 @@ public class Transaksi {
     @JoinColumn(name = "akun_id", nullable = false) // Sesuai dengan dbnya, dikita itu base columnnya akun_id di db transaksi liquibase
     private Akun akun; // Menggunakan akun agar nanti dipakainya bukan langsung idPegawad tapi akundPegawai
 
-    private long akunId = akun.getIdPegawai();
-
+    public void setAkunId(Long akunId)
+    {
+        this.akun = Akun.ref(akunId);
+    }
 
     // nunjuk ke field transaksi di TransaksiDetail
     @OneToMany(mappedBy = "transaksi", cascade = CascadeType.ALL)

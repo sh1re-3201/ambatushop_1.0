@@ -52,8 +52,8 @@ public class DataLoader implements CommandLineRunner {
         Akun kasir = akunRepository.findByUsername("kasir").orElseThrow(() -> new IllegalStateException("Akun tidak ditemukan"));
         // Transaksi
         if (transaksiRepository.count() == 0) {
-            Transaksi transaksi = transaksiRepository.save(new Transaksi(Transaksi.MetodePembayaran.TUNAI, LocalDateTime.now(), 27500.0, kasir));
-            transaksiRepository.save(transaksi);
+            transaksiRepository.save(new Transaksi(Transaksi.MetodePembayaran.TUNAI, LocalDateTime.now(), 27500.0, kasir));
+            transaksiRepository.save(new Transaksi(Transaksi.MetodePembayaran.TUNAI, LocalDateTime.now(), 27500.0, kasir));
         }
 
         // Keuangan

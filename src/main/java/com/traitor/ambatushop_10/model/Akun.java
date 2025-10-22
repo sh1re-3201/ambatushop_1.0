@@ -35,6 +35,13 @@ public class Akun {
         this.role = role;
     }
 
+    public static Akun ref(long id)
+    {
+     Akun a = new Akun();
+     a.setIdPegawai(id);
+     return a;
+    }
+
     public enum Role {
         KASIR,
         MANAJER,
