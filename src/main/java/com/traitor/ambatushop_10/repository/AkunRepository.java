@@ -6,7 +6,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional; /* Untuk menyertakan alternatif ketika mereferensikan sebuah objek dengan tipe T yang bisa saja null
                            // intinya nanti bakalan mencegah NullPointerException, bisa aja pas di findById tapi ga ada, nah nanti 
                            // - bakalan dihindari error saat dicompile maupun saat dirun */
-
+import java.util.List;
 /**
  * AkunRepository akan extends JpaRepository untuk mendapatkan CRUD Operation-nya
  * <Akun, Long>
@@ -21,4 +21,5 @@ public interface AkunRepository extends JpaRepository<Akun, Long> {
     Optional<Akun> getAkunByIdPegawai(long idPegawai);
     Optional<Akun> findByEmail(String email);
     boolean existsByUsername(String username);
+    List<Akun> findByRole(Akun.Role role);
 }
