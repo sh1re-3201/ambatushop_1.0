@@ -5,9 +5,13 @@ import com.traitor.ambatushop_10.dto.LoginRequest;
 import com.traitor.ambatushop_10.model.Akun;
 import com.traitor.ambatushop_10.repository.AkunRepository;
 import com.traitor.ambatushop_10.service.JwtService;
+
+import jakarta.servlet.http.HttpServletRequest; // Kayaknya import ini yg bener untuk hanlde http
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -21,16 +25,16 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
-    
+
     private final AuthenticationManager authenticationManager;
     private final AkunRepository akunRepository;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
 
-    public AuthController(AuthenticationManager authenticationManager, 
-                         AkunRepository akunRepository, 
-                         JwtService jwtService,
-                         PasswordEncoder passwordEncoder) {
+    public AuthController(AuthenticationManager authenticationManager,
+            AkunRepository akunRepository,
+            JwtService jwtService,
+            PasswordEncoder passwordEncoder) {
         this.authenticationManager = authenticationManager;
         this.akunRepository = akunRepository;
         this.jwtService = jwtService;
@@ -41,36 +45,35 @@ public class AuthController {
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
         logger.info("=== LOGIN ATTEMPT STARTED ===");
         logger.info("Username: {}", request.username());
-        
+
         try {
             // STEP 1: Cek apakah user ada di database
             logger.info("Step 1: Checking user in database...");
             Akun akun = akunRepository.findByUsername(request.username())
-                .orElseThrow(() -> {
-                    logger.error("User not found: {}", request.username());
-                    return new RuntimeException("User tidak ditemukan");
-                });
-            
+                    .orElseThrow(() -> {
+                        logger.error("User not found: {}", request.username());
+                        return new RuntimeException("User tidak ditemukan");
+                    });
+
             logger.info("User found: {} with role: {}", akun.getUsername(), akun.getRole());
             logger.info("DB Password (hashed): {}", akun.getPassword());
-            
+
             // STEP 2: Manual password check untuk debugging
             logger.info("Step 2: Manual password check...");
             boolean passwordMatches = passwordEncoder.matches(request.password(), akun.getPassword());
             logger.info("Password matches: {}", passwordMatches);
-            
+
             if (!passwordMatches) {
                 logger.error("Password does not match for user: {}", request.username());
                 return ResponseEntity.status(401)
-                    .body(new AuthResponse(null, null, null, "Password salah"));
+                        .body(new AuthResponse(null, null, null, "Password salah"));
             }
 
             // STEP 3: Try authentication dengan Spring Security
             logger.info("Step 3: Attempting Spring Security authentication...");
             Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.username(), request.password())
-            );
-            
+                    new UsernamePasswordAuthenticationToken(request.username(), request.password()));
+
             logger.info("Spring Security authentication successful");
 
             // STEP 4: Generate JWT token
@@ -80,23 +83,44 @@ public class AuthController {
 
             logger.info("=== LOGIN SUCCESSFUL ===");
             return ResponseEntity.ok(
-                new AuthResponse(token, akun.getRole().name(), akun.getUsername(), "Login berhasil")
-            );
+                    new AuthResponse(token, akun.getRole().name(), akun.getUsername(), "Login berhasil"));
 
         } catch (BadCredentialsException e) {
             logger.error("Bad credentials for user: {}", request.username(), e);
             return ResponseEntity.status(401)
-                .body(new AuthResponse(null, null, null, "Username atau password salah"));
+                    .body(new AuthResponse(null, null, null, "Username atau password salah"));
         } catch (AuthenticationException e) {
             logger.error("Authentication failed for user: {}", request.username(), e);
             return ResponseEntity.status(401)
-                .body(new AuthResponse(null, null, null, "Autentikasi gagal: " + e.getMessage()));
+                    .body(new AuthResponse(null, null, null, "Autentikasi gagal: " + e.getMessage()));
         } catch (Exception e) {
             logger.error("UNEXPECTED ERROR during login: ", e);
             e.printStackTrace(); // Print full stack trace ke console
             return ResponseEntity.status(500)
-                .body(new AuthResponse(null, null, null, "Terjadi kesalahan sistem: " + e.getMessage()));
+                    .body(new AuthResponse(null, null, null, "Terjadi kesalahan sistem: " + e.getMessage()));
         }
+    }
+
+    @PostMapping("/logout")
+    @PreAuthorize("hasAnyRole('KASIR', 'MANAJER', 'ADMIN')")
+    public String logout(HttpServletRequest request) {
+        // Log aktivitas logout (optional)
+        String token = extractTokenFromRequest(request);
+        String username = jwtService.extractUsername(token);
+
+        System.out.println("User logout: " + username);
+
+        // Kan pakennya JWT stateless, jadi ga bisa invalidate token di server
+        // Jadi client yang harus hapus token dari storage (total isolasikan?)
+        return "Logout berhasil. Silakan hapus token di client.";
+    }
+
+    private String extractTokenFromRequest(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+        return null;
     }
 
     @GetMapping("/test")
