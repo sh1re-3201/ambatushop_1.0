@@ -22,10 +22,11 @@ public class DataLoader implements CommandLineRunner {
 
     private final PasswordEncoder passwordEncoder;
 
-    public DataLoader(AkunRepository akunRepository, ProdukRepository produkRepository, TransaksiRepository transaksiRepository, PasswordEncoder passwordEncoder) {
+    public DataLoader(AkunRepository akunRepository, ProdukRepository produkRepository, TransaksiRepository transaksiRepository, TransaksiDetailRepository transaksiDetailRepository, PasswordEncoder passwordEncoder) {
         this.akunRepository = akunRepository;
         this.produkRepository = produkRepository;
         this.transaksiRepository = transaksiRepository;
+        this.transaksiDetailRepository = transaksiDetailRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
