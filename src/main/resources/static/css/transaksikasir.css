@@ -1,0 +1,134 @@
+/* ======= STYLE KHUSUS HALAMAN TRANSAKSI ======= */
+.transaksi-section {
+  padding: 0;
+}
+
+.transaksi-header {
+  margin-bottom: 24px;
+}
+
+.transaksi-header h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #333;
+  margin: 0 0 8px 0;
+}
+
+.transaksi-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #666;
+  margin: 0 0 16px 0;
+}
+
+.btn-new-transaction {
+  background: #2b7cff;
+  color: #fff;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-new-transaction:hover {
+  background: #1f6fc2;
+}
+
+/* ======= TABLE ======= */
+.table-wrapper {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.transaksi-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.transaksi-table thead {
+  background: #f8f9fa;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.transaksi-table th {
+  padding: 16px 20px;
+  text-align: left;
+  font-weight: 600;
+  color: #495057;
+  font-size: 14px;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.transaksi-table td {
+  padding: 16px 20px;
+  text-align: left;
+  border-bottom: 1px solid #e9ecef;
+  font-size: 14px;
+  color: #212529;
+}
+
+.transaksi-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.transaksi-table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+/* ======= STATUS BADGES ======= */
+.status {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  min-width: 80px;
+}
+
+.status.berlangsung {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+.status.selesai {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+/* ======= RESPONSIVE ======= */
+@media (max-width: 768px) {
+  .transaksi-header {
+    text-align: center;
+  }
+
+  .btn-new-transaction {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .table-wrapper {
+    border-radius: 8px;
+    margin: 0 -16px;
+  }
+
+  .transaksi-table {
+    font-size: 13px;
+  }
+
+  .transaksi-table th,
+  .transaksi-table td {
+    padding: 12px 16px;
+  }
+}
