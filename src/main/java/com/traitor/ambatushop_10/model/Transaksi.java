@@ -24,7 +24,7 @@ public class Transaksi {
     }
 
     @Column(nullable = false)
-    private LocalDateTime tanggal;
+    private LocalDateTime tanggal = LocalDateTime.now();
 
     @Column(nullable = false)
     private Double total;
