@@ -35,9 +35,9 @@ public class DataLoader implements CommandLineRunner {
 
         // Akun
         if (akunRepository.count() == 0) {
-            akunRepository.save(new Akun("admin", passwordEncoder.encode("admin123"), "admin@example.com", Akun.Role.ADMIN));
-            akunRepository.save(new Akun("kasir", passwordEncoder.encode("kasir123"), "kasir@example.com", Akun.Role.KASIR));
-            akunRepository.save(new Akun("manajer", passwordEncoder.encode("manajer123"), "manajer@example.com", Akun.Role.MANAJER));
+            akunRepository.save(new Akun("admin", passwordEncoder.encode("Admin123"), "admin@example.com", Akun.Role.ADMIN));
+            akunRepository.save(new Akun("kasir", passwordEncoder.encode("Kasir123"), "kasir@example.com", Akun.Role.KASIR));
+            akunRepository.save(new Akun("manajer", passwordEncoder.encode("Manajer123"), "manajer@example.com", Akun.Role.MANAJER));
         }
 
         // Produk
