@@ -1,23 +1,38 @@
 package com.traitor.ambatushop_10.controller;
 
 import com.traitor.ambatushop_10.model.Transaksi;
-import com.traitor.ambatushop_10.repository.TransaksiRepository;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.traitor.ambatushop_10.service.TransaksiService;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
+@RequestMapping("/api/transaksi")
 public class TransaksiController {
 
-    private final TransaksiRepository transaksiRepository;
+    private final TransaksiService transaksiService;
 
-    public TransaksiController(TransaksiRepository transaksiRepository) {
-        this.transaksiRepository = transaksiRepository;
+    public TransaksiController(TransaksiService transaksiService) {
+        this.transaksiService = transaksiService;
     }
 
-    @GetMapping("/transaksi")
+    @PostMapping
+    @PreAuthorize("hasAnyRole('KASIR')")
+    public Transaksi createTransaksi(@RequestBody Transaksi transaksi) {
+        return transaksiService.createTransakksi(transaksi);
+    }
+
+    @GetMapping
+    @PreAuthorize("hasAnyRole('KASIR','MANAJER')")
     public List<Transaksi> getTransaksi() {
-        return transaksiRepository.findAll(); // menampilkan data dari database dengan format JSON
+        return transaksiService.getAllTransaksi();
+    }
+
+    @DeleteMapping
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    public String deleteTransaksi(@PathVariable long id) {
+        transaksiService.deleteTransakksi(id);
+        return "Transaksi Berhasil dihapus";
     }
 }
