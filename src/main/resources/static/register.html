@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - AmbatuShop</title>
+    <link rel="stylesheet" href="css/login.css">
+</head>
+<body>
+    <div class="login-container">
+        <!-- Store Icon + Brand Name -->
+        <div class="brand-section">
+            <div class="store-icon">
+                <svg width="70" height="60" viewBox="0 0 80 70" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Store building -->
+                    <rect x="15" y="25" width="50" height="40" fill="none" stroke="#4FB3D9" stroke-width="3"/>
+                    <!-- Store roof -->
+                    <path d="M 10 25 L 40 10 L 70 25 Z" fill="#4FB3D9"/>
+                    <!-- Store door -->
+                    <rect x="32" y="43" width="16" height="22" fill="#4FB3D9"/>
+                    <!-- Store windows -->
+                    <rect x="20" y="32" width="10" height="8" fill="#4FB3D9"/>
+                    <rect x="50" y="32" width="10" height="8" fill="#4FB3D9"/>
+                </svg>
+            </div>
+            <h1 class="brand-name">ambatushop</h1>
+        </div>
+
+        <!-- Register Form -->
+        <form id="registerForm" class="login-form">
+            <input 
+                type="text" 
+                id="namaLengkap" 
+                name="namaLengkap"
+                class="input-field" 
+                placeholder="Full Name"
+                required>
+            
+            <input 
+                type="text" 
+                id="username" 
+                name="username"
+                class="input-field" 
+                placeholder="Username"
+                required>
+            
+            <input 
+                type="email" 
+                id="email" 
+                name="email"
+                class="input-field" 
+                placeholder="Email"
+                required>
+            
+            <input 
+                type="password" 
+                id="password" 
+                name="password"
+                class="input-field" 
+                placeholder="Password"
+                required>
+            
+            <input 
+                type="password" 
+                id="confirmPassword" 
+                name="confirmPassword"
+                class="input-field" 
+                placeholder="Confirm Password"
+                required>
+            
+            <input 
+                type="tel" 
+                id="nomorTelepon" 
+                name="nomorTelepon"
+                class="input-field" 
+                placeholder="Phone Number"
+                required>
+            
+            <button type="submit" class="login-button">
+                REGISTER
+            </button>
+            
+            <!-- Error Message -->
+            <div id="errorMessage" class="error-message" role="alert"></div>
+        </form>
+
+        <!-- Login Link -->
+        <div class="register-link">
+            <a href="login.html">Already have an account? Login here</a>
+        </div>
+    </div>
+
+    <script src="js/register.js"></script>
+</body>
+</html>

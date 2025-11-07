@@ -1,0 +1,206 @@
+/* ========== SOCIAL WIRELESS LOGIN PAGE ========== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', 'Helvetica', sans-serif;
+    height: 100vh;
+    background: #D3D3D3;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Login Container */
+.login-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 600px;
+    padding: 40px 20px;
+}
+
+/* Brand Section */
+.brand-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 40px;
+}
+
+.store-icon {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 15px;
+    filter: drop-shadow(0 5px 10px rgba(79, 179, 217, 0.2));
+}
+
+.brand-name {
+    font-size: 48px;
+    font-weight: bold;
+    color: #4FB3D9;
+    text-align: center;
+    margin: 0;
+    letter-spacing: 1px;
+}
+
+/* Login Form */
+.login-form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.input-field {
+    width: 100%;
+    padding: 20px 24px;
+    border: none;
+    border-radius: 0;
+    background: #FFFFFF;
+    font-size: 18px;
+    color: #333;
+    outline: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.input-field::placeholder {
+    color: #888;
+    font-weight: 400;
+}
+
+.input-field:focus {
+    box-shadow: 0 4px 8px rgba(79, 179, 217, 0.3);
+}
+
+.login-button {
+    width: 100%;
+    padding: 20px;
+    border: none;
+    border-radius: 0;
+    background: #4FB3D9;
+    color: #FFFFFF;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+.login-button:hover {
+    background: #3A9BC0;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+    transform: translateY(-2px);
+}
+
+.login-button:active {
+    transform: translateY(0);
+}
+
+/* Register Link */
+.register-link {
+    margin-top: 25px;
+    text-align: center;
+}
+
+.register-link a {
+    color: #4FB3D9;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.register-link a:hover {
+    color: #3A9BC0;
+    text-decoration: underline;
+}
+
+/* Error Message */
+.error-message {
+    text-align: center;
+    color: #D32F2F;
+    font-size: 14px;
+    padding: 10px;
+    background: #FFEBEE;
+    border-radius: 4px;
+    display: none;
+    margin-top: 10px;
+}
+
+.error-message.show {
+    display: block;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    body {
+        padding: 10px 0;
+    }
+
+    .login-container {
+        padding: 20px;
+    }
+
+    .store-icon svg {
+        width: 70px;
+        height: 60px;
+    }
+
+    .brand-name {
+        font-size: 38px;
+    }
+
+    .input-field {
+        padding: 16px 20px;
+        font-size: 16px;
+    }
+
+    .login-button {
+        padding: 16px;
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 5px 0;
+    }
+
+    .login-container {
+        padding: 15px;
+    }
+
+    .store-icon svg {
+        width: 60px;
+        height: 50px;
+    }
+
+    .brand-name {
+        font-size: 32px;
+    }
+
+    .input-field {
+        padding: 14px 18px;
+        font-size: 15px;
+    }
+
+    .login-button {
+        padding: 14px;
+        font-size: 15px;
+    }
+
+    .register-link {
+        margin-top: 15px;
+    }
+
+    .register-link a {
+        font-size: 13px;
+    }
+}
