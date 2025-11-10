@@ -1,6 +1,9 @@
 package com.traitor.ambatushop_10.config;
 
 import com.traitor.ambatushop_10.service.CustomUserDetailsService;
+
+import java.util.List;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -17,7 +20,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity(prePostEnabled = true)  
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
@@ -28,30 +31,70 @@ public class SecurityConfig {
         this.userDetailsService = userDetailsService;
     }
 
+    // @Bean
+    // public SecurityFilterChain securityFilterChain(HttpSecurity http) throws
+    // Exception {
+    // http
+    // .csrf(csrf -> csrf.disable())
+    // .sessionManagement(session -> session
+    // .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+    // .authorizeHttpRequests(authz -> authz
+    // // Public endpoints - HTML pages and static resources
+    // .requestMatchers("/", "/login.html", "/register.html", "/css/**", "/js/**",
+    // "/images/**")
+    // .permitAll()
+    // .requestMatchers("/api/auth/**").permitAll()
+
+    // // Page routes - allow access to HTML pages (authentication will be handled
+    // by
+    // // frontend)
+    // .requestMatchers("/admin", "/admin/**", "/manager", "/manager/**",
+    // "/manajer", "/manajer/**")
+    // .permitAll()
+    // .requestMatchers("/kasir", "/kasir/**").permitAll()
+
+    // // API endpoints - protected by role
+    // .requestMatchers("/api/admin/**").hasRole("ADMIN")
+    // .requestMatchers("/api/manajer/**").hasAnyRole("MANAJER", "ADMIN")
+    // .requestMatchers("/api/kasir/**").hasAnyRole("KASIR", "MANAJER", "ADMIN")
+    // .requestMatchers("/api/produk/**").hasAnyRole("KASIR", "MANAJER", "ADMIN")
+
+    // // Default - butuh authentication untuk API lainnya
+    // .anyRequest().authenticated())
+    // .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+
+    // return http.build();
+    // }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable())
-            .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
-            .authorizeHttpRequests(authz -> authz
-                // Public endpoints
-                .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/produk/test").permitAll()
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                .requestMatchers("/api/v1/auth/**").permitAll()
-                .requestMatchers("/error").permitAll()
-                
-                // Role-based access
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                .requestMatchers("/api/manajer/**").hasAnyRole("MANAJER", "ADMIN")
-                .requestMatchers("/api/kasir/**").hasAnyRole("KASIR", "MANAJER", "ADMIN")
-                
-                // Default - butuh authentication
-                .anyRequest().authenticated()
-            )
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(authz -> authz
+                        // Static resources
+                        .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
+
+                        // HTML files - allow direct access
+                        .requestMatchers("/*.html").permitAll()
+
+                        // Controller routes - allow
+                        .requestMatchers("/", "/login", "/admin", "/admin/**", "/manager/**", "/manajer/**",
+                                "/kasir/**")
+                        .permitAll()
+
+                        // API auth
+                        .requestMatchers("/api/auth/**").permitAll()
+
+                        // Protect API endpoints
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/manajer/**").hasAnyRole("MANAJER", "ADMIN")
+                        .requestMatchers("/api/kasir/**").hasAnyRole("KASIR", "MANAJER", "ADMIN")
+                        .requestMatchers("/api/produk/**").hasAnyRole("KASIR", "MANAJER", "ADMIN")
+
+                        .anyRequest().authenticated())
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

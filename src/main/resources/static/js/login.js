@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const password = passwordInput.value;
 
         if (!userId) {
-            showError('User ID tidak boleh kosong');
+            showError('Username tidak boleh kosong');
             userIdInput.focus();
             return false;
         }
@@ -57,11 +57,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ========== LOADING STATE ==========
     function setLoading(isLoading) {
-        okButton.disabled = isLoading;
+        loginButton.disabled = isLoading;
         if (isLoading) {
-            okButton.classList.add('loading');
+            loginButton.classList.add('loading');
+            loginButton.textContent = 'LOGGING IN...';
         } else {
-            okButton.classList.remove('loading');
+            loginButton.classList.remove('loading');
+            loginButton.textContent = 'LOGIN';
         }
     }
 
@@ -75,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const userId = userIdInput.value.trim();
+        const username = userIdInput.value.trim();
         const password = passwordInput.value;
 
         // Show loading state
@@ -89,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    username: userId,
+                    username: username,
                     password: password
                 })
             });
@@ -100,25 +102,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Login successful
                 console.log('Login successful:', data);
 
-                // Save token if provided
-                if (data.token) {
-                    localStorage.setItem('authToken', data.token);
-                }
-
-                // Save user info
-                if (data.user) {
-                    localStorage.setItem('userInfo', JSON.stringify(data.user));
-                }
+                // Save token and user info
+                localStorage.setItem('authToken', data.token);
+                localStorage.setItem('userRole', data.role);
+                localStorage.setItem('username', data.username);
 
                 // Redirect based on role
-                redirectToRolePage(data.user?.role || data.role);
+                redirectToRolePage(data.role);
             } else {
-                // Login failed
-                showError(data.message || 'Login gagal. Periksa User ID dan Password Anda.');
+                // Login failed - handle different error formats
+                const errorMsg = data.message ||
+                    data.details ||
+                    'Login gagal. Periksa username dan password Anda.';
+                showError(errorMsg);
             }
         } catch (error) {
             console.error('Login error:', error);
-            showError('Terjadi kesalahan. Silakan coba lagi.');
+            showError('Terjadi kesalahan koneksi. Silakan coba lagi.');
         } finally {
             // Hide loading state
             setLoading(false);
@@ -127,18 +127,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ========== REDIRECT BASED ON ROLE ==========
     function redirectToRolePage(role) {
-        const rolePages = {
-            'KASIR': '/kasir_dashboard.html',
-            'MANAJER': '/manajer_dashboard.html',
-            'ADMIN': '/admin_dashboard.html'
-        };
+        let targetPage;
 
-        const targetPage = rolePages[role] || '/kasir_dashboard.html';
-        
+        if (role === 'ADMIN' ) {
+            targetPage = 'beranda_admin.html';
+        } else if (role === 'KASIR') {
+            targetPage = 'kasir_dashboard.html';
+        } else if (role === 'MANAJER'){
+            targetPage = 'manajer_dashboard.html';
+        }
+        else {
+            targetPage = 'login.html';
+        }
+
+        console.log('Redirecting to:', targetPage, 'for role:', role);
+
         // Smooth transition before redirect
         loginForm.style.opacity = '0';
         loginForm.style.transform = 'translateY(-20px)';
-        
+
         setTimeout(() => {
             window.location.href = targetPage;
         }, 300);
@@ -159,11 +166,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // ========== FOCUS ANIMATION ==========
     const inputs = [userIdInput, passwordInput];
     inputs.forEach(input => {
-        input.addEventListener('focus', function() {
+        input.addEventListener('focus', function () {
             this.style.transform = 'scale(1.02)';
         });
 
-        input.addEventListener('blur', function() {
+        input.addEventListener('blur', function () {
             this.style.transform = 'scale(1)';
         });
     });

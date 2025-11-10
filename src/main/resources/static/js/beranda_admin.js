@@ -1,8 +1,12 @@
 // Kontrol sidebar (toggle open/close) — memperbaiki referensi elemen dan mencegah error jika elemen tidak ada.
 document.addEventListener('DOMContentLoaded', () => {
+    // Check authentication using AuthHelper
+    const auth = AuthHelper.checkAuth();
+    if (!auth) return;
+
     const sidebar = document.getElementById('sidebar');
-    const closeBtn = document.getElementById('sidebar-close');     // tombol "×"
-    const openBtn = document.getElementById('sidebar-open-btn');   // hamburger di content area
+    const closeBtn = document.getElementById('sidebar-close');
+    const openBtn = document.getElementById('sidebar-open-btn');
     const menuButtons = document.querySelectorAll('.menu-item.pill');
 
     // Avatar dropdown
@@ -18,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const sunIcon = document.querySelector('.sun-icon');
     const moonIcon = document.querySelector('.moon-icon');
 
-    if (!sidebar) return; // tidak ada sidebar -> hentikan
+    if (!sidebar) return;
 
     // Load saved theme
     const savedTheme = localStorage.getItem('theme') || 'light';
@@ -45,24 +49,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // pastikan state awal
+    // Sidebar functionality (same as before)
     sidebar.classList.remove('closed');
     sidebar.setAttribute('aria-hidden', 'false');
 
-    // close (×) -> collapse ke icon-only
     closeBtn?.addEventListener('click', (e) => {
         e.stopPropagation();
         sidebar.classList.add('closed');
         sidebar.setAttribute('aria-hidden', 'true');
     });
 
-    // hamburger open button (di content area) -> buka sidebar
     openBtn?.addEventListener('click', (e) => {
         e.stopPropagation();
         sidebar.classList.remove('closed');
         sidebar.setAttribute('aria-hidden', 'false');
-        
-        // fokus ke menu pertama
         const first = document.querySelector('.menu-item.pill');
         first?.focus();
     });
@@ -73,7 +73,6 @@ document.addEventListener('DOMContentLoaded', () => {
         avatarDropdown?.classList.toggle('show');
     });
 
-    // Close dropdown when clicking outside
     document.addEventListener('click', (e) => {
         if (avatarDropdown && !avatarDropdown.contains(e.target) && !avatarBtn.contains(e.target)) {
             avatarDropdown.classList.remove('show');
@@ -84,32 +83,22 @@ document.addEventListener('DOMContentLoaded', () => {
     avatarOptions.forEach(option => {
         option.addEventListener('click', () => {
             const avatarSrc = option.src;
-            
-            // Update current avatar
             currentAvatar.src = avatarSrc;
             currentAvatar.style.display = 'block';
             defaultAvatar.style.display = 'none';
-            
-            // Update selected state
             avatarOptions.forEach(opt => opt.classList.remove('selected'));
             option.classList.add('selected');
-            
-            // Save to localStorage
             localStorage.setItem('selectedAvatar', avatarSrc);
-            
-            // Close dropdown
             avatarDropdown.classList.remove('show');
         });
     });
 
-    // Load saved avatar on page load
+    // Load saved avatar
     const savedAvatar = localStorage.getItem('selectedAvatar');
     if (savedAvatar) {
         currentAvatar.src = savedAvatar;
         currentAvatar.style.display = 'block';
         defaultAvatar.style.display = 'none';
-        
-        // Mark the selected avatar
         avatarOptions.forEach(option => {
             if (option.src === savedAvatar) {
                 option.classList.add('selected');
@@ -117,21 +106,19 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Logout functionality
+    // Logout functionality using AuthHelper
     logoutBtn?.addEventListener('click', () => {
         if (confirm('Apakah Anda yakin ingin logout?')) {
-            localStorage.removeItem('selectedAvatar');
-            window.location.href = '/logout';
+            AuthHelper.logout();
         }
     });
 
-    // visual: aktivasi menu (highlight kartu yang ada)
+    // Menu functionality
     menuButtons.forEach(btn => {
         btn.addEventListener('click', () => {
             menuButtons.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
 
-            // reset style semua card
             document.querySelectorAll('.card.feature').forEach(c => {
                 c.style.opacity = '1';
                 c.style.transform = 'none';
@@ -156,5 +143,60 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // (opsional) jangan crash bila user klik di luar; tidak auto-close supaya UX stabil
+    // Load dashboard data
+    loadDashboardData(auth.userRole);
 });
+
+async function loadDashboardData(role) {
+    try {
+        // Load financial data
+        const financeResponse = await fetch('http://localhost:8080/api/keuangan/summary', {
+            headers: AuthHelper.getAuthHeaders()
+        });
+        
+        if (financeResponse.ok) {
+            const financeData = await financeResponse.json();
+            updateFinanceCard(financeData);
+        }
+
+        // Load user data for admin
+        if (role === 'ADMIN') {
+            const usersResponse = await fetch('http://localhost:8080/api/admin/akun', {
+                headers: AuthHelper.getAuthHeaders()
+            });
+            
+            if (usersResponse.ok) {
+                const usersData = await usersResponse.json();
+                updateUsersCard(usersData);
+            }
+        }
+
+    } catch (error) {
+        console.error('Error loading dashboard data:', error);
+    }
+}
+
+function updateFinanceCard(data) {
+    const pemasukanElement = document.querySelector('#card-keuangan .finance-row div:first-child .value');
+    const pengeluaranElement = document.querySelector('#card-keuangan .finance-row div:last-child .value');
+    
+    if (pemasukanElement) {
+        pemasukanElement.textContent = `Rp ${formatCurrency(data.pemasukan || 2865000)}`;
+    }
+    
+    if (pengeluaranElement) {
+        pengeluaranElement.textContent = `Rp ${formatCurrency(data.pengeluaran || 2130000)}`;
+    }
+}
+
+function updateUsersCard(users) {
+    const onlineElement = document.querySelector('#card-pengguna .users-row div:first-child .value');
+    const offlineElement = document.querySelector('#card-pengguna .users-row div:last-child .value');
+    
+    if (onlineElement) onlineElement.textContent = users.length || 2;
+    if (offlineElement) offlineElement.textContent = '0';
+}
+
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('id-ID').format(amount);
+}
