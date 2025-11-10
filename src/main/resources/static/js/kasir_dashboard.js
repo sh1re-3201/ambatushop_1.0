@@ -1,9 +1,10 @@
-// Kontrol sidebar (toggle open/close) — memperbaiki referensi elemen dan mencegah error jika elemen tidak ada.
+// Kasir Dashboard JavaScript - Following Manajer Pattern
 document.addEventListener('DOMContentLoaded', () => {
     const sidebar = document.getElementById('sidebar');
-    const closeBtn = document.getElementById('sidebar-close');     // tombol "×"
-    const openBtn = document.getElementById('sidebar-open-btn');   // hamburger di content area
-    const menuButtons = document.querySelectorAll('.menu-item.pill');
+    const closeBtn = document.getElementById('sidebar-close');
+    const openBtn = document.getElementById('sidebar-open-btn');
+
+    if (!sidebar) return; // tidak ada sidebar -> hentikan
 
     // Avatar dropdown
     const avatarBtn = document.getElementById('avatar-btn');
@@ -17,8 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const themeToggle = document.getElementById('theme-toggle');
     const sunIcon = document.querySelector('.sun-icon');
     const moonIcon = document.querySelector('.moon-icon');
-
-    if (!sidebar) return; // tidak ada sidebar -> hentikan
 
     // Load saved theme
     const savedTheme = localStorage.getItem('theme') || 'light';
@@ -45,26 +44,30 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // pastikan state awal
-    sidebar.classList.remove('closed');
-    sidebar.setAttribute('aria-hidden', 'false');
+    // Pastikan state awal sidebar
+    // Di mobile, sidebar dimulai dengan closed
+    if (window.innerWidth <= 768) {
+        sidebar.classList.add('closed');
+        sidebar.setAttribute('aria-hidden', 'true');
+    } else {
+        sidebar.classList.remove('closed');
+        sidebar.setAttribute('aria-hidden', 'false');
+    }
 
-    // close (×) -> collapse ke icon-only
+    // Close (×) -> tutup sidebar
     closeBtn?.addEventListener('click', (e) => {
         e.stopPropagation();
         sidebar.classList.add('closed');
         sidebar.setAttribute('aria-hidden', 'true');
+        console.log('Sidebar closed');
     });
 
-    // hamburger open button (di content area) -> buka sidebar
+    // Hamburger open button -> buka sidebar
     openBtn?.addEventListener('click', (e) => {
         e.stopPropagation();
         sidebar.classList.remove('closed');
         sidebar.setAttribute('aria-hidden', 'false');
-        
-        // fokus ke menu pertama
-        const first = document.querySelector('.menu-item.pill');
-        first?.focus();
+        console.log('Sidebar opened');
     });
 
     // Avatar Dropdown functionality
@@ -124,37 +127,4 @@ document.addEventListener('DOMContentLoaded', () => {
             window.location.href = '/logout';
         }
     });
-
-    // visual: aktivasi menu (highlight kartu yang ada)
-    menuButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            menuButtons.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-
-            // reset style semua card
-            document.querySelectorAll('.card.feature').forEach(c => {
-                c.style.opacity = '1';
-                c.style.transform = 'none';
-                c.style.boxShadow = '0 12px 30px rgba(27,31,35,0.04)';
-            });
-
-            const target = btn.getAttribute('data-tab');
-            const cardMap = {
-                'keuangan': '#card-keuangan',
-                'stok': '#card-stok',
-                'pengguna': '#card-pengguna',
-                'dashboard': null
-            };
-            const selector = cardMap[target];
-            if (selector) {
-                const el = document.querySelector(selector);
-                if (el) {
-                    el.style.transform = 'translateY(-6px)';
-                    el.style.boxShadow = '0 18px 40px rgba(27,31,35,0.08)';
-                }
-            }
-        });
-    });
-
-    // (opsional) jangan crash bila user klik di luar; tidak auto-close supaya UX stabil
 });
