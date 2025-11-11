@@ -14,6 +14,7 @@
   <img alt="GitHub Created At" src="https://img.shields.io/github/created-at/sh1re-3201/ambatushop_1.0?color=green">
   <img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/w/sh1re-3201/ambatushop_1.0?style=plastic&color=green">
   <img alt="GitHub contributors" src="https://img.shields.io/github/contributors/sh1re-3201/ambatushop_1.0?color=green">
+  <img alt="Github lastm commit" src="https://img.shields.io/github/last-commit/sh1re-3201/ambatushop_1.0">
 </div>
 <div>
   <h2 align="center" >Hello! Welcome to AMBATUSHOP minimarket management system 1.0!</h2>
