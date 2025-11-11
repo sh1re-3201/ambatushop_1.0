@@ -136,6 +136,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // ========== API FUNCTIONS ==========
 
+// endpoint yang sama tapi handle permission di frontend
 async function loadUsersData() {
     try {
         // Coba endpoint admin dulu, jika gagal coba endpoint manajer
@@ -252,19 +253,17 @@ function getRoleColor(role) {
 function formatDisplayName(username) {
     if (!username) return 'N/A';
     
-    // Remove domain/email parts if any
-    let name = username.split('@')[0];
+    // Convert username to display name
+    // Example: "budi.manager" -> "Budi Manager"
+    const nameParts = username.split('.');
+    if (nameParts.length > 1) {
+        return nameParts.map(part => 
+            part.charAt(0).toUpperCase() + part.slice(1)
+        ).join(' ');
+    }
     
-    // Replace dots and underscores with spaces
-    name = name.replace(/[._]/g, ' ');
-    
-    // Convert to title case
-    name = name.toLowerCase()
-        .split(' ')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ');
-    
-    return name;
+    // If no dots, just capitalize first letter
+    return username.charAt(0).toUpperCase() + username.slice(1);
 }
 
 // ========== UTILITY FUNCTIONS ==========

@@ -22,41 +22,75 @@ public class AkunController {
 
     // GET semua akun - hanya ADMIN, MANAJER read-only
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN', 'MANAJER')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getAllAkun() {
         try {
             List<Akun> akunList = akunService.getAllAkun();
             return ResponseEntity.ok(akunList);
         } catch (Exception e) {
             ErrorResponse error = new ErrorResponse(
-                500, "SERVER_ERROR", "Gagal mengambil data akun", 
-                e.getMessage(), "/api/admin/akun"
-            );
+                    500, "SERVER_ERROR", "Gagal mengambil data akun",
+                    e.getMessage(), "/api/admin/akun");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
+    }
+
+    // GET semua akun untuk Manajer (read-only)
+    @GetMapping("/manajer/akun")
+    @PreAuthorize("hasAnyRole('MANAJER', 'ADMIN')")
+    public ResponseEntity<?> getAllAkunForManager() {
+        try {
+            List<Akun> akunList = akunService.getAllAkun();
+            return ResponseEntity.ok(akunList);
+        } catch (Exception e) {
+            ErrorResponse error = new ErrorResponse(
+                    500, "SERVER_ERROR", "Gagal mengambil data akun",
+                    e.getMessage(), "/api/manajer/akun");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }
 
     // GET akun by ID - hanya ADMIN, MANAJER read-only
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN', 'MANAJER')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getAkunById(@PathVariable Long id) {
         try {
             Akun akun = akunService.getAkunById(id);
             return ResponseEntity.ok(akun);
         } catch (RuntimeException e) {
             ErrorResponse error = new ErrorResponse(
-                404, "NOT_FOUND", "Akun tidak ditemukan", 
-                e.getMessage(), "/api/admin/akun/" + id
-            );
+                    404, "NOT_FOUND", "Akun tidak ditemukan",
+                    e.getMessage(), "/api/admin/akun/" + id);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
         } catch (Exception e) {
             ErrorResponse error = new ErrorResponse(
-                500, "SERVER_ERROR", "Gagal mengambil data akun", 
-                e.getMessage(), "/api/admin/akun/" + id
-            );
+                    500, "SERVER_ERROR", "Gagal mengambil data akun",
+                    e.getMessage(), "/api/admin/akun/" + id);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }
+
+    // GET akun by ID untuk Manajer (read-only)  
+@GetMapping("/manajer/akun/{id}")
+@PreAuthorize("hasAnyRole('MANAJER', 'ADMIN')")
+public ResponseEntity<?> getAkunByIdForManager(@PathVariable Long id) {
+    try {
+        Akun akun = akunService.getAkunById(id);
+        return ResponseEntity.ok(akun);
+    } catch (RuntimeException e) {
+        ErrorResponse error = new ErrorResponse(
+            404, "NOT_FOUND", "Akun tidak ditemukan", 
+            e.getMessage(), "/api/manajer/akun/" + id
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    } catch (Exception e) {
+        ErrorResponse error = new ErrorResponse(
+            500, "SERVER_ERROR", "Gagal mengambil data akun", 
+            e.getMessage(), "/api/manajer/akun/" + id
+        );
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+    }
+}
 
     // SEARCH akun - hanya ADMIN
     @GetMapping("/search")
@@ -67,9 +101,8 @@ public class AkunController {
             return ResponseEntity.ok(akunList);
         } catch (Exception e) {
             ErrorResponse error = new ErrorResponse(
-                500, "SERVER_ERROR", "Gagal mencari akun", 
-                e.getMessage(), "/api/admin/akun/search"
-            );
+                    500, "SERVER_ERROR", "Gagal mencari akun",
+                    e.getMessage(), "/api/admin/akun/search");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }
@@ -83,15 +116,13 @@ public class AkunController {
             return ResponseEntity.status(HttpStatus.CREATED).body(createdAkun);
         } catch (RuntimeException e) {
             ErrorResponse error = new ErrorResponse(
-                400, "VALIDATION_ERROR", "Data akun tidak valid", 
-                e.getMessage(), "/api/admin/akun"
-            );
+                    400, "VALIDATION_ERROR", "Data akun tidak valid",
+                    e.getMessage(), "/api/admin/akun");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
         } catch (Exception e) {
             ErrorResponse error = new ErrorResponse(
-                500, "SERVER_ERROR", "Gagal membuat akun", 
-                e.getMessage(), "/api/admin/akun"
-            );
+                    500, "SERVER_ERROR", "Gagal membuat akun",
+                    e.getMessage(), "/api/admin/akun");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }
@@ -105,15 +136,13 @@ public class AkunController {
             return ResponseEntity.ok(updatedAkun);
         } catch (RuntimeException e) {
             ErrorResponse error = new ErrorResponse(
-                400, "VALIDATION_ERROR", "Data akun tidak valid", 
-                e.getMessage(), "/api/admin/akun/" + id
-            );
+                    400, "VALIDATION_ERROR", "Data akun tidak valid",
+                    e.getMessage(), "/api/admin/akun/" + id);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
         } catch (Exception e) {
             ErrorResponse error = new ErrorResponse(
-                500, "SERVER_ERROR", "Gagal mengupdate akun", 
-                e.getMessage(), "/api/admin/akun/" + id
-            );
+                    500, "SERVER_ERROR", "Gagal mengupdate akun",
+                    e.getMessage(), "/api/admin/akun/" + id);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }
@@ -127,15 +156,13 @@ public class AkunController {
             return ResponseEntity.ok("Akun berhasil dihapus");
         } catch (RuntimeException e) {
             ErrorResponse error = new ErrorResponse(
-                404, "NOT_FOUND", "Akun tidak ditemukan", 
-                e.getMessage(), "/api/admin/akun/" + id
-            );
+                    404, "NOT_FOUND", "Akun tidak ditemukan",
+                    e.getMessage(), "/api/admin/akun/" + id);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
         } catch (Exception e) {
             ErrorResponse error = new ErrorResponse(
-                500, "SERVER_ERROR", "Gagal menghapus akun", 
-                e.getMessage(), "/api/admin/akun/" + id
-            );
+                    500, "SERVER_ERROR", "Gagal menghapus akun",
+                    e.getMessage(), "/api/admin/akun/" + id);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }
