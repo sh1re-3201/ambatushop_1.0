@@ -17,7 +17,15 @@ public class KeuanganService {
         return keuanganRepository.findAll();
     }
 
-//    public Keuangan createKeuangan(Keuangan keuangan) {
-//
-//    }
+    public Keuangan createKeuangan(Keuangan keuangan) {
+        if(keuangan.getKeterangan() == null || keuangan.getKeterangan().trim().isEmpty()) {
+            throw new RuntimeException("Keterangan tidak boleh kosong");
+        }
+        return keuanganRepository.save(keuangan);
+    }
+
+    public Keuangan getKeuanganById(long id) {
+        return keuanganRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Data keuangan dengan ID: " + id + " tidak ditemukan"));
+    }
 }
