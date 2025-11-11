@@ -11,9 +11,9 @@
 <h1 align="center"><b>!!!JANGAN LUPA FETCH AND PULL SEBELUM MENGERJAKAN!!!</b></h1>
 <h3>Statistics :</h3>
 <div>
-  <img alt="GitHub Created At" src="https://img.shields.io/github/created-at/sh1re-3201/ambatushop_1.0?color=black">
-  <img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/w/sh1re-3201/ambatushop_1.0?style=plastic&color=black">
-  <img alt="GitHub contributors" src="https://img.shields.io/github/contributors/sh1re-3201/ambatushop_1.0?color=black">
+  <img alt="GitHub Created At" src="https://img.shields.io/github/created-at/sh1re-3201/ambatushop_1.0?color=green">
+  <img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/w/sh1re-3201/ambatushop_1.0?style=plastic&color=green">
+  <img alt="GitHub contributors" src="https://img.shields.io/github/contributors/sh1re-3201/ambatushop_1.0?color=green">
 </div>
 <div>
   <h2 align="center" >Hello! Welcome to AMBATUSHOP minimarket management system 1.0!</h2>
