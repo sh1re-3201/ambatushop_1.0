@@ -153,7 +153,9 @@ async function loadUsersData() {
             updateUsersTable(users);
             updateUserStats(users);
         } else {
-            throw new Error('Gagal memuat data pengguna');
+            const errorData = await response.json().catch(() => null);
+            const errorMsg = errorData?.message || errorData?.details || `HTTP ${response.status}`;
+            throw new Error(errorMsg);
         }
     } catch (error) {
         console.error('Error loading users:', error);

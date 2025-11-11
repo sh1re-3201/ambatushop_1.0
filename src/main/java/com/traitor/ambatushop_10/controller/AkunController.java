@@ -20,9 +20,9 @@ public class AkunController {
         this.akunService = akunService;
     }
 
-    // GET semua akun - hanya ADMIN
+    // GET semua akun - hanya ADMIN, MANAJER read-only
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN', 'MANAJER')")
     public ResponseEntity<?> getAllAkun() {
         try {
             List<Akun> akunList = akunService.getAllAkun();
@@ -36,9 +36,9 @@ public class AkunController {
         }
     }
 
-    // GET akun by ID - hanya ADMIN
+    // GET akun by ID - hanya ADMIN, MANAJER read-only
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN', 'MANAJER')")
     public ResponseEntity<?> getAkunById(@PathVariable Long id) {
         try {
             Akun akun = akunService.getAkunById(id);
