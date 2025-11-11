@@ -136,32 +136,43 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // ========== API FUNCTIONS ==========
 
-// endpoint yang sama tapi handle permission di frontend
 async function loadUsersData() {
     try {
-        // Coba endpoint admin dulu, jika gagal coba endpoint manajer
-        let response = await fetch('http://localhost:8080/api/admin/akun', {
+        // Gunakan endpoint manajer langsung
+        const response = await fetch('http://localhost:8080/api/manajer/akun', {
             headers: AuthHelper.getAuthHeaders()
         });
-
-        if (response.status === 403) {
-            // Jika forbidden, coba endpoint manajer
-            response = await fetch('http://localhost:8080/api/manajer/akun', {
-                headers: AuthHelper.getAuthHeaders()
-            });
-        }
 
         if (response.ok) {
             const users = await response.json();
             updateUsersTable(users);
             updateUserStats(users);
         } else {
-            throw new Error(`HTTP ${response.status}`);
+            const errorData = await response.json().catch(() => null);
+            const errorMsg = errorData?.message || errorData?.details || `HTTP ${response.status}`;
+            throw new Error(errorMsg);
         }
     } catch (error) {
         console.error('Error loading users:', error);
         showError('Gagal memuat data pengguna: ' + error.message);
+        
+        // Fallback: Show empty state
+        showEmptyState();
     }
+}
+
+function showEmptyState() {
+    const tbody = document.querySelector('table tbody');
+    if (!tbody) return;
+
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="4" style="padding: 40px; text-align: center; color: var(--text-secondary)">
+                <div style="font-size: 16px; margin-bottom: 8px;">Tidak dapat memuat data pengguna</div>
+                <div style="font-size: 14px;">Silakan refresh halaman atau coba lagi nanti</div>
+            </td>
+        </tr>
+    `;
 }
 
 // ========== UI UPDATE FUNCTIONS ==========
@@ -253,19 +264,20 @@ function getRoleColor(role) {
 function formatDisplayName(username) {
     if (!username) return 'N/A';
     
-    // Convert username to display name
-    // Example: "budi.manager" -> "Budi Manager"
-    const nameParts = username.split('.');
-    if (nameParts.length > 1) {
-        return nameParts.map(part => 
-            part.charAt(0).toUpperCase() + part.slice(1)
-        ).join(' ');
-    }
+    // Remove domain/email parts if any
+    let name = username.split('@')[0];
     
-    // If no dots, just capitalize first letter
-    return username.charAt(0).toUpperCase() + username.slice(1);
+    // Replace dots and underscores with spaces
+    name = name.replace(/[._]/g, ' ');
+    
+    // Convert to title case
+    name = name.toLowerCase()
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+    
+    return name;
 }
-
 // ========== UTILITY FUNCTIONS ==========
 
 function showError(message) {
