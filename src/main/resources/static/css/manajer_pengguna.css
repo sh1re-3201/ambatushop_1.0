@@ -391,3 +391,58 @@ body.role-kasir .sidebar.closed .menu-item.pill.active .mi-icon {
   background: rgba(255,255,255,0.12) !important;
   box-shadow: 0 6px 14px rgba(0,0,0,0.08) !important;
 }
+
+/* File: css/manajer_pengguna.css */
+/* Include semua style dari admin_pengguna.css atau import */
+
+/* Additional styles for read-only mode */
+.read-only-badge {
+    padding: 6px 12px;
+    background: rgba(100, 100, 100, 0.1);
+    color: var(--text-secondary);
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.view-only-indicator {
+    padding: 8px 16px;
+    background: rgba(43, 124, 255, 0.1);
+    color: #2b7cff;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Ensure table styles work with dark mode */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    text-align: left;
+    padding: 12px 8px;
+    color: var(--text-secondary);
+    font-weight: 600;
+    border-bottom: 2px solid var(--border-color);
+}
+
+td {
+    padding: 12px 8px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* Responsive table */
+@media (max-width: 768px) {
+    table {
+        font-size: 14px;
+    }
+    
+    th, td {
+        padding: 8px 4px;
+    }
+}
