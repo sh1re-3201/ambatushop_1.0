@@ -17,22 +17,22 @@ public class TransaksiController {
         this.transaksiService = transaksiService;
     }
 
-    @PostMapping
-    @PreAuthorize("hasAnyRole('KASIR')")
-    public Transaksi createTransaksi(@RequestBody Transaksi transaksi) {
-        return transaksiService.createTransakksi(transaksi);
-    }
+    // @PostMapping
+    // @PreAuthorize("hasAnyRole('KASIR')")
+    // public Transaksi createTransaksi(@RequestBody Transaksi transaksi) {
+    //     return transaksiService.createTransakksi(transaksi);
+    // }
 
-    @GetMapping
-    @PreAuthorize("hasAnyRole('KASIR','MANAJER')")
-    public List<Transaksi> getTransaksi() {
-        return transaksiService.getAllTransaksi();
-    }
+    // @GetMapping
+    // @PreAuthorize("hasAnyRole('KASIR','MANAJER')")
+    // public List<Transaksi> getTransaksi() {
+    //     return transaksiService.getAllTransaksi();
+    // }
 
-    @DeleteMapping
-    @PreAuthorize("hasAnyRole('ADMIN')")
-    public String deleteTransaksi(@PathVariable long id) {
-        transaksiService.deleteTransakksi(id);
-        return "Transaksi Berhasil dihapus";
-    }
+    // @DeleteMapping
+    // @PreAuthorize("hasAnyRole('ADMIN')")
+    // public String deleteTransaksi(@PathVariable long id) {
+    //     transaksiService.deleteTransakksi(id);
+    //     return "Transaksi Berhasil dihapus";
+    // }
 }
