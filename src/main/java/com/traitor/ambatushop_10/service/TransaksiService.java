@@ -5,7 +5,6 @@ import com.traitor.ambatushop_10.dto.TransaksiRequest;
 import com.traitor.ambatushop_10.model.Akun;
 import com.traitor.ambatushop_10.model.Produk;
 import com.traitor.ambatushop_10.model.Transaksi;
-import com.traitor.ambatushop_10.model.Transaksi.PaymentStatus;
 import com.traitor.ambatushop_10.model.TransaksiDetail;
 import com.traitor.ambatushop_10.repository.AkunRepository;
 import com.traitor.ambatushop_10.repository.ProdukRepository;
@@ -15,7 +14,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Optional;
 import java.util.Random;
 
 @Service
@@ -33,24 +31,20 @@ public class TransaksiService {
         this.akunRepository = akunRepository;
     }
 
-    // ✅ FIX: GET semua transaksi
     public List<Transaksi> getAllTransaksi() {
         return transaksiRepository.findAll();
     }
 
-    // ✅ FIX: GET transaksi by ID
     public Transaksi getTransaksiById(Long id) {
         return transaksiRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Transaksi tidak ditemukan dengan ID: " + id));
     }
 
-    // ✅ METHOD INI HARUS MENERIMA TransaksiRequest (DTO)
     public Transaksi createTransaksi(TransaksiRequest request) {
         // Validasi akun exists
         Akun akun = akunRepository.findById(request.getAkunId())
                 .orElseThrow(() -> new RuntimeException("Akun tidak ditemukan dengan ID: " + request.getAkunId()));
 
-        // Convert String to Enum properly
         Transaksi.MetodePembayaran metodePembayaran;
         try {
             metodePembayaran = Transaksi.MetodePembayaran.valueOf(request.getMetodePembayaran().toUpperCase());
@@ -79,16 +73,14 @@ public class TransaksiService {
         return transaksiRepository.save(transaksi);
     }
 
-    // ✅ Method helper untuk create details dari DTO
     private List<TransaksiDetail> createTransaksiDetails(List<TransaksiDetailRequest> detailRequests, Transaksi transaksi) {
         return detailRequests.stream().map(detailReq -> {
-            // ✅ TIDAK PAKAI ref() - langsung find dari repository
             Produk produk = produkRepository.findById(detailReq.getProdukId())
                     .orElseThrow(() -> new RuntimeException("Produk tidak ditemukan dengan ID: " + detailReq.getProdukId()));
 
             TransaksiDetail detail = new TransaksiDetail();
             detail.setTransaksi(transaksi);
-            detail.setProdukId(produk); // ✅ SET OBJECT PRODUK, BUKAN ID SAJA
+            detail.setProdukId(produk); 
             detail.setJumlah(detailReq.getJumlah());
             detail.setHargaSatuan(detailReq.getHargaSatuan());
             detail.setSubtotal(detailReq.getSubtotal());
@@ -97,7 +89,6 @@ public class TransaksiService {
         }).toList();
     }
 
-    // ✅ FIX: DELETE transaksi
     public void deleteTransaksi(Long id) {
         Transaksi transaksi = getTransaksiById(id);
 
@@ -109,7 +100,6 @@ public class TransaksiService {
         transaksiRepository.delete(transaksi);
     }
 
-    // 🔧 NEW: Validasi stok dari DTO
     private void validateStockAvailability(List<TransaksiDetailRequest> details) {
         for (TransaksiDetailRequest detail : details) {
             Produk produk = produkRepository.findById(detail.getProdukId())
@@ -124,7 +114,7 @@ public class TransaksiService {
         }
     }
 
-    // 🔧 NEW: Update stok dari DTO
+    //  Update stok dari DTO
     private void updateProductStock(List<TransaksiDetailRequest> details, boolean restore) {
         for (TransaksiDetailRequest detail : details) {
             Produk produk = produkRepository.findById(detail.getProdukId())
@@ -136,7 +126,7 @@ public class TransaksiService {
         }
     }
 
-    // 🔧 NEW: Update stok dari Entity (untuk delete)
+    // Update stok dari Entity (untuk delete)
     private void updateProductStockFromEntity(List<TransaksiDetail> details, boolean restore) {
         for (TransaksiDetail detail : details) {
             Produk produk = detail.getProdukId();
@@ -146,7 +136,7 @@ public class TransaksiService {
         }
     }
 
-    // 🔧 NEW: Update payment status untuk Midtrans webhook
+    // Update payment status untuk Midtrans webhook
     public Transaksi updatePaymentStatus(String paymentGatewayId, Transaksi.PaymentStatus status) {
         Transaksi transaksi = transaksiRepository.findByPaymentGatewayId(paymentGatewayId)
                 .orElseThrow(
@@ -162,21 +152,22 @@ public class TransaksiService {
         return "TRX-" + date + "-" + random;
     }
 
-    private Transaksi.MetodePembayaran parseMetodePembayaran(String metode) {
-        if (metode == null) {
-            throw new RuntimeException("Metode pembayaran tidak boleh null");
-        }
+    // Sementara dikomen dulu aja ini 
+    // private Transaksi.MetodePembayaran parseMetodePembayaran(String metode) {
+    //     if (metode == null) {
+    //         throw new RuntimeException("Metode pembayaran tidak boleh null");
+    //     }
 
-        switch (metode.toUpperCase()) {
-            case "TUNAI":
-                return Transaksi.MetodePembayaran.TUNAI;
-            case "NON_TUNAI":
-            case "QRIS":
-            case "E-WALLET":
-                return Transaksi.MetodePembayaran.NON_TUNAI;
-            default:
-                throw new RuntimeException("Metode pembayaran tidak valid: " + metode +
-                        ". Gunakan: TUNAI atau NON_TUNAI");
-        }
-    }
+    //     switch (metode.toUpperCase()) {
+    //         case "TUNAI":
+    //             return Transaksi.MetodePembayaran.TUNAI;
+    //         case "NON_TUNAI":
+    //         case "QRIS":
+    //         case "E-WALLET":
+    //             return Transaksi.MetodePembayaran.NON_TUNAI;
+    //         default:
+    //             throw new RuntimeException("Metode pembayaran tidak valid: " + metode +
+    //                     ". Gunakan: TUNAI atau NON_TUNAI");
+    //     }
+    // }
 }

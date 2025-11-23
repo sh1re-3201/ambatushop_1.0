@@ -31,3 +31,19 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Application Properties
+application.properties
+application.yml
+application-*.properties
+application-*.yml
+
+# Environment specific files
+.env
+.env.local
+.env.development
+.env.production
+
+# Midtrans keys
+*key*
+*secret*
