@@ -6,7 +6,6 @@ import com.traitor.ambatushop_10.dto.TransaksiResponse;
 import com.traitor.ambatushop_10.model.Transaksi;
 import com.traitor.ambatushop_10.service.TransaksiService;
 
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -55,12 +54,23 @@ public class TransaksiController {
         }
     }
 
+    // CREATE transaksi - SUDAH SUPPORT NON_TUNAI,harusnya
     @PostMapping
     @PreAuthorize("hasAnyRole('KASIR')")
     public ResponseEntity<?> createTransaksi(@RequestBody TransaksiRequest request) {
         try {
+            // Validasi metode pembayaran
+            if (!isValidPaymentMethod(request.getMetodePembayaran())) {
+                return ResponseEntity.badRequest()
+                        .body(new ErrorResponse(400, "INVALID_PAYMENT_METHOD",
+                                "Metode pembayaran tidak valid",
+                                "Gunakan: TUNAI atau NON_TUNAI",
+                                "/api/transaksi"));
+            }
+
             Transaksi created = transaksiService.createTransaksi(request);
             return ResponseEntity.status(HttpStatus.CREATED).body(new TransaksiResponse(created));
+
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new ErrorResponse(400, "VALIDATION_ERROR", "Data transaksi tidak valid",
@@ -70,6 +80,11 @@ public class TransaksiController {
                     .body(new ErrorResponse(500, "SERVER_ERROR", "Gagal membuat transaksi",
                             e.getMessage(), "/api/transaksi"));
         }
+    }
+
+    // Helper method untuk validasi payment method
+    private boolean isValidPaymentMethod(String metode) {
+        return "TUNAI".equalsIgnoreCase(metode) || "NON_TUNAI".equalsIgnoreCase(metode);
     }
 
     @DeleteMapping("/{id}")
@@ -88,6 +103,5 @@ public class TransaksiController {
                             e.getMessage(), "/api/transaksi/" + id));
         }
     }
-
 
 }
