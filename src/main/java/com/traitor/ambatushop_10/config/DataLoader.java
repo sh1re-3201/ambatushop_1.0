@@ -1,10 +1,8 @@
 package com.traitor.ambatushop_10.config;
 
 import com.traitor.ambatushop_10.model.*;
-import com.traitor.ambatushop_10.repository.AkunRepository;
-import com.traitor.ambatushop_10.repository.TransaksiDetailRepository;
-import com.traitor.ambatushop_10.repository.TransaksiRepository;
-import com.traitor.ambatushop_10.repository.ProdukRepository;
+import com.traitor.ambatushop_10.repository.*;
+import lombok.AllArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -12,23 +10,25 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
 
-@Component
+@Component @AllArgsConstructor
 public class DataLoader implements CommandLineRunner {
 
     private final AkunRepository akunRepository;
     private final ProdukRepository produkRepository;
     private final TransaksiRepository transaksiRepository;
     private final TransaksiDetailRepository transaksiDetailRepository;
+    private final KeuanganRepository keuanganRepository;
 
     private final PasswordEncoder passwordEncoder;
 
-    public DataLoader(AkunRepository akunRepository, ProdukRepository produkRepository, TransaksiRepository transaksiRepository, TransaksiDetailRepository transaksiDetailRepository, PasswordEncoder passwordEncoder) {
-        this.akunRepository = akunRepository;
-        this.produkRepository = produkRepository;
-        this.transaksiRepository = transaksiRepository;
-        this.transaksiDetailRepository = transaksiDetailRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
+//    public DataLoader(AkunRepository akunRepository, ProdukRepository produkRepository, TransaksiRepository transaksiRepository, TransaksiDetailRepository transaksiDetailRepository, KeuanganRepository keuanganRepository, PasswordEncoder passwordEncoder) {
+//        this.akunRepository = akunRepository;
+//        this.produkRepository = produkRepository;
+//        this.transaksiRepository = transaksiRepository;
+//        this.transaksiDetailRepository = transaksiDetailRepository;
+//        this.keuanganRepository = keuanganRepository;
+//        this.passwordEncoder = passwordEncoder;
+//    }
 
     @Override
     public void run(String... args) throws Exception {
@@ -58,6 +58,12 @@ public class DataLoader implements CommandLineRunner {
             transaksiRepository.save(new Transaksi(Transaksi.MetodePembayaran.TUNAI, LocalDateTime.now(), 15000.0, kasir));
         }
 
+        // TEST KEUANGAN DENGAN ARSITEKTUR SEBELUM DIPERBAIKI
+        if (keuanganRepository.count() == 0) {
+            keuanganRepository.save(new Keuangan(true, "Test1", 10000009L, LocalDateTime.now(), kasir));
+            keuanganRepository.save(new Keuangan(false, "Test1", 100331009L, LocalDateTime.now(), kasir));
+
+        }
         // Transaksi Detail
 //        if (transaksiDetailRepository.count() == 0) {
 //            transaksiDetailRepository.save(new TransaksiDetail());

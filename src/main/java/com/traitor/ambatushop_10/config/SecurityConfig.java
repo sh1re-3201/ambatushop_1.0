@@ -81,7 +81,7 @@ public class SecurityConfig {
 
                         // Controller routes - allow
                         .requestMatchers("/", "/login", "/admin", "/admin/**", "/manager/**", "/manajer/**",
-                                "/kasir/**")
+                                "/kasir/**","/keuangan/**")
                         .permitAll()
 
                         // API auth
@@ -92,6 +92,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/manajer/**").hasAnyRole("MANAJER", "ADMIN")
                         .requestMatchers("/api/kasir/**").hasAnyRole("KASIR", "MANAJER", "ADMIN")
                         .requestMatchers("/api/produk/**").hasAnyRole("KASIR", "MANAJER", "ADMIN")
+                        .requestMatchers("api/keuangan/report/**").hasAnyRole("ADMIN", "MANAJER")
 
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

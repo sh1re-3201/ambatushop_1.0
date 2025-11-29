@@ -12,7 +12,7 @@ public class Akun {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    // @Column(name = "id_pegawai")
+     @Column(name = "id_pegawai")
     private long idPegawai;
 
     @Column(unique = true, nullable = false)
