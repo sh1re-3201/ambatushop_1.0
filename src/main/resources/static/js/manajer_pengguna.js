@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Check authentication
     const auth = AuthHelper.checkAuth();
     if (!auth) return;
-    
+
     // Only allow MANAGER or ADMIN access
     if (auth.userRole !== 'MANAJER' && auth.userRole !== 'ADMIN') {
         alert('Hanya Manajer dan Admin yang dapat mengakses halaman ini');
@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     themeToggle?.addEventListener('click', () => {
         const currentTheme = document.documentElement.getAttribute('data-theme');
         const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-        
+
         document.documentElement.setAttribute('data-theme', newTheme);
         localStorage.setItem('theme', newTheme);
         updateThemeIcon(newTheme);
@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // ========== USER MANAGEMENT FUNCTIONALITY - READ ONLY ==========
-    
+
     // Load users data
     await loadUsersData();
 });
@@ -155,7 +155,7 @@ async function loadUsersData() {
     } catch (error) {
         console.error('Error loading users:', error);
         showError('Gagal memuat data pengguna: ' + error.message);
-        
+
         // Fallback: Show empty state
         showEmptyState();
     }
@@ -186,23 +186,23 @@ function updateUsersTable(users) {
     users.forEach(user => {
         const row = document.createElement('tr');
         row.style.borderBottom = '1px solid var(--border-color)';
-        
+
         // Get initial for avatar
         const initial = user.username ? user.username.charAt(0).toUpperCase() : 'U';
-        
+
         // Determine role color
         const roleStyles = {
             'ADMIN': { bg: '#fee2e2', color: '#991b1b' },
             'MANAJER': { bg: '#fef3c7', color: '#92400e' },
             'KASIR': { bg: '#d1fae5', color: '#065f46' }
         };
-        
+
         const roleStyle = roleStyles[user.role] || roleStyles.KASIR;
-        
+
         // Determine status (mock data for now)
         const isOnline = Math.random() > 0.5; // Mock data - 50% chance online
-        const statusStyle = isOnline ? 
-            { bg: '#d1fae5', color: '#065f46', text: '● Online' } : 
+        const statusStyle = isOnline ?
+            { bg: '#d1fae5', color: '#065f46', text: '● Online' } :
             { bg: '#e5e7eb', color: '#374151', text: '○ Offline' };
 
         row.innerHTML = `
@@ -231,7 +231,7 @@ function updateUserStats(users) {
     const adminCount = users.filter(u => u.role === 'ADMIN').length;
     const managerCount = users.filter(u => u.role === 'MANAJER').length;
     const kasirCount = users.filter(u => u.role === 'KASIR').length;
-    
+
     // Mock online users (since we don't have real tracking)
     const onlineCount = Math.floor(totalUsers * 0.3); // 30% online
     const offlineCount = totalUsers - onlineCount;
@@ -255,27 +255,44 @@ function updateCardValue(selector, value) {
 function getRoleColor(role) {
     const colors = {
         'ADMIN': '#ff5252',
-        'MANAJER': '#f6b24a', 
+        'MANAJER': '#f6b24a',
         'KASIR': '#10b759'
     };
     return colors[role] || '#10b759';
 }
 
+// function formatDisplayName(username) {
+//     if (!username) return 'N/A';
+
+//     // Remove domain/email parts if any
+//     let name = username.split('@')[0];
+
+//     // Replace dots and underscores with spaces
+//     name = name.replace(/[._]/g, ' ');
+
+//     // Convert to title case
+//     name = name.toLowerCase()
+//         .split(' ')
+//         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+//         .join(' ');
+
+//     return name;
+// }
 function formatDisplayName(username) {
     if (!username) return 'N/A';
-    
+
     // Remove domain/email parts if any
     let name = username.split('@')[0];
-    
+
     // Replace dots and underscores with spaces
     name = name.replace(/[._]/g, ' ');
-    
+
     // Convert to title case
     name = name.toLowerCase()
         .split(' ')
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
-    
+
     return name;
 }
 // ========== UTILITY FUNCTIONS ==========
@@ -297,7 +314,7 @@ function showError(message) {
     `;
     errorDiv.textContent = 'Error: ' + message;
     document.body.appendChild(errorDiv);
-    
+
     setTimeout(() => {
         errorDiv.remove();
     }, 5000);
@@ -320,7 +337,7 @@ function showSuccess(message) {
     `;
     successDiv.textContent = 'Sukses: ' + message;
     document.body.appendChild(successDiv);
-    
+
     setTimeout(() => {
         successDiv.remove();
     }, 3000);

@@ -1,4 +1,4 @@
-/* ======= KASIR DASHBOARD CSS ======= */
+/* ======= KASIR DASHBOARD - SELARAS DENGAN ADMIN ======= */
 :root {
   --bg: #fff;
   --page-bg: #f6f7f9;
@@ -8,10 +8,17 @@
   --muted: #9aa0a6;
   --accent: #2b7cff;
   --border-color: #e5e7eb;
-  --sidebar-bg: #5a5a5a;
+  --sidebar-bg: #3e3e3e;
   --sidebar-text: #fff;
-  --blue-primary: #4a9eff;
-  --green-primary: #10b759;
+
+  --sidebar-width: 240px;
+  --sidebar-collapsed-width: 72px;
+  --sidebar-radius: 28px;
+  --pill-radius: 18px;
+  --icon-wrap-size: 78px;
+  --icon-svg-size: 42px;
+  --avatar-size: 40px;
+  --transition: 220ms ease;
 }
 
 /* Dark Mode */
@@ -23,41 +30,50 @@
   --text-secondary: #a3a3a3;
   --muted: #737373;
   --border-color: #404040;
-  --sidebar-bg: #2a2a2a;
+  --sidebar-bg: #1f1f1f;
+  --sidebar-text: #f5f5f5;
 }
 
-* {
-  box-sizing: border-box;
-}
-
-html, body {
-  height: 100%;
-  margin: 0;
-  font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  background: var(--page-bg);
-  color: var(--text-primary);
+* { box-sizing: border-box; }
+html, body { 
+  height: 100%; 
+  margin: 0; 
+  font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
+  background: var(--page-bg); 
+  color: var(--text-primary); 
 }
 
 /* Layout */
-.page {
-  display: flex;
-  min-height: 100vh;
+.page { 
+  display: flex; 
+  gap: 0; 
+  padding: 0; 
+  align-items: stretch; 
+  min-height: 100vh; 
 }
 
-/* Sidebar */
+/* Sidebar - Sama seperti Admin */
 .sidebar {
-  width: 280px;
+  width: var(--sidebar-width);
   background: var(--sidebar-bg);
-  color: var(--sidebar-text);
+  border-radius: 0;
   padding: 24px 20px;
+  color: var(--sidebar-text);
+  position: relative;
+  box-shadow: none;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  transition: width var(--transition), margin-left var(--transition);
+  overflow: visible;
   flex-shrink: 0;
-  position: relative;
-  transition: margin-left 0.3s ease;
 }
 
-/* Close button (X) — seperti di manajer */
+.sidebar.closed {
+  margin-left: calc(-1 * var(--sidebar-width));
+  width: var(--sidebar-width);
+}
+
 .close-circle {
   position: absolute;
   right: 12px;
@@ -89,89 +105,130 @@ html, body {
   transform: translateY(-2px);
 }
 
-.close-circle:active {
-  transform: scale(0.96);
-}
-
-/* Hide close button when sidebar is closed */
 .sidebar.closed .close-circle {
   opacity: 0;
   pointer-events: none;
 }
 
-/* Sidebar closed state (mobile) */
-.sidebar.closed {
-  margin-left: calc(-1 * 280px);
+.brand { 
+  width: 100%; 
+  text-align: center; 
+  margin-bottom: 8px; 
+}
+.brand h1 { 
+  margin: 0; 
+  font-size: 22px; 
+  letter-spacing: 0.5px; 
+  font-weight: 700; 
+}
+.sidebar.closed .brand h1 { 
+  display: none; 
 }
 
-.brand {
-  text-align: center;
-  margin-bottom: 32px;
+/* Menu Pills - Sama seperti Admin */
+.menu { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 12px; 
+  width: 100%; 
+  align-items: center; 
+  margin-top: 12px; 
 }
 
-.brand h1 {
-  font-size: 24px;
-  font-weight: 700;
-  margin: 0;
-  color: #fff;
-}
-
-/* Menu */
-.menu {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.menu-item {
-  padding: 14px 20px;
-  border-radius: 12px;
-  text-decoration: none;
-  color: var(--sidebar-text);
-  font-size: 16px;
+.menu-item.pill {
+  border-radius: var(--pill-radius);
+  padding: 11px 16px;
+  border: 0;
+  cursor: pointer;
+  color: #111;
   font-weight: 600;
-  text-align: center;
-  transition: all 0.2s;
-  background: rgba(255,255,255,0.1);
-}
-
-.menu-item:hover {
-  background: rgba(255,255,255,0.15);
-  transform: translateX(4px);
-}
-
-.menu-item.active {
-  background: rgba(255,255,255,0.2);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-
-.menu-item.transaksi.active {
-  background: var(--blue-primary);
-  color: #fff;
-}
-
-.menu-item.keuangan.active {
-  background: var(--green-primary);
-  color: #fff;
-}
-
-/* Content */
-.content {
-  flex: 1;
+  font-size: 15px;
+  text-align: left;
+  width: 100%;
+  max-width: 200px;
   display: flex;
-  flex-direction: column;
-  gap: 20px;
-  padding: 28px 40px;
-  background: var(--page-bg);
-  position: relative;
-}
-
-/* Topbar */
-.topbar {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 0 0 8px 0;
+  gap: 10px;
+  transition: all 180ms ease;
+  text-decoration: none;
+}
+
+/* Warna pill khusus untuk kasir */
+.menu-item.pill:nth-child(1) { background: #efefef; color: #111; }    /* Dasbor */
+.menu-item.pill:nth-child(2) { background: #2b7cff; color: #fff; }    /* Transaksi (blue) */
+.menu-item.pill:nth-child(3) { background: #10b759; color: #fff; }    /* Keuangan (green) */
+
+.menu-item.pill:hover { transform: translateX(3px); }
+.menu-item.pill.active { transform: translateX(4px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+
+.mi-icon { 
+  display: inline-flex; 
+  align-items: center; 
+  justify-content: center; 
+  width: 28px; 
+  height: 28px; 
+}
+.mi-icon svg { 
+  width: 20px; 
+  height: 20px; 
+  display: block; 
+}
+.mi-text { 
+  white-space: nowrap; 
+  display: inline-block; 
+}
+
+/* Sidebar collapsed */
+.sidebar.closed .menu {
+  gap: 12px;
+  align-items: center;
+  margin-top: 0;
+}
+
+.sidebar.closed .menu-item.pill {
+  width: 48px; 
+  height: 48px; 
+  min-width: 0; 
+  max-width: 48px; 
+  border-radius: 14px; 
+  padding: 0; 
+  justify-content: center; 
+  background: transparent; 
+  box-shadow: none;
+}
+
+.sidebar.closed .menu-item.pill .mi-text { display: none; }
+
+.sidebar.closed .menu-item.pill .mi-icon {
+  width: 40px; 
+  height: 40px; 
+  border-radius: 11px; 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.08);
+}
+
+.sidebar.closed .menu-item.pill:hover .mi-icon { background: rgba(255,255,255,0.12); }
+.sidebar.closed .menu-item.pill.active .mi-icon { background: rgba(255,255,255,0.14); box-shadow: 0 4px 10px rgba(0,0,0,0.12); }
+.sidebar.closed .menu-item.pill:hover { transform: translateX(0) translateY(-2px); }
+
+/* Content Area */
+.content { 
+  flex: 1; 
+  display: flex; 
+  flex-direction: column; 
+  gap: 20px; 
+  padding: 28px 40px; 
+  background: var(--page-bg); 
+  position: relative; 
+}
+
+.topbar { 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  padding: 0 0 8px 0; 
 }
 
 .hamburger-open {
@@ -184,71 +241,39 @@ html, body {
   transition: background 150ms ease;
 }
 
-.hamburger-open:hover {
-  background: rgba(0,0,0,0.04);
-}
+.hamburger-open:hover { background: rgba(0,0,0,0.04); }
+.sidebar.closed ~ .content .hamburger-open { display: flex; }
 
-.hamburger-open svg {
-  display: block;
+.top-actions { display: flex; align-items: center; gap: 14px; }
+.icon-btn { 
+  border: 0; 
+  background: transparent; 
+  cursor: pointer; 
+  padding: 8px; 
+  border-radius: 10px; 
+  transition: background 150ms ease; 
 }
+.icon-btn:hover { background: rgba(0,0,0,0.04); }
 
-/* Show hamburger when sidebar is closed */
-.sidebar.closed ~ .content .hamburger-open {
-  display: flex;
+.avatar-wrapper { position: relative; }
+.avatar { 
+  width: var(--avatar-size); 
+  height: var(--avatar-size); 
+  border-radius: 50%; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  background: #ff4d4d; 
+  color: #fff; 
+  cursor: pointer; 
+  border: 0; 
+  transition: transform 150ms ease; 
+  overflow: hidden; 
 }
+.avatar:hover { transform: scale(1.05); }
+.avatar img { width: 100%; height: 100%; object-fit: cover; }
 
-.top-actions {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-.icon-btn {
-  border: 0;
-  background: transparent;
-  cursor: pointer;
-  padding: 8px;
-  border-radius: 10px;
-  transition: background 150ms ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.icon-btn:hover {
-  background: rgba(0,0,0,0.04);
-}
-
-/* Avatar */
-.avatar-wrapper {
-  position: relative;
-}
-
-.avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #ff4d4d;
-  color: #fff;
-  cursor: pointer;
-  border: 0;
-  transition: transform 150ms ease;
-  overflow: hidden;
-}
-
-.avatar:hover {
-  transform: scale(1.05);
-}
-
-.avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
+/* Avatar Dropdown */
 .avatar-dropdown {
   position: absolute;
   top: calc(100% + 8px);
@@ -263,9 +288,7 @@ html, body {
   border: 1px solid var(--border-color);
 }
 
-.avatar-dropdown.show {
-  display: block;
-}
+.avatar-dropdown.show { display: block; }
 
 .dropdown-header {
   font-size: 13px;
@@ -284,13 +307,13 @@ html, body {
 }
 
 .avatar-option {
-  width: 100%;
-  aspect-ratio: 1;
-  border-radius: 8px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
   object-fit: cover;
   cursor: pointer;
-  border: 2px solid transparent;
-  transition: all 0.2s;
+  border: 3px solid transparent;
+  transition: all 200ms ease;
 }
 
 .avatar-option:hover {
@@ -322,253 +345,214 @@ html, body {
   font-size: 14px;
   font-weight: 500;
   color: var(--text-secondary);
-  transition: background 0.15s;
+  transition: background 150ms ease;
 }
 
-.dropdown-item:hover {
-  background: var(--border-color);
+.dropdown-item:hover { background: var(--border-color); }
+.dropdown-item svg { flex-shrink: 0; }
+.logout-btn { color: #dc2626; }
+.logout-btn:hover { background: #fee2e2; }
+
+/* Grid and Cards - Sama seperti Admin */
+.grid { 
+  display: grid; 
+  grid-template-columns: repeat(2, 1fr); 
+  gap: 28px; 
+  align-items: start; 
 }
 
-.logout-btn {
-  color: #dc2626;
+.card { 
+  background: var(--card); 
+  border-radius: 16px; 
+  display: flex; 
+  gap: 16px; 
+  padding: 20px; 
+  min-height: 150px; 
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06); 
+  align-items: flex-start; 
+  transition: transform 200ms ease, box-shadow 200ms ease; 
+  border: 1px solid var(--border-color); 
 }
 
-.logout-btn:hover {
-  background: #fee2e2;
+.card:hover { 
+  transform: translateY(-2px); 
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15); 
 }
 
-/* Content Main */
-.content-main {
-  padding: 32px;
-  flex: 1;
+.icon-wrap { 
+  min-width: var(--icon-wrap-size); 
+  min-height: var(--icon-wrap-size); 
+  border-radius: 16px; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  background: #efefef; 
 }
 
-/* Cards Grid */
-.cards-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 24px;
-  margin-bottom: 32px;
+.icon-wrap svg { 
+  width: var(--icon-svg-size); 
+  height: var(--icon-svg-size); 
 }
 
-.big-card {
-  background: var(--card);
-  border-radius: 16px;
-  padding: 32px;
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-  transition: transform 0.2s, box-shadow 0.2s;
-  border: 1px solid var(--border-color);
+.icon-wrap.blue { background: rgba(43,124,255,0.1); }
+.icon-wrap.green { background: rgba(16,183,89,0.1); }
+.icon-wrap.orange { background: rgba(246,178,74,0.1); }
+
+.card-body h3 { 
+  margin: 0 0 4px 0; 
+  font-size: 20px; 
+  font-weight: 600; 
+  color: var(--text-primary); 
 }
 
-.big-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+.card-body .subtitle { 
+  color: var(--muted); 
+  font-size: 14px; 
+  margin: 0 0 16px 0; 
 }
 
-.card-icon {
-  width: 96px;
-  height: 96px;
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+.card-body .label { 
+  color: var(--muted); 
+  font-size: 13px; 
+  margin-bottom: 4px; 
 }
 
-.card-icon.blue {
-  background: rgba(74,158,255,0.1);
+.card-body .value { 
+  font-weight: 700; 
+  font-size: 18px; 
+  color: var(--text-primary); 
 }
 
-.card-icon.green {
-  background: rgba(16,183,89,0.1);
+.transaksi-row, .finance-row, .produk-row { 
+  display: flex; 
+  gap: 32px; 
+  margin-top: 12px; 
 }
 
-.card-content h2 {
-  font-size: 28px;
-  font-weight: 700;
-  margin: 0 0 8px 0;
-  color: var(--text-primary);
-}
-
-.card-content .subtitle {
-  font-size: 16px;
-  color: var(--text-secondary);
-  margin: 0;
-}
-
-/* Info Section */
-.info-section {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 24px;
-}
-
-.info-box {
+/* Recent Transactions Section */
+.recent-transactions {
   background: var(--card);
   border-radius: 16px;
   padding: 24px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
   border: 1px solid var(--border-color);
+  margin-top: 20px;
 }
 
-.info-box h3 {
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.section-header h3 {
+  margin: 0;
   font-size: 18px;
   font-weight: 600;
-  margin: 0 0 16px 0;
   color: var(--text-primary);
 }
 
-.data-row {
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
+.view-all {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
 }
 
-.data-item {
+.view-all:hover {
+  text-decoration: underline;
+}
+
+.transactions-list {
   display: flex;
+  flex-direction: column;
   gap: 12px;
+}
+
+.transaction-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   padding: 12px 16px;
   background: var(--page-bg);
   border-radius: 8px;
-  align-items: center;
+  border: 1px solid var(--border-color);
 }
 
-.data-item .label {
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.data-item .value {
-  font-weight: 700;
-  color: var(--blue-primary);
-}
-
-.data-item .detail {
-  font-size: 14px;
-  color: var(--text-secondary);
-}
-
-.finance-summary {
-  display: flex;
-  gap: 24px;
-}
-
-.finance-item {
+.transaction-info {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
 
-.finance-item .label {
+.transaction-id {
+  font-weight: 600;
+  color: var(--text-primary);
   font-size: 14px;
+}
+
+.transaction-detail {
+  font-size: 12px;
   color: var(--text-secondary);
 }
 
-.finance-item .value {
-  font-size: 20px;
+.transaction-amount {
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--accent);
+  font-size: 16px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-secondary);
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 14px;
 }
 
 /* Responsive */
 @media (max-width: 1024px) {
-  .cards-grid,
-  .info-section {
-    grid-template-columns: 1fr;
-  }
-  
-  .sidebar {
-    width: 240px;
-  }
+  .page { gap: 0; padding: 0; }
+  .grid { gap: 20px; }
 }
 
 @media (max-width: 768px) {
-  .page {
-    gap: 0;
-    padding: 0;
-  }
-
+  .page { flex-direction: column; padding: 0; gap: 0; }
   .sidebar {
-    position: fixed;
-    left: 0;
-    top: 0;
-    height: 100vh;
-    z-index: 1000;
-    width: 280px;
-    box-shadow: 2px 0 8px rgba(0,0,0,0.15);
-    transition: margin-left 0.3s ease;
-  }
-
-  /* Sidebar default: hidden (closed) on mobile */
-  .sidebar.closed {
-    margin-left: -280px;
-  }
-
-  /* Sidebar open: visible on mobile */
-  .sidebar:not(.closed) {
-    margin-left: 0;
-  }
-
-  .content {
     width: 100%;
+    border-radius: 0;
+    padding: 16px;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-left: 0 !important;
   }
-
-  .content-main {
-    padding: 20px;
-  }
-
-  .topbar {
-    padding: 12px 16px;
-  }
-
-  .big-card {
-    flex-direction: column;
-    text-align: center;
-    padding: 24px;
-  }
-
-  .card-icon {
-    width: 80px !important;
-    height: 80px !important;
-  }
-
-  .finance-summary {
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .cards-grid {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-
-  .info-section {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
+  .sidebar.closed { width: 100%; padding: 16px; margin-left: 0 !important; }
+  .brand { order: 1; }
+  .brand h1 { font-size: 18px; margin: 0; }
+  .menu { order: 2; flex-direction: row; gap: 8px; flex-wrap: wrap; margin-top: 0; }
+  .menu-item.pill { min-width: auto; padding: 10px 16px; font-size: 14px; }
+  .close-circle { display: none !important; }
+  .hamburger-open { display: none !important; }
+  .sidebar.closed .menu-item.pill { width: auto; height: auto; padding: 10px 16px; }
+  .sidebar.closed .menu-item.pill .mi-text { display: inline-block; }
+  .content { padding: 16px; }
+  .grid { grid-template-columns: 1fr; gap: 16px; }
+  .card { padding: 16px; min-height: 120px; }
+  .icon-wrap { min-width: 64px; min-height: 64px; }
+  .icon-wrap svg { width: 36px; height: 36px; }
+  .transaksi-row, .finance-row, .produk-row { gap: 20px; flex-wrap: wrap; }
 }
 
 @media (max-width: 480px) {
-  .content-main {
-    padding: 16px;
-  }
-
-  .section-header h1 {
-    font-size: 24px;
-  }
-
-  .big-card {
-    padding: 20px;
-  }
-
-  .card-content h2 {
-    font-size: 22px;
-  }
-
-  .info-box {
-    padding: 20px;
-  }
+  .page { padding: 0; gap: 0; }
+  .sidebar { padding: 12px; border-radius: 0; }
+  .content { padding: 12px; }
+  .brand h1 { font-size: 16px; }
+  .menu-item.pill { padding: 8px 12px; font-size: 13px; min-width: auto; }
+  .card { padding: 14px; gap: 12px; }
+  .card-body h3 { font-size: 18px; }
 }

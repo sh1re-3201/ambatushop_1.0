@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * TransaksiRepository akan extends JpaRepository untuk mendapatkan CRUD Operation-nya
@@ -17,4 +18,6 @@ import java.util.List;
 public interface TransaksiRepository extends JpaRepository<Transaksi, Long> {
     List<Transaksi> findByAkun(Akun akun); //nama property sesuai sama entitynya yaitu akun.
     List<Transaksi> findByTanggalBetween(LocalDateTime start, LocalDateTime end);
+    Optional<Transaksi> findByPaymentGatewayId(String paymentGatewayId);
+    Optional<Transaksi> findByReferenceNumber(String referenceNumber);
 }

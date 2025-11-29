@@ -1,0 +1,391 @@
+/* ======= STYLE HALAMAN DETAIL TRANSAKSI ======= */
+.detail-transaksi-container {
+  height: calc(100vh - 120px);
+  display: flex;
+  flex-direction: column;
+}
+
+.transaksi-card {
+  background: #f8f9fa;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* ======= HEADER TRANSAKSI ======= */
+.transaksi-header {
+  background: #fff;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e9ecef;
+  flex-shrink: 0;
+}
+
+.transaksi-header h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #333;
+  margin: 0 0 16px 0;
+}
+
+.transaksi-info {
+  display: flex;
+  gap: 40px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.info-item .label {
+  font-size: 12px;
+  color: #666;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.info-item .value {
+  font-size: 16px;
+  color: #333;
+  font-weight: 600;
+}
+
+/* ======= DAFTAR BELANJA DENGAN HEADER BIRU ======= */
+.daftar-belanja-section {
+  background: #fff;
+  margin: 0;
+  border-bottom: 1px solid #e9ecef;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.section-header-blue {
+  background: #2b7cff;
+  padding: 12px 24px;
+  flex-shrink: 0;
+}
+
+.section-header-blue h2 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0;
+}
+
+.table-container {
+  padding: 0 24px;
+  flex: 1;
+  overflow: auto;
+  min-height: 0;
+}
+
+.belanja-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.belanja-table thead {
+  background: #f8f9fa;
+  border-bottom: 2px solid #e9ecef;
+  position: sticky;
+  top: 0;
+}
+
+.belanja-table th {
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #495057;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.belanja-table th:nth-child(1) {
+  width: 15%;
+} /* Kode Barang */
+.belanja-table th:nth-child(2) {
+  width: 25%;
+} /* Nama Barang */
+.belanja-table th:nth-child(3) {
+  width: 15%;
+} /* Harga Satuan */
+.belanja-table th:nth-child(4) {
+  width: 10%;
+} /* Jumlah */
+.belanja-table th:nth-child(5) {
+  width: 15%;
+} /* Harga Akhir */
+.belanja-table th:nth-child(6) {
+  width: 20%;
+} /* Opsi */
+
+.belanja-table td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid #e9ecef;
+  font-size: 13px;
+  color: #212529;
+  vertical-align: middle;
+}
+
+.belanja-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.belanja-table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.opsi-select {
+  padding: 6px 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 12px;
+  background: #fff;
+  cursor: pointer;
+  width: 100%;
+  max-width: 100px;
+}
+
+.opsi-select:focus {
+  outline: none;
+  border-color: #2b7cff;
+}
+
+/* ======= RINGKASAN PEMBAYARAN ======= */
+.ringkasan-section {
+  background: #fff;
+  padding: 20px 24px;
+  flex-shrink: 0;
+}
+
+.ringkasan-content {
+  display: flex;
+  gap: 40px;
+  align-items: flex-start;
+}
+
+.ringkasan-left {
+  flex: 1;
+}
+
+.ringkasan-right {
+  width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ringkasan-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.ringkasan-item.total {
+  border-bottom: 2px solid #333;
+  font-weight: 700;
+  font-size: 15px;
+  margin-top: 8px;
+}
+
+.ringkasan-item .label {
+  color: #666;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.ringkasan-item .value {
+  color: #333;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.ringkasan-item.total .value {
+  font-size: 15px;
+  color: #2b7cff;
+}
+
+/* ======= METODE PEMBAYARAN ======= */
+.payment-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.payment-section .label {
+  color: #666;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.payment-options {
+  display: flex;
+  gap: 16px;
+}
+
+.payment-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #333;
+}
+
+.payment-option input[type="radio"] {
+  margin: 0;
+  transform: scale(0.9);
+}
+
+/* ======= STATUS TRANSAKSI ======= */
+.status-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.status-section .label {
+  color: #666;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.status {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.status.menunggu {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+/* ======= ACTION BUTTONS ======= */
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.btn-cancel {
+  padding: 10px 16px;
+  border: 1px solid #dc3545;
+  border-radius: 6px;
+  background: #fff;
+  color: #dc3545;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-cancel:hover {
+  background: #dc3545;
+  color: #fff;
+}
+
+.btn-process {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  background: #2b7cff;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.btn-process:hover {
+  background: #1f6fc2;
+}
+
+/* ======= RESPONSIVE ======= */
+@media (max-width: 1024px) {
+  .detail-transaksi-container {
+    height: calc(100vh - 100px);
+  }
+
+  .transaksi-header,
+  .ringkasan-section {
+    padding: 16px 20px;
+  }
+
+  .section-header-blue {
+    padding: 10px 20px;
+  }
+
+  .table-container {
+    padding: 0 20px;
+  }
+
+  .ringkasan-content {
+    gap: 24px;
+  }
+}
+
+@media (max-width: 768px) {
+  .detail-transaksi-container {
+    height: auto;
+    min-height: calc(100vh - 100px);
+  }
+
+  .transaksi-card {
+    border-radius: 0;
+  }
+
+  .transaksi-info {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .ringkasan-content {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .ringkasan-right {
+    width: 100%;
+  }
+
+  .action-buttons {
+    flex-direction: row;
+  }
+
+  .btn-cancel,
+  .btn-process {
+    flex: 1;
+  }
+
+  .belanja-table {
+    table-layout: auto;
+    min-width: 600px;
+  }
+
+  .table-container {
+    overflow-x: auto;
+  }
+}

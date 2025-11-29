@@ -12,6 +12,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -84,6 +85,8 @@ public class SecurityConfig {
                                 "/kasir/**","/keuangan/**")
                         .permitAll()
 
+                        // FIX: Allow Midtrans webhook without authentication
+                        .requestMatchers("/api/payment/webhook").permitAll()
                         // API auth
                         .requestMatchers("/api/auth/**").permitAll()
 
@@ -117,4 +120,9 @@ public class SecurityConfig {
         authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
     }
+
+    // @Bean
+    // public WebSecurityCustomizer webSecurityCustomizer() {
+    //     return (web) -> web.ignoring().requestMatchers("/api/payment/webhook");
+    // }
 }

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>AmbatuShop — Detail Transaksi</title>
+    <link rel="stylesheet" href="css/beranda_admin.css" />
+    <link rel="stylesheet" href="css/detail-transaksi.css" />
+  </head>
+  <body class="role-kasir">
+    <div class="page">
+      <aside class="sidebar" id="sidebar" aria-hidden="false" role="complementary">
+        <button class="hamburger" id="sidebar-toggle" aria-label="Toggle sidebar" title="Toggle sidebar">
+          <svg width="18" height="14" viewBox="0 0 24 18" fill="none" aria-hidden="true">
+            <path d="M3 2h18" stroke="#fff" stroke-width="1.8" stroke-linecap="round" />
+            <path d="M3 9h18" stroke="#fff" stroke-width="1.8" stroke-linecap="round" />
+            <path d="M3 16h18" stroke="#fff" stroke-width="1.8" stroke-linecap="round" />
+          </svg>
+        </button>
+
+        <button class="close-circle" id="sidebar-close" aria-label="Tutup sidebar">×</button>
+
+        <div class="brand">
+          <h1>AmbatuShop</h1>
+        </div>
+
+        <nav class="menu" role="navigation" aria-label="Menu utama">
+          <button class="menu-item pill" data-tab="dashboard" title="Dasbor">
+            <span class="mi-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
+                <path d="M3 11.5L12 4l9 7.5" stroke="#111" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                <path d="M5 11.5V20a1 1 0 0 0 1 1h3v-6h6v6h3a1 1 0 0 0 1-1v-8.5" stroke="#111" stroke-width="1.6" />
+              </svg>
+            </span>
+            <span class="mi-text">Dasbor</span>
+          </button>
+
+          <button class="menu-item pill" data-tab="transaksi" title="Transaksi">
+            <span class="mi-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
+                <path d="M6 6h15l-1.5 9h-11z" stroke="#2b7cff" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+                <circle cx="10" cy="20" r="1" fill="#2b7cff" />
+                <circle cx="18" cy="20" r="1" fill="#2b7cff" />
+              </svg>
+            </span>
+            <span class="mi-text">Transaksi</span>
+          </button>
+
+          <button class="menu-item pill" data-tab="keuangan" title="Keuangan">
+            <span class="mi-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
+                <path d="M12 1v4" stroke="#10b759" stroke-width="1.6" stroke-linecap="round" />
+                <path d="M5 8h14v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8z" stroke="#10b759" stroke-width="1.6" fill="none" />
+              </svg>
+            </span>
+            <span class="mi-text">Keuangan</span>
+          </button>
+        </nav>
+      </aside>
+
+      <main class="content" role="main">
+        <header class="topbar">
+          <div class="top-actions">
+            <button class="icon-btn" title="Pengaturan" aria-label="Pengaturan">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
+                <path
+                  d="M19.14 12.94c.04-.31.06-.63.06-.94s-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.11-.2-.35-.28-.56-.22l-2.39.96a7.02 7.02 0 0 0-1.6-.94L14.5 2.5a.48.48 0 0 0-.48-.5h-3.95c-.24 0-.45.15-.48.39L9.9 5.07c-.57.2-1.11.48-1.6.83L5.91 4.94c-.21-.09-.45 0-.56.22L3.43 8.48c-.11.2-.06.46.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94L3.55 15.6c-.18.14-.23.41-.12.61l1.92 3.32c.11.2.35.28.56.22l2.39-.96c.49.35 1.03.63 1.6.83l.7 2.57c.03.24.24.39.48.39h3.95c.24 0 .45-.15.48-.39l.7-2.57c.57-.2 1.11-.48 1.6-.83l2.39.96c.21.09.45 0 .56-.22l1.92-3.32c.11-.2.06-.46-.12-.61l-2.03-1.58zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5S10.07 8.5 12 8.5s3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"
+                  stroke="#666"
+                  stroke-width="1.2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </button>
+
+            <div class="avatar" title="Akun">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="8" r="3.2" stroke="#fff" stroke-width="1.2" fill="#ff4d4d" />
+                <path d="M5 20a7 7 0 0 1 14 0" stroke="#fff" stroke-width="1.2" />
+              </svg>
+            </div>
+          </div>
+        </header>
+
+        <section class="detail-transaksi-container">
+          <div class="transaksi-card">
+            <!-- Header Transaksi -->
+            <div class="transaksi-header">
+              <h1>Transaksi</h1>
+              <div class="transaksi-info">
+                <div class="info-item">
+                  <span class="label">ID Transaksi</span>
+                  <span class="value">0035</span>
+                </div>
+                <div class="info-item">
+                  <span class="label">Tanggal</span>
+                  <span class="value">13/05/2025</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Daftar Belanja dengan Header Biru -->
+            <div class="daftar-belanja-section">
+              <div class="section-header-blue">
+                <h2>Daftar Belanja</h2>
+              </div>
+              <div class="table-container">
+                <table class="belanja-table">
+                  <thead>
+                    <tr>
+                      <th>Kode Barang</th>
+                      <th>Nama Barang</th>
+                      <th>Harga Satuan</th>
+                      <th>Jumlah</th>
+                      <th>Harga Akhir</th>
+                      <th>Opsi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>BRG-0132</td>
+                      <td>Ayla Osiri</td>
+                      <td>13.000</td>
+                      <td>3</td>
+                      <td>30.000</td>
+                      <td>
+                        <select class="opsi-select">
+                          <option selected>Happy</option>
+                          <option>Edit</option>
+                          <option>Hapus</option>
+                        </select>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>BRG-0052</td>
+                      <td>Beras Piz</td>
+                      <td>50.000</td>
+                      <td>1</td>
+                      <td>50.000</td>
+                      <td>
+                        <select class="opsi-select">
+                          <option selected>Happy</option>
+                          <option>Edit</option>
+                          <option>Hapus</option>
+                        </select>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Ringkasan Pembayaran -->
+            <div class="ringkasan-section">
+              <div class="ringkasan-content">
+                <div class="ringkasan-left">
+                  <div class="ringkasan-item">
+                    <span class="label">Sub-Total</span>
+                    <span class="value">88.000</span>
+                  </div>
+
+                  <div class="payment-section">
+                    <span class="label">Opsi Bayar:</span>
+                    <div class="payment-options">
+                      <label class="payment-option">
+                        <input type="radio" name="payment" checked />
+                        <span>Tunai</span>
+                      </label>
+                      <label class="payment-option">
+                        <input type="radio" name="payment" />
+                        <span>Qris</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div class="ringkasan-item">
+                    <span class="label">Diskon</span>
+                    <span class="value">0 % = Rp. 88.000</span>
+                  </div>
+
+                  <div class="ringkasan-item total">
+                    <span class="label">Total Harga</span>
+                    <span class="value">89.000</span>
+                  </div>
+                </div>
+
+                <div class="ringkasan-right">
+                  <div class="status-section">
+                    <span class="label">Status:</span>
+                    <span class="status menunggu">Menunggu</span>
+                  </div>
+
+                  <div class="action-buttons">
+                    <button class="btn-cancel">Batal</button>
+                    <button class="btn-process">Proses Pembayaran</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="js/detail-transaksi.js"></script>
+  </body>
+</html>
