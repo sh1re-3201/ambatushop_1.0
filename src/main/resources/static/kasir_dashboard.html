@@ -6,27 +6,54 @@
   <title>AmbatuShop — Dashboard Kasir</title>
   <link rel="stylesheet" href="css/kasir_dashboard.css" />
 </head>
-<body>
+<body class="role-kasir">
   <div class="page">
-    <!-- Sidebar -->
+    <!-- Sidebar Konsisten dengan Admin -->
     <aside class="sidebar" id="sidebar" aria-hidden="false">
       <button class="close-circle" id="sidebar-close" aria-label="Tutup sidebar">×</button>
-      
+
       <div class="brand">
         <h1>AmbatuShop</h1>
       </div>
 
-      <nav class="menu">
-        <a href="kasir_dashboard.html" class="menu-item active">Dasbor</a>
-        <a href="kasir_transaksi.html" class="menu-item transaksi">Transaksi</a>
-        <a href="kasir_keuangan.html" class="menu-item keuangan">Keuangan</a>
+      <nav class="menu" role="navigation" aria-label="Menu utama">
+        <a href="kasir_dashboard.html" class="menu-item pill active" data-tab="dashboard" title="Dasbor">
+          <span class="mi-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
+              <path d="M3 11.5L12 4l9 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M5 11.5V20a1 1 0 0 0 1 1h3v-6h6v6h3a1 1 0 0 0 1-1v-8.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          <span class="mi-text">Dasbor</span>
+        </a>
+
+        <a href="kasir_transaksi.html" class="menu-item pill" data-tab="transaksi" title="Transaksi">
+          <span class="mi-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
+              <path d="M16 8h4l-4 8h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M4 8h4l-4 8h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M12 8v8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+          </span>
+          <span class="mi-text">Transaksi</span>
+        </a>
+
+        <a href="kasir_keuangan.html" class="menu-item pill" data-tab="keuangan" title="Keuangan">
+          <span class="mi-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
+              <path d="M12 2v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              <path d="M5 8h14v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="12" cy="13" r="2" stroke="currentColor" stroke-width="1.5" fill="none"/>
+            </svg>
+          </span>
+          <span class="mi-text">Keuangan</span>
+        </a>
       </nav>
     </aside>
 
-    <!-- Main Content -->
     <main class="content">
       <header class="topbar">
-        <button class="hamburger-open" id="sidebar-open-btn">
+        <button class="hamburger-open" id="sidebar-open-btn" aria-label="Buka sidebar">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
             <path d="M3 6h18" stroke="#666" stroke-width="2" stroke-linecap="round"/>
             <path d="M3 12h18" stroke="#666" stroke-width="2" stroke-linecap="round"/>
@@ -34,7 +61,7 @@
           </svg>
         </button>
         <div class="top-actions">
-          <button class="icon-btn theme-toggle" id="theme-toggle" title="Toggle Dark Mode">
+          <button class="icon-btn theme-toggle" id="theme-toggle" title="Toggle Dark Mode" aria-label="Toggle Dark Mode">
             <svg class="sun-icon" viewBox="0 0 24 24" width="24" height="24" fill="none">
               <circle cx="12" cy="12" r="5" stroke="#666" stroke-width="1.5" fill="none"/>
               <path d="M12 1v3M12 20v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M1 12h3M20 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12" stroke="#666" stroke-width="1.5" stroke-linecap="round"/>
@@ -44,7 +71,7 @@
             </svg>
           </button>
           <div class="avatar-wrapper">
-            <button class="avatar" id="avatar-btn">
+            <button class="avatar" id="avatar-btn" title="Akun" aria-label="Akun pengguna">
               <img id="current-avatar" src="https://img.freepik.com/vektor-gratis/ilustracion-personaje-empresario_1308-174669.jpg" alt="Avatar" style="display:none">
               <svg id="default-avatar" width="24" height="24" viewBox="0 0 24 24" fill="none">
                 <circle cx="12" cy="8" r="4" fill="#fff"/>
@@ -73,66 +100,94 @@
         </div>
       </header>
 
-      <section class="content-main">
-        <div class="cards-grid">
-          <!-- Card Transaksi -->
-          <div class="big-card transaksi-card">
-            <div class="card-icon blue">
-              <svg viewBox="0 0 64 64" width="56" height="56" fill="none">
-                <path d="M16 20h32l-4 24H20z" stroke="#4a9eff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-                <circle cx="24" cy="50" r="3" fill="#4a9eff"/>
-                <circle cx="40" cy="50" r="3" fill="#4a9eff"/>
-                <path d="M16 20l-4-8h8" stroke="#4a9eff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </div>
-            <div class="card-content">
-              <h2>Transaksi</h2>
-              <p class="subtitle">Penjualan Terbaru</p>
-            </div>
+      <section class="grid" id="main-grid">
+        <!-- Transaksi Card -->
+        <div class="card feature" id="card-transaksi">
+          <div class="icon-wrap blue">
+            <svg viewBox="0 0 64 64" width="48" height="48" fill="none">
+              <path d="M16 20h32l-4 24H20z" stroke="#2b7cff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="24" cy="50" r="3" fill="#2b7cff"/>
+              <circle cx="40" cy="50" r="3" fill="#2b7cff"/>
+              <path d="M16 20l-4-8h8" stroke="#2b7cff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
           </div>
-
-          <!-- Card Keuangan -->
-          <div class="big-card keuangan-card">
-            <div class="card-icon green">
-              <svg viewBox="0 0 64 64" width="56" height="56" fill="none">
-                <circle cx="32" cy="28" r="12" stroke="#10b759" stroke-width="3" fill="none"/>
-                <path d="M28 28h4v4M32 24v8" stroke="#10b759" stroke-width="2.5" stroke-linecap="round"/>
-                <path d="M20 42h24" stroke="#10b759" stroke-width="3" stroke-linecap="round"/>
-                <path d="M16 50h32" stroke="#10b759" stroke-width="3" stroke-linecap="round"/>
-              </svg>
-            </div>
-            <div class="card-content">
-              <h2>Keuangan</h2>
-              <p class="subtitle">Pendapatan</p>
+          <div class="card-body">
+            <h3>Transaksi Hari Ini</h3>
+            <p class="subtitle">Total Penjualan</p>
+            <div class="transaksi-row">
+              <div>
+                <div class="label">Jumlah</div>
+                <div class="value" id="today-transactions">0 Transaksi</div>
+              </div>
+              <div>
+                <div class="label">Total</div>
+                <div class="value" id="today-revenue">Rp 0</div>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Transaksi Info -->
-        <div class="info-section">
-          <div class="info-box">
-            <h3>Transaksi Hari Ini</h3>
-            <div class="data-row">
-              <div class="data-item">
-                <span class="label">#0034</span>
-                <span class="value">Rp 43.000</span>
-                <span class="detail">Qris</span>
+        <!-- Keuangan Card -->
+        <div class="card feature" id="card-keuangan">
+          <div class="icon-wrap green">
+            <svg viewBox="0 0 64 64" width="48" height="48" fill="none">
+              <circle cx="32" cy="28" r="12" stroke="#10b759" stroke-width="3" fill="none"/>
+              <path d="M28 28h4v4M32 24v8" stroke="#10b759" stroke-width="2.5" stroke-linecap="round"/>
+              <path d="M20 42h24" stroke="#10b759" stroke-width="3" stroke-linecap="round"/>
+              <path d="M16 50h32" stroke="#10b759" stroke-width="3" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="card-body">
+            <h3>Pendapatan</h3>
+            <p class="subtitle">Bulan Ini</p>
+            <div class="finance-row">
+              <div>
+                <div class="label">Pemasukan</div>
+                <div class="value" id="monthly-income">Rp 0</div>
+              </div>
+              <div>
+                <div class="label">Target</div>
+                <div class="value" id="monthly-target">Rp 5.000.000</div>
               </div>
             </div>
           </div>
+        </div>
 
-          <div class="info-box">
-            <h3>Keuangan</h3>
-            <div class="finance-summary">
-              <div class="finance-item">
-                <span class="label">Pemasukan</span>
-                <span class="value">Rp 2.865.000</span>
+        <!-- Produk Card -->
+        <div class="card feature" id="card-produk">
+          <div class="icon-wrap orange">
+            <svg viewBox="0 0 64 64" width="48" height="48" fill="none">
+              <path d="M52 38V26L32 14 12 26v12l20 12 20-12z" stroke="#f6b24a" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M32 14v12M12 26l20 12 20-12" stroke="#f6b24a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="card-body">
+            <h3>Stok Produk</h3>
+            <p class="subtitle">Ketersediaan</p>
+            <div class="produk-row">
+              <div>
+                <div class="label">Total</div>
+                <div class="value" id="total-products">0 Produk</div>
               </div>
-              <div class="finance-item">
-                <span class="label">Pengeluaran</span>
-                <span class="value">Rp 2.130.000</span>
+              <div>
+                <div class="label">Stok Menipis</div>
+                <div class="value" id="low-stock">0 Produk</div>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Transaksi Terbaru Section -->
+      <section class="recent-transactions">
+        <div class="section-header">
+          <h3>Transaksi Terbaru</h3>
+          <a href="kasir_transaksi.html" class="view-all">Lihat Semua</a>
+        </div>
+        <div class="transactions-list" id="recent-transactions">
+          <!-- Data akan diisi oleh JavaScript -->
+          <div class="empty-state">
+            <p>Belum ada transaksi hari ini</p>
           </div>
         </div>
       </section>
