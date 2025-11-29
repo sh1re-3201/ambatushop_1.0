@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -90,12 +91,16 @@ public class SecurityConfig {
                         // API auth
                         .requestMatchers("/api/auth/**").permitAll()
 
+                        .requestMatchers(HttpMethod.GET, "/api/export/download").permitAll()
+
+                        // API Export
+                        .requestMatchers("/api/export/**").hasAnyRole("MANAJER", "ADMIN")
+
                         // Protect API endpoints
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/manajer/**").hasAnyRole("MANAJER", "ADMIN")
                         .requestMatchers("/api/kasir/**").hasAnyRole("KASIR", "MANAJER", "ADMIN")
                         .requestMatchers("/api/produk/**").hasAnyRole("KASIR", "MANAJER", "ADMIN")
-                        .requestMatchers("/api/export/**").hasAnyRole("MANAJER")
 
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
