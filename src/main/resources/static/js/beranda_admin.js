@@ -287,29 +287,55 @@ function updateStockCard(products) {
 function updateUsersCard(users) {
     const onlineElement = document.querySelector('#card-pengguna .users-row div:first-child .value');
     const offlineElement = document.querySelector('#card-pengguna .users-row div:last-child .value');
+    const subtitleElement = document.querySelector('#card-pengguna .subtitle');
     
-    if (!onlineElement || !offlineElement) return;
+    if (!onlineElement || !offlineElement || !subtitleElement) return;
 
     const totalUsers = users.length;
     
-    // Untuk demo, anggap 2 user online (admin dan kasir), sisanya offline
-    // Di production, ini bisa diganti dengan real-time tracking
-    const onlineUsers = Math.min(2, totalUsers); // Simulasi: max 2 online
+    // Hitung jumlah user per role
+    const roleCounts = {
+        ADMIN: users.filter(user => user.role === 'ADMIN').length,
+        MANAJER: users.filter(user => user.role === 'MANAJER').length,
+        KASIR: users.filter(user => user.role === 'KASIR').length
+    };
+
+    // Untuk demo, anggap 1-2 user online (random), sisanya offline
+    const onlineUsers = Math.min(Math.floor(Math.random() * 3) + 1, totalUsers);
     const offlineUsers = Math.max(0, totalUsers - onlineUsers);
 
+    // Update UI
     onlineElement.textContent = onlineUsers;
     offlineElement.textContent = offlineUsers;
+    subtitleElement.textContent = `Total: ${totalUsers} Pengguna`;
 
-    // Update subtitle dengan total users
-    const subtitle = document.querySelector('#card-pengguna .subtitle');
-    if (subtitle) {
-        subtitle.textContent = `Total: ${totalUsers} Pengguna`;
+    // Tambahkan detail role di card (opsional)
+    const cardBody = document.querySelector('#card-pengguna .card-body');
+    if (cardBody && !cardBody.querySelector('.role-breakdown')) {
+        const roleBreakdown = document.createElement('div');
+        roleBreakdown.className = 'role-breakdown';
+        roleBreakdown.style.cssText = `
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid var(--border-color);
+            font-size: 11px;
+            color: var(--text-secondary);
+        `;
+        roleBreakdown.innerHTML = `
+            <div style="display: flex; justify-content: space-between;">
+                <span>Admin: ${roleCounts.ADMIN}</span>
+                <span>Manajer: ${roleCounts.MANAJER}</span>
+                <span>Kasir: ${roleCounts.KASIR}</span>
+            </div>
+        `;
+        cardBody.appendChild(roleBreakdown);
     }
     
     console.log('👥 Users card updated:', { 
         totalUsers, 
         onlineUsers, 
-        offlineUsers 
+        offlineUsers,
+        roleCounts
     });
 }
 
