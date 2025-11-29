@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const errorMessage = document.getElementById('errorMessage');
 
     // ========== BASE URL ==========
-    const API_BASE_URL = 'http://localhost:8080'; // ✅ Explicit base URL
+    const API_BASE_URL = 'http://localhost:8080'; // Explicit base URL
 
     // ========== VALIDATION FUNCTIONS ==========
     function showError(message) {
