@@ -156,5 +156,143 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+
+    const downloadBtn = document.getElementById('download-excel-btn');
+
+    if (!downloadBtn) {
+        console.warn('download-excel-btn not found in DOM. Verify the button id in HTML.');
+    } else {
+        downloadBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+
+            try {
+                // Retrieve bearer token (adjust key if your app uses a different storage)
+                const token = localStorage.getItem('accessToken'); // or null
+
+                const headers = {};
+                if (token) headers['Authorization'] = `Bearer ${token}`;
+
+                const resp = await fetch('/api/keuangan/report/download', {
+                    method: 'GET',
+                    headers,
+                    credentials: 'include' // keep cookies if backend requires session cookies
+                });
+
+                if (resp.status === 401 || resp.status === 403) {
+                    console.warn('Auth error during download:', resp.status);
+                    alert('Authentication required or session expired. Please login.');
+                    return;
+                }
+
+                if (!resp.ok) {
+                    const txt = await resp.text().catch(() => '<no body>');
+                    console.error('Download failed:', resp.status, txt);
+                    alert('Download failed: ' + resp.status);
+                    return;
+                }
+
+                const blob = await resp.blob();
+                if (!blob || blob.size === 0) {
+                    const text = await resp.text().catch(() => '<no body>');
+                    console.error('Received empty file/blob. Server returned:', text);
+                    alert('Server returned an empty file. Check server logs and Network tab.');
+                    return;
+                }
+
+                // Try to extract filename from Content-Disposition
+                const cd = resp.headers.get('content-disposition') || '';
+                let filename = 'laporan_keuangan.xls';
+                const filenameMatch = /filename\*?=(?:UTF-8'')?["']?([^;"']+)["']?/i.exec(cd);
+                if (filenameMatch && filenameMatch[1]) {
+                    try {
+                        filename = decodeURIComponent(filenameMatch[1].replace(/['"]/g, ''));
+                    } catch (e) {
+                        filename = filenameMatch[1].replace(/['"]/g, '');
+                    }
+                }
+
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(url);
+
+                console.log('Download triggered for', filename);
+            } catch (err) {
+                console.error('Error downloading file:', err);
+                alert('Error downloading file. See console for details.');
+            }
+        });
+    }
+
+
+
+    // try {
+        //     // If you use Bearer token, set it in localStorage (or replace with your auth retrieval)
+        //     const token = localStorage.getItem('accessToken'); // or null
+        //     const resp = await fetch('/api/keuangan/report/download', {
+        //         method: 'GET',
+        //         headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+        //         credentials: 'include' // keep cookies if your auth uses them
+        //     });                 // window.alert('File Anda Berhasil Diunduh!');
+
+
+            //
+            //
+            // if (!resp.ok) {
+            //     console.error('Download failed', resp.status, resp.statusText);
+            //     // return;
+            // }
+            //
+            // const blob = await resp.blob();
+            //
+            // // try to get filename from Content-Disposition
+            // const cd = resp.headers.get('content-disposition');
+            // let filename = 'keuangan.xls';
+            // if (cd) {
+            //     const match = /filename\*?=(?:UTF-8'')?["']?([^;"']+)["']?/i.exec(cd);
+            //     if (match && match[1]) filename = decodeURIComponent(match[1].replace(/['"]/g, ''));
+            // }
+            //
+            // const url = URL.createObjectURL(blob);
+            // const a = document.createElement('a');
+            // a.href = url;
+            // a.download = filename;
+            // document.body.appendChild(a);
+            // a.click();
+            // a.remove();
+            // URL.revokeObjectURL(url);
+    //     } catch (err) {
+    //         console.error('Error downloading file', err);
+    //     }
+    // });
+
+
+    //
+    //     try {
+    //         const response = await fetch('/api/keuangan/report/download', { method: 'GET' });
+    //         if (!response.ok) throw new Error('Failed to download');
+    //
+    //         const blob = await response.blob();
+    //         const url = window.URL.createObjectURL(blob);
+    //         const a = document.createElement('a');
+    //         a.href = url;
+    //         a.download = 'laporan_keuangan.xls';
+    //         document.body.appendChild(a);
+    //         a.click();
+    //         a.remove();
+    //         window.URL.revokeObjectURL(url);
+    //     } catch (err) {
+    //         console.error(err);
+    //         alert('Terjadi kesalahan saat mengunduh laporan keuangan!');
+    //     }
+    // });
+
+
+
+
     // (opsional) jangan crash bila user klik di luar; tidak auto-close supaya UX stabil
 });

@@ -13,6 +13,10 @@ import java.util.List;
 @AllArgsConstructor
 public class KeuanganController {
 
+    /**
+     * @TODO Keuangan harus diambil dari total data transaksi perhari yang ditotalkan, jenis diubah menjadi ENUM String yaitu PENDAPATAN dan PENGELUARAN.
+     */
+
     private final KeuanganService keuanganService;
 
     @GetMapping
@@ -23,7 +27,7 @@ public class KeuanganController {
 
     @PostMapping
     @PreAuthorize("hasRole('MANAJER')")
-    public Keuangan createKeuangan(Keuangan keuangan) {
+    public Keuangan createKeuangan(@RequestBody Keuangan keuangan) {
         return keuanganService.createKeuangan(keuangan);
     }
 
