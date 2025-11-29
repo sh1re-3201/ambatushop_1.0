@@ -95,6 +95,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/manajer/**").hasAnyRole("MANAJER", "ADMIN")
                         .requestMatchers("/api/kasir/**").hasAnyRole("KASIR", "MANAJER", "ADMIN")
                         .requestMatchers("/api/produk/**").hasAnyRole("KASIR", "MANAJER", "ADMIN")
+                        .requestMatchers("/api/export/**").hasAnyRole("MANAJER")
 
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
