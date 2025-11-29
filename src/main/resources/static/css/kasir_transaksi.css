@@ -821,82 +821,329 @@ html, body {
   overflow-y: auto;
 }
 
+/* ======= IMPROVED TRANSACTION HISTORY STYLES ======= */
+
 .transaction-history-item {
-  background: var(--page-bg);
-  padding: 16px;
-  border-radius: 8px;
-  border: 1px solid var(--border-color);
-  margin-bottom: 8px;
-  cursor: pointer;
-  transition: all 0.2s;
+    background: var(--card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    transition: all 0.2s ease;
+    cursor: pointer;
 }
 
 .transaction-history-item:hover {
-  border-color: var(--accent);
+    border-color: var(--accent);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .transaction-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.transaction-main {
+    flex: 1;
 }
 
 .transaction-id {
-  font-weight: 600;
-  color: var(--text-primary);
+    display: block;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 14px;
+    margin-bottom: 4px;
 }
 
 .transaction-amount {
-  font-weight: 700;
-  color: var(--accent);
+    font-weight: 700;
+    color: var(--accent);
+    font-size: 16px;
 }
 
-.transaction-details {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 12px;
-  color: var(--text-secondary);
-}
-
-.payment-badge {
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.payment-badge.cash {
-  background: rgba(16, 183, 89, 0.1);
-  color: var(--success);
-}
-
-.payment-badge.qris {
-  background: rgba(43, 124, 255, 0.1);
-  color: var(--accent);
-}
-
-.status-badge {
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.status-pending {
-  background: rgba(245, 158, 11, 0.1);
-  color: var(--warning);
+.transaction-status {
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .status-paid {
-  background: rgba(16, 183, 89, 0.1);
-  color: var(--success);
+    background: rgba(16, 183, 89, 0.1);
+    color: var(--success);
+    border: 1px solid rgba(16, 183, 89, 0.2);
+}
+
+.status-pending {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--warning);
+    border: 1px solid rgba(245, 158, 11, 0.2);
 }
 
 .status-failed {
-  background: rgba(239, 68, 68, 0.1);
-  color: var(--error);
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--error);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.status-expired {
+    background: rgba(107, 114, 128, 0.1);
+    color: var(--muted);
+    border: 1px solid rgba(107, 114, 128, 0.2);
+}
+
+.transaction-details {
+    border-top: 1px solid var(--border-color);
+    padding-top: 12px;
+}
+
+.transaction-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.payment-method, .transaction-time {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.payment-method.tunai {
+    color: var(--success);
+}
+
+.payment-method.non_tunai {
+    color: var(--accent);
+}
+
+.transaction-items {
+    margin-bottom: 12px;
+}
+
+.items-count {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+.items-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+}
+
+.item-name {
+    background: var(--page-bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+}
+
+.more-items {
+    font-size: 10px;
+    color: var(--muted);
+    font-style: italic;
+}
+
+.transaction-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.btn-view-details, .btn-check-status {
+    padding: 6px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--page-bg);
+    color: var(--text-primary);
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-view-details:hover {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+}
+
+.btn-check-status {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--warning);
+    border-color: rgba(245, 158, 11, 0.2);
+}
+
+.btn-check-status:hover {
+    background: var(--warning);
+    color: white;
+}
+
+/* Transaction Detail Modal */
+.transaction-detail {
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.detail-section {
+    margin-bottom: 20px;
+}
+
+.detail-section h4 {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.detail-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.detail-item:last-child {
+    border-bottom: none;
+}
+
+.detail-item.highlight {
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--success);
+    background: rgba(16, 183, 89, 0.05);
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 8px;
+}
+
+.items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.item-detail {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px;
+    background: var(--page-bg);
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+}
+
+.item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.item-name {
+    font-weight: 500;
+    color: var(--text-primary);
+    font-size: 13px;
+}
+
+.item-price {
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.item-subtotal {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 13px;
+}
+
+.monospace {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+}
+
+/* Empty State Improvements */
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-secondary);
+}
+
+.empty-state svg {
+    margin-bottom: 16px;
+}
+
+.empty-state p {
+    margin: 0 0 8px 0;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.empty-state small {
+    font-size: 13px;
+}
+
+/* Summary Cards Improvements */
+.summary-card .summary-value small {
+    font-weight: normal;
+}
+
+/* Responsive Improvements */
+@media (max-width: 768px) {
+    .transaction-header {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .transaction-status {
+        align-self: flex-start;
+    }
+    
+    .transaction-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+    
+    .transaction-actions {
+        flex-direction: column;
+    }
+    
+    .btn-view-details, .btn-check-status {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+/* Animation for new transactions */
+@keyframes highlightNew {
+    0% { background: rgba(16, 183, 89, 0.1); }
+    100% { background: var(--card); }
+}
+
+.transaction-history-item.new {
+    animation: highlightNew 2s ease;
 }
 
 /* Modal Styles */

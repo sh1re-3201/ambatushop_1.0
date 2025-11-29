@@ -480,7 +480,7 @@ class KasirTransaksi {
             this.showSuccess('Pembayaran tunai berhasil! Transaksi #' + this.currentTransaction.idTransaksi);
             this.closeCashModal();
             this.resetTransaction();
-            
+
             // ✅ PERBAIKAN: Reload produk untuk update stok
             await this.loadProducts();
             await this.loadTransactionHistory();
@@ -523,7 +523,7 @@ class KasirTransaksi {
                 console.log('🔗 Redirect ke:', paymentUrl);
                 // Buka tab baru untuk payment
                 window.open(paymentUrl, '_blank');
-                
+
                 // Tampilkan modal waiting dengan polling
                 this.showQRISWaitingModal(transactionId, paymentData.order_id, paymentData);
             } else {
@@ -657,7 +657,7 @@ class KasirTransaksi {
             this.showSuccess('Pembayaran QRIS berhasil! Transaksi #' + transaction.idTransaksi);
             this.closeQRISStatusModal();
             this.resetTransaction();
-            
+
             // ✅ PERBAIKAN: Reload produk untuk update stok
             this.loadProducts();
             this.loadTransactionHistory();
@@ -694,63 +694,423 @@ class KasirTransaksi {
 
     async loadTransactionHistory() {
         try {
+            console.log('🔄 Loading transaction history...');
+
             const response = await fetch('http://localhost:8080/api/transaksi', {
+                method: 'GET',
                 headers: AuthHelper.getAuthHeaders()
             });
 
+            console.log('Response status:', response.status);
+            console.log('Response ok:', response.ok);
+
             if (response.ok) {
                 const transactions = await response.json();
+                console.log('✅ Transactions loaded:', transactions);
                 this.displayTransactionHistory(transactions);
                 this.updateTransactionSummary(transactions);
+            } else {
+                const errorText = await response.text();
+                console.error('❌ API Error:', errorText);
+
+                if (response.status === 401) {
+                    this.showError('Session expired. Silakan login kembali.');
+                    AuthHelper.logout();
+                    return;
+                }
+
+                if (response.status === 403) {
+                    this.showError('Akses ditolak. Pastikan Anda memiliki role KASIR.');
+                    return;
+                }
+
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
             }
         } catch (error) {
-            console.error('Error loading transaction history:', error);
+            console.error('❌ Error loading transaction history:', error);
+
+            if (error.message.includes('Failed to fetch')) {
+                this.showError('Tidak dapat terhubung ke server. Periksa koneksi internet Anda.');
+            } else {
+                this.showError('Gagal memuat riwayat transaksi: ' + error.message);
+            }
+
+            // Tampilkan empty state
+            this.displayEmptyState();
         }
+    }
+
+    displayEmptyState() {
+        const container = document.getElementById('transactions-list');
+        container.innerHTML = `
+            <div class="empty-state">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" style="margin-bottom: 12px;">
+                    <path d="M8 7V3m8 4V3M9 12h6m-6 4h4M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z" 
+                          stroke="var(--text-secondary)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <p>Belum ada transaksi</p>
+                <small style="color: var(--text-secondary);">Transaksi yang dibuat akan muncul di sini</small>
+            </div>
+        `;
+
+        document.getElementById('total-transactions').textContent = '0';
+        document.getElementById('total-sales').textContent = this.formatCurrency(0);
     }
 
     displayTransactionHistory(transactions) {
         const container = document.getElementById('transactions-list');
 
-        if (transactions.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <p>Belum ada transaksi</p>
-                </div>
-            `;
+        if (!transactions || transactions.length === 0) {
+            this.displayEmptyState();
             return;
         }
 
-        // Sort by date (newest first) and take last 10
-        const recentTransactions = transactions
-            .sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal))
-            .slice(0, 10);
+        // Sort by date (newest first)
+        const sortedTransactions = transactions.sort((a, b) =>
+            new Date(b.tanggal) - new Date(a.tanggal)
+        );
 
-        container.innerHTML = recentTransactions.map(transaction => `
-            <div class="transaction-history-item">
+        container.innerHTML = sortedTransactions.map(transaction => this.createTransactionItem(transaction)).join('');
+    }
+
+    createTransactionItem(transaction) {
+        // Debug transaction data
+        console.log('Processing transaction:', transaction);
+
+        const status = transaction.paymentStatus || 'PENDING';
+        const method = transaction.metodePembayaran || transaction.metode_pembayaran || 'TUNAI';
+        const total = transaction.total || 0;
+        const reference = transaction.referenceNumber || `TRX-${transaction.idTransaksi}`;
+        const date = transaction.tanggal || new Date().toISOString();
+
+        // Handle details - bisa berupa array atau undefined
+        const details = transaction.details || [];
+        const itemsCount = Array.isArray(details) ? details.length : 0;
+
+        return `
+            <div class="transaction-history-item" data-transaction-id="${transaction.idTransaksi}">
                 <div class="transaction-header">
-                    <span class="transaction-id">${transaction.referenceNumber || `#${transaction.idTransaksi}`}</span>
-                    <span class="transaction-amount">${this.formatCurrency(transaction.total)}</span>
+                    <div class="transaction-main">
+                        <span class="transaction-id">${reference}</span>
+                        <span class="transaction-amount">${this.formatCurrency(total)}</span>
+                    </div>
+                    <div class="transaction-status ${this.getStatusClass(status)}">
+                        ${this.getStatusText(status)}
+                    </div>
                 </div>
+                
                 <div class="transaction-details">
-                    <span class="payment-badge ${transaction.metodePembayaran === 'TUNAI' ? 'cash' : 'qris'}">
-                        ${transaction.metodePembayaran === 'TUNAI' ? 'TUNAI' : 'QRIS'}
-                    </span>
-                    <span class="status-badge status-${transaction.paymentStatus?.toLowerCase() || 'pending'}">
-                        ${transaction.paymentStatus || 'PENDING'}
-                    </span>
-                    <span class="transaction-time">${this.formatTime(transaction.tanggal)}</span>
+                    <div class="transaction-meta">
+                        <span class="payment-method ${method.toLowerCase()}">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                                ${this.getPaymentMethodIcon(method)}
+                            </svg>
+                            ${this.getPaymentMethodText(method)}
+                        </span>
+                        <span class="transaction-time">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/>
+                                <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                            ${this.formatDateTime(date)}
+                        </span>
+                    </div>
+                    
+                    ${itemsCount > 0 ? `
+                        <div class="transaction-items">
+                            <div class="items-count">
+                                ${itemsCount} item${itemsCount > 1 ? 's' : ''}
+                            </div>
+                            <div class="items-preview">
+                                ${this.getItemsPreview(details)}
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    <div class="transaction-actions">
+                        <button class="btn-view-details" onclick="kasirTransaksi.viewTransactionDetails(${transaction.idTransaksi})">
+                            Lihat Detail
+                        </button>
+                        ${status === 'PENDING' && method === 'NON_TUNAI' ? `
+                            <button class="btn-check-status" onclick="kasirTransaksi.checkTransactionStatus(${transaction.idTransaksi})">
+                                Cek Status
+                            </button>
+                        ` : ''}
+                    </div>
                 </div>
             </div>
-        `).join('');
+        `;
+    }
+
+    getItemsPreview(details) {
+        if (!details || !Array.isArray(details)) return '';
+
+        const previewItems = details.slice(0, 2);
+        const remaining = details.length - 2;
+
+        return `
+            ${previewItems.map(detail => `
+                <span class="item-name">
+                    ${detail.namaProduk || detail.product?.namaProduk || 'Produk'}
+                </span>
+            `).join('')}
+            ${remaining > 0 ? `<span class="more-items">+${remaining} lainnya</span>` : ''}
+        `;
+    }
+
+    getStatusClass(status) {
+        const statusMap = {
+            'PAID': 'status-paid',
+            'PENDING': 'status-pending',
+            'FAILED': 'status-failed',
+            'EXPIRED': 'status-expired'
+        };
+        return statusMap[status] || 'status-pending';
+    }
+
+    getStatusText(status) {
+        const statusMap = {
+            'PAID': 'LUNAS',
+            'PENDING': 'MENUNGGU',
+            'FAILED': 'GAGAL',
+            'EXPIRED': 'KADALUARSA'
+        };
+        return statusMap[status] || 'MENUNGGU';
+    }
+
+    getPaymentMethodIcon(method) {
+        if (method === 'NON_TUNAI' || method === 'QRIS') {
+            return `<rect x="2" y="5" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M6 9h4M6 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>`;
+        } else {
+            return `<rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M2 10h20" stroke="currentColor" stroke-width="1.5"/>`;
+        }
+    }
+
+    getPaymentMethodText(method) {
+        return (method === 'NON_TUNAI' || method === 'QRIS') ? 'QRIS' : 'TUNAI';
+    }
+
+    formatDateTime(dateString) {
+        try {
+            const date = new Date(dateString);
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 1);
+
+            const transactionDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+            let dateText;
+            if (transactionDate.getTime() === today.getTime()) {
+                dateText = 'Hari ini';
+            } else if (transactionDate.getTime() === yesterday.getTime()) {
+                dateText = 'Kemarin';
+            } else {
+                dateText = date.toLocaleDateString('id-ID', {
+                    day: 'numeric',
+                    month: 'short'
+                });
+            }
+
+            const timeText = date.toLocaleTimeString('id-ID', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            return `${dateText} • ${timeText}`;
+        } catch (error) {
+            console.error('Error formatting date:', error);
+            return 'Tanggal tidak valid';
+        }
     }
 
     updateTransactionSummary(transactions) {
+        if (!transactions || transactions.length === 0) {
+            document.getElementById('total-transactions').textContent = '0';
+            document.getElementById('total-sales').textContent = this.formatCurrency(0);
+            return;
+        }
+
         const totalTransactions = transactions.length;
-        const totalSales = transactions.reduce((sum, transaction) => sum + (transaction.total || 0), 0);
+        const paidTransactions = transactions.filter(t =>
+            t.paymentStatus === 'PAID'
+        );
+        const totalSales = paidTransactions.reduce((sum, transaction) => sum + (transaction.total || 0), 0);
+        const pendingTransactions = transactions.filter(t => t.paymentStatus === 'PENDING').length;
 
         document.getElementById('total-transactions').textContent = totalTransactions;
         document.getElementById('total-sales').textContent = this.formatCurrency(totalSales);
+
+        // Update dengan info pending jika ada
+        if (pendingTransactions > 0) {
+            const totalElement = document.querySelector('.summary-card:first-child .summary-value');
+            if (totalElement) {
+                totalElement.innerHTML = `
+                    ${totalTransactions}
+                    <small style="color: var(--warning); font-size: 12px; margin-left: 4px;">
+                        (${pendingTransactions} pending)
+                    </small>
+                `;
+            }
+        }
     }
+
+    async viewTransactionDetails(transactionId) {
+        try {
+            console.log('🔄 Loading transaction details for:', transactionId);
+
+            const response = await fetch(`http://localhost:8080/api/transaksi/${transactionId}`, {
+                headers: AuthHelper.getAuthHeaders()
+            });
+
+            if (response.ok) {
+                const transaction = await response.json();
+                console.log('✅ Transaction details:', transaction);
+                this.showTransactionDetailModal(transaction);
+            } else {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+        } catch (error) {
+            console.error('Error viewing transaction details:', error);
+            this.showError('Gagal memuat detail transaksi: ' + error.message);
+        }
+    }
+
+    showTransactionDetailModal(transaction) {
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay';
+        modal.style.display = 'flex';
+
+        const details = transaction.details || [];
+        const method = transaction.metodePembayaran || transaction.metode_pembayaran || 'TUNAI';
+        const status = transaction.paymentStatus || 'PENDING';
+
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width: 500px;">
+                <div class="modal-header">
+                    <h3>Detail Transaksi</h3>
+                    <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="transaction-detail">
+                        <div class="detail-section">
+                            <h4>Informasi Transaksi</h4>
+                            <div class="detail-grid">
+                                <div class="detail-item">
+                                    <span>ID Transaksi:</span>
+                                    <span>${transaction.referenceNumber || `TRX-${transaction.idTransaksi}`}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span>Tanggal:</span>
+                                    <span>${this.formatDateTime(transaction.tanggal)}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span>Metode Bayar:</span>
+                                    <span class="payment-method ${method.toLowerCase()}">
+                                        ${this.getPaymentMethodText(method)}
+                                    </span>
+                                </div>
+                                <div class="detail-item">
+                                    <span>Status:</span>
+                                    <span class="transaction-status ${this.getStatusClass(status)}">
+                                        ${this.getStatusText(status)}
+                                    </span>
+                                </div>
+                                <div class="detail-item highlight">
+                                    <span>Total:</span>
+                                    <span>${this.formatCurrency(transaction.total)}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        ${details.length > 0 ? `
+                        <div class="detail-section">
+                            <h4>Item Pembelian (${details.length})</h4>
+                            <div class="items-list">
+                                ${details.map(detail => `
+                                    <div class="item-detail">
+                                        <div class="item-info">
+                                            <span class="item-name">${detail.namaProduk || detail.product?.namaProduk || 'Produk'}</span>
+                                            <span class="item-price">${this.formatCurrency(detail.hargaSatuan)} × ${detail.jumlah}</span>
+                                        </div>
+                                        <span class="item-subtotal">${this.formatCurrency(detail.subtotal)}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        ` : ''}
+
+                        ${transaction.paymentGatewayId ? `
+                        <div class="detail-section">
+                            <h4>Informasi Pembayaran</h4>
+                            <div class="detail-grid">
+                                <div class="detail-item">
+                                    <span>Payment ID:</span>
+                                    <span class="monospace">${transaction.paymentGatewayId}</span>
+                                </div>
+                                ${transaction.paymentMethodDetail ? `
+                                <div class="detail-item">
+                                    <span>Metode:</span>
+                                    <span>${transaction.paymentMethodDetail}</span>
+                                </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn-secondary" onclick="this.closest('.modal-overlay').remove()">Tutup</button>
+                    ${status === 'PENDING' && method === 'NON_TUNAI' ? `
+                    <button class="btn-primary" onclick="kasirTransaksi.checkTransactionStatus(${transaction.idTransaksi}); this.closest('.modal-overlay').remove()">
+                        Cek Status Pembayaran
+                    </button>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+    }
+
+    async checkTransactionStatus(transactionId) {
+        try {
+            console.log('🔄 Checking status for transaction:', transactionId);
+
+            const response = await fetch(`http://localhost:8080/api/transaksi/${transactionId}`, {
+                headers: AuthHelper.getAuthHeaders()
+            });
+
+            if (response.ok) {
+                const transaction = await response.json();
+                const status = transaction.paymentStatus || 'PENDING';
+
+                if (status === 'PAID') {
+                    this.showSuccess(`Transaksi #${transactionId} sudah LUNAS`);
+                } else if (status === 'PENDING') {
+                    this.showInfo(`Transaksi #${transactionId} masih MENUNGGU pembayaran`);
+                } else {
+                    this.showError(`Transaksi #${transactionId} - ${this.getStatusText(status)}`);
+                }
+
+                // Refresh history
+                await this.loadTransactionHistory();
+            } else {
+                throw new Error('Gagal memeriksa status');
+            }
+        } catch (error) {
+            console.error('Error checking transaction status:', error);
+            this.showError('Gagal memeriksa status transaksi: ' + error.message);
+        }
+    }
+
+    showInfo(message) {
+        alert('Info: ' + message);
+    }
+
 
     // ========== UTILITY FUNCTIONS ==========
 

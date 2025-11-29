@@ -53,10 +53,10 @@ public class DataLoader implements CommandLineRunner {
         // Dummy data for seeding, get the dummy kasir account
         Akun kasir = akunRepository.findByUsername("kasir").orElseThrow(() -> new IllegalStateException("Akun tidak ditemukan"));
         // Transaksi
-        if (transaksiRepository.count() == 0) {
-            transaksiRepository.save(new Transaksi(Transaksi.MetodePembayaran.TUNAI, LocalDateTime.now(), 27500.0, kasir));
-            transaksiRepository.save(new Transaksi(Transaksi.MetodePembayaran.TUNAI, LocalDateTime.now(), 15000.0, kasir));
-        }
+        // if (transaksiRepository.count() == 0) {
+        //     transaksiRepository.save(new Transaksi(Transaksi.MetodePembayaran.TUNAI, LocalDateTime.now(), 27500.0, kasir));
+        //     transaksiRepository.save(new Transaksi(Transaksi.MetodePembayaran.TUNAI, LocalDateTime.now(), 15000.0, kasir));
+        // }
 
         // Transaksi Detail
 //        if (transaksiDetailRepository.count() == 0) {
