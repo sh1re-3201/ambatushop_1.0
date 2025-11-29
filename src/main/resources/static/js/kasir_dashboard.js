@@ -136,37 +136,70 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function loadDashboardData() {
     try {
+        console.log('🔄 Loading dashboard data...');
+
         // Load today's transactions
         const today = new Date().toISOString().split('T')[0];
         const startOfDay = `${today}T00:00:00`;
         const endOfDay = `${today}T23:59:59`;
 
-        const transactionsResponse = await fetch(`http://localhost:8080/api/transaksi?start=${startOfDay}&end=${endOfDay}`, {
-            headers: AuthHelper.getAuthHeaders()
-        });
+        const [transactionsResponse, productsResponse] = await Promise.all([
+            fetch(`http://localhost:8080/api/transaksi?start=${startOfDay}&end=${endOfDay}`, {
+                headers: AuthHelper.getAuthHeaders()
+            }),
+            fetch('http://localhost:8080/api/produk', {
+                headers: AuthHelper.getAuthHeaders()
+            })
+        ]);
 
+        let transactions = [];
+        let products = [];
+
+        // Process transactions response
         if (transactionsResponse.ok) {
-            const transactions = await transactionsResponse.json();
-            updateTransactionStats(transactions);
-            updateRecentTransactions(transactions);
+            transactions = await transactionsResponse.json();
+            console.log('✅ Transactions loaded:', transactions.length);
+        } else {
+            console.error('❌ Failed to load transactions:', transactionsResponse.status);
         }
 
-        // Load products data for stock info
+        // Process products response
+        if (productsResponse.ok) {
+            products = await productsResponse.json();
+            console.log('✅ Products loaded:', products.length);
+        } else {
+            console.error('❌ Failed to load products:', productsResponse.status);
+        }
+
+        // Update UI with loaded data
+        updateTransactionStats(transactions);
+        updateProductStats(products);
+        updateRecentTransactions(transactions);
+        updateMonthlyRevenue(transactions);
+
+    } catch (error) {
+        console.error('❌ Error loading dashboard data:', error);
+        showError('Gagal memuat data dashboard');
+        
+        // Fallback: Try to load at least products data
+        await loadProductsFallback();
+    }
+}
+
+// Fallback function untuk load products saja
+async function loadProductsFallback() {
+    try {
         const productsResponse = await fetch('http://localhost:8080/api/produk', {
             headers: AuthHelper.getAuthHeaders()
         });
 
         if (productsResponse.ok) {
-            const products = await products.json();
+            const products = await productsResponse.json();
             updateProductStats(products);
+            console.log('✅ Products loaded via fallback:', products.length);
         }
-
-        // Load monthly revenue (mock data for now)
-        updateMonthlyRevenue();
-
     } catch (error) {
-        console.error('Error loading dashboard data:', error);
-        showError('Gagal memuat data dashboard');
+        console.error('❌ Fallback also failed:', error);
     }
 }
 
@@ -178,49 +211,87 @@ function updateTransactionStats(transactions) {
 
     document.getElementById('today-transactions').textContent = `${todayTransactions} Transaksi`;
     document.getElementById('today-revenue').textContent = formatCurrency(todayRevenue);
+    
+    console.log('📊 Transaction stats updated:', { todayTransactions, todayRevenue });
 }
 
 function updateProductStats(products) {
     const totalProducts = products.length;
-    const lowStockProducts = products.filter(product => product.stok <= 10).length;
+    const lowStockProducts = products.filter(product => product.stok <= 10 && product.stok > 0).length;
+    const outOfStockProducts = products.filter(product => product.stok === 0).length;
 
     document.getElementById('total-products').textContent = `${totalProducts} Produk`;
     document.getElementById('low-stock').textContent = `${lowStockProducts} Produk`;
+    
+    // Optional: Tambahkan warning jika ada stok habis
+    if (outOfStockProducts > 0) {
+        const lowStockElement = document.getElementById('low-stock');
+        lowStockElement.innerHTML = `${lowStockProducts} Produk <span style="color: var(--error); margin-left: 4px;">(${outOfStockProducts} habis)</span>`;
+    }
+    
+    console.log('📦 Product stats updated:', { 
+        totalProducts, 
+        lowStockProducts, 
+        outOfStockProducts 
+    });
 }
 
-function updateMonthlyRevenue() {
-    // Mock data - in real app, this would come from API
-    const monthlyIncome = 2865000;
-    document.getElementById('monthly-income').textContent = formatCurrency(monthlyIncome);
+function updateMonthlyRevenue(transactions) {
+    // Hitung revenue bulan ini dari transaksi PAID
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+    
+    const monthlyRevenue = transactions
+        .filter(transaction => {
+            const transactionDate = new Date(transaction.tanggal);
+            return transactionDate.getMonth() === currentMonth && 
+                   transactionDate.getFullYear() === currentYear &&
+                   transaction.paymentStatus === 'PAID';
+        })
+        .reduce((total, transaction) => total + (transaction.total || 0), 0);
+
+    document.getElementById('monthly-income').textContent = formatCurrency(monthlyRevenue);
+    
+    console.log('💰 Monthly revenue updated:', monthlyRevenue);
 }
 
 function updateRecentTransactions(transactions) {
     const container = document.getElementById('recent-transactions');
     
-    if (transactions.length === 0) {
+    if (!transactions || transactions.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
                 <p>Belum ada transaksi hari ini</p>
+                <small style="color: var(--text-secondary);">Transaksi yang dibuat akan muncul di sini</small>
             </div>
         `;
         return;
     }
 
+    // Sort by date (newest first) and take last 5
     const recentTransactions = transactions
-        .slice(-5) // Get last 5 transactions
-        .reverse(); // Show newest first
+        .sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal))
+        .slice(0, 5);
 
     container.innerHTML = recentTransactions.map(transaction => `
         <div class="transaction-item">
             <div class="transaction-info">
-                <span class="transaction-id">${transaction.referenceNumber || `#${transaction.idTransaksi}`}</span>
+                <span class="transaction-id">${transaction.referenceNumber || `TRX-${transaction.idTransaksi}`}</span>
                 <span class="transaction-detail">
-                    ${formatPaymentMethod(transaction.metode_pembayaran)} • ${formatTime(transaction.tanggal)}
+                    ${formatPaymentMethod(transaction.metodePembayaran || transaction.metode_pembayaran)} • 
+                    ${formatTime(transaction.tanggal)} •
+                    <span class="status-badge status-${(transaction.paymentStatus || 'PENDING').toLowerCase()}">
+                        ${formatPaymentStatus(transaction.paymentStatus)}
+                    </span>
                 </span>
             </div>
-            <div class="transaction-amount">${formatCurrency(transaction.total)}</div>
+            <div class="transaction-amount ${transaction.paymentStatus === 'PAID' ? 'amount-paid' : 'amount-pending'}">
+                ${formatCurrency(transaction.total)}
+            </div>
         </div>
     `).join('');
+    
+    console.log('📋 Recent transactions updated:', recentTransactions.length);
 }
 
 // ========== UTILITY FUNCTIONS ==========
@@ -238,26 +309,41 @@ function formatPaymentMethod(method) {
         'TUNAI': 'Cash',
         'NON_TUNAI': 'QRIS'
     };
-    return methods[method] || method;
+    return methods[method] || method || 'Unknown';
+}
+
+function formatPaymentStatus(status) {
+    const statusMap = {
+        'PAID': 'LUNAS',
+        'PENDING': 'PENDING', 
+        'FAILED': 'GAGAL',
+        'EXPIRED': 'EXPIRED'
+    };
+    return statusMap[status] || 'PENDING';
 }
 
 function formatTime(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString('id-ID', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
-    });
+    try {
+        const date = new Date(dateString);
+        return date.toLocaleTimeString('id-ID', { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+        });
+    } catch (error) {
+        return '--:--';
+    }
 }
 
 function showError(message) {
-    // Simple error display - enhance with toast notifications
     console.error('Dashboard Error:', message);
+    // Bisa ditambahkan toast notification di sini
 }
 
 // Auto-refresh data every 30 seconds
 setInterval(async () => {
     const auth = AuthHelper.checkAuth();
     if (auth && auth.userRole === 'KASIR') {
+        console.log('🔄 Auto-refreshing dashboard data...');
         await loadDashboardData();
     }
 }, 30000);
