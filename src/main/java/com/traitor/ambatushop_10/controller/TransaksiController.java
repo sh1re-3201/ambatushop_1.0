@@ -1,7 +1,13 @@
 package com.traitor.ambatushop_10.controller;
 
+import com.traitor.ambatushop_10.dto.ErrorResponse;
+import com.traitor.ambatushop_10.dto.TransaksiRequest;
+import com.traitor.ambatushop_10.dto.TransaksiResponse;
 import com.traitor.ambatushop_10.model.Transaksi;
 import com.traitor.ambatushop_10.service.TransaksiService;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,22 +23,85 @@ public class TransaksiController {
         this.transaksiService = transaksiService;
     }
 
+    @GetMapping
+    @PreAuthorize("hasAnyRole('KASIR','MANAJER','ADMIN')")
+    public ResponseEntity<?> getAllTransaksi() {
+        try {
+            List<Transaksi> transaksis = transaksiService.getAllTransaksi();
+
+            List<TransaksiResponse> responses = transaksis.stream()
+                    .map(TransaksiResponse::new)
+                    .toList();
+
+            return ResponseEntity.ok(responses);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponse(500, "SERVER_ERROR", "Gagal mengambil data transaksi",
+                            e.getMessage(), "/api/transaksi"));
+        }
+    }
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('KASIR','MANAJER','ADMIN')")
+    public ResponseEntity<?> getTransaksiById(@PathVariable Long id) {
+        try {
+            Transaksi transaksi = transaksiService.getTransaksiById(id);
+            return ResponseEntity.ok(new TransaksiResponse(transaksi));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ErrorResponse(404, "NOT_FOUND", "Transaksi tidak ditemukan",
+                            e.getMessage(), "/api/transaksi/" + id));
+        }
+    }
+
+    // CREATE transaksi - SUDAH SUPPORT NON_TUNAI,harusnya
     @PostMapping
     @PreAuthorize("hasAnyRole('KASIR')")
-    public Transaksi createTransaksi(@RequestBody Transaksi transaksi) {
-        return transaksiService.createTransakksi(transaksi);
+    public ResponseEntity<?> createTransaksi(@RequestBody TransaksiRequest request) {
+        try {
+            // Validasi metode pembayaran
+            if (!isValidPaymentMethod(request.getMetodePembayaran())) {
+                return ResponseEntity.badRequest()
+                        .body(new ErrorResponse(400, "INVALID_PAYMENT_METHOD",
+                                "Metode pembayaran tidak valid",
+                                "Gunakan: TUNAI atau NON_TUNAI",
+                                "/api/transaksi"));
+            }
+
+            Transaksi created = transaksiService.createTransaksi(request);
+            return ResponseEntity.status(HttpStatus.CREATED).body(new TransaksiResponse(created));
+
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ErrorResponse(400, "VALIDATION_ERROR", "Data transaksi tidak valid",
+                            e.getMessage(), "/api/transaksi"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponse(500, "SERVER_ERROR", "Gagal membuat transaksi",
+                            e.getMessage(), "/api/transaksi"));
+        }
     }
 
-    @GetMapping
-    @PreAuthorize("hasAnyRole('KASIR','MANAJER')")
-    public List<Transaksi> getTransaksi() {
-        return transaksiService.getAllTransaksi();
+    // Helper method untuk validasi payment method
+    private boolean isValidPaymentMethod(String metode) {
+        return "TUNAI".equalsIgnoreCase(metode) || "NON_TUNAI".equalsIgnoreCase(metode);
     }
 
-    @DeleteMapping
+    @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN')")
-    public String deleteTransaksi(@PathVariable long id) {
-        transaksiService.deleteTransakksi(id);
-        return "Transaksi Berhasil dihapus";
+    public ResponseEntity<?> deleteTransaksi(@PathVariable Long id) {
+        try {
+            transaksiService.deleteTransaksi(id);
+            return ResponseEntity.ok("Transaksi berhasil dihapus");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ErrorResponse(404, "NOT_FOUND", "Transaksi tidak ditemukan",
+                            e.getMessage(), "/api/transaksi/" + id));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponse(500, "SERVER_ERROR", "Gagal menghapus transaksi",
+                            e.getMessage(), "/api/transaksi/" + id));
+        }
     }
+
 }

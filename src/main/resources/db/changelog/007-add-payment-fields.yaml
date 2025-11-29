@@ -1,0 +1,45 @@
+databaseChangeLog:
+  - changeSet:
+      id: 7
+      author: Mosses 
+      changes:
+        - addColumn:
+            tableName: transaksi
+            columns:
+              - column:
+                  name: payment_gateway_id
+                  type: VARCHAR(100)
+              - column:
+                  name: payment_status
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+                    default: "PENDING"
+              - column:
+                  name: payment_gateway_response
+                  type: TEXT
+              - column:
+                  name: reference_number
+                  type: VARCHAR(50)
+                  constraints:
+                    unique: true
+              - column:
+                  name: payment_method_detail
+                  type: VARCHAR(50)
+
+  - changeSet:
+      id: 8  
+      author: your_name
+      changes:
+        - createIndex:
+            tableName: transaksi
+            indexName: idx_transaksi_payment_gateway_id
+            columns:
+              - column:
+                  name: payment_gateway_id
+        - createIndex:
+            tableName: transaksi
+            indexName: idx_transaksi_reference_number
+            columns:
+              - column:
+                  name: reference_number
