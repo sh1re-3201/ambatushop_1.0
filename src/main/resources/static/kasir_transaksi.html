@@ -6,6 +6,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>AmbatuShop — Transaksi Kasir</title>
   <link rel="stylesheet" href="css/kasir_transaksi.css" />
+  <!-- Tambahkan library QR Code di head -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 </head>
 
 <body class="role-kasir">
@@ -276,40 +278,6 @@
         </div>
       </div>
 
-      <!-- Modal QRIS Payment -->
-      <div class="modal-overlay" id="qris-modal" style="display: none;">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h3>Pembayaran QRIS</h3>
-            <button class="modal-close" id="close-qris-modal">&times;</button>
-          </div>
-          <div class="modal-body">
-            <div class="qris-display">
-              <div id="qris-code"></div>
-              <div class="qris-details">
-                <div class="detail-item">
-                  <span>Order ID:</span>
-                  <span id="qris-order-id">-</span>
-                </div>
-                <div class="detail-item">
-                  <span>Amount:</span>
-                  <span id="qris-amount">Rp 0</span>
-                </div>
-                <div class="detail-item">
-                  <span>Status:</span>
-                  <span class="status-pending" id="qris-status">MENUNGGU</span>
-                </div>
-              </div>
-            </div>
-            <div class="modal-actions">
-              <button class="btn-secondary" id="cancel-payment">Batalkan</button>
-              <button class="btn-primary" id="check-payment">Cek Status</button>
-            </div>
-          </div>
-        </div>
-      </div>
-      <!-- Tambahkan di bagian sebelum </main> -->
-
       <!-- Modal Konfirmasi Pembayaran Tunai -->
       <div class="modal-overlay" id="cash-modal" style="display: none;">
         <div class="modal-content">
@@ -354,27 +322,8 @@
             <button class="modal-close" id="close-qris-status-modal">&times;</button>
           </div>
           <div class="modal-body">
-            <div class="payment-status">
-              <div class="status-icon" id="qris-status-icon">
-                <!-- Akan diisi oleh JavaScript -->
-              </div>
-              <div class="status-message" id="qris-status-message">
-                Memproses pembayaran...
-              </div>
-              <div class="transaction-details">
-                <div class="detail-item">
-                  <span>Order ID:</span>
-                  <span id="status-order-id">-</span>
-                </div>
-                <div class="detail-item">
-                  <span>Amount:</span>
-                  <span id="status-amount">Rp 0</span>
-                </div>
-                <div class="detail-item">
-                  <span>Status:</span>
-                  <span class="status-badge" id="status-badge">MENUNGGU</span>
-                </div>
-              </div>
+            <div class="payment-status" id="payment-status-container">
+              <!-- Content akan diisi oleh JavaScript -->
             </div>
             <div class="modal-actions">
               <button class="btn-secondary" id="close-status-modal">Tutup</button>
@@ -388,8 +337,8 @@
     </main>
   </div>
 
-  <script src="js/kasir_transaksi.js"></script>
   <script src="js/auth.js"></script>
+  <script src="js/kasir_transaksi.js"></script>
 </body>
 
 </html>

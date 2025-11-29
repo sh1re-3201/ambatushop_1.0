@@ -1,11 +1,12 @@
-// Kasir Transaksi JavaScript - Full Integration dengan Backend
+// Kasir Transaksi JavaScript - Fixed Version
 class KasirTransaksi {
     constructor() {
         this.cart = [];
         this.products = [];
         this.currentTransaction = null;
         this.paymentInterval = null;
-        
+        this.paymentTimer = null;
+
         this.init();
     }
 
@@ -57,7 +58,7 @@ class KasirTransaksi {
         themeToggle?.addEventListener('click', () => {
             const currentTheme = document.documentElement.getAttribute('data-theme');
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            
+
             document.documentElement.setAttribute('data-theme', newTheme);
             localStorage.setItem('theme', newTheme);
             this.updateThemeIcon(newTheme);
@@ -129,7 +130,7 @@ class KasirTransaksi {
     updateThemeIcon(theme) {
         const sunIcon = document.querySelector('.sun-icon');
         const moonIcon = document.querySelector('.moon-icon');
-        
+
         if (theme === 'dark') {
             sunIcon.style.display = 'none';
             moonIcon.style.display = 'block';
@@ -167,13 +168,27 @@ class KasirTransaksi {
         dateFilter.addEventListener('change', this.loadTransactionHistory.bind(this));
 
         // Modal controls
-        const closeModalBtn = document.getElementById('close-qris-modal');
-        const cancelPaymentBtn = document.getElementById('cancel-payment');
-        const checkPaymentBtn = document.getElementById('check-payment');
+        this.setupModalEventListeners();
+    }
 
-        closeModalBtn?.addEventListener('click', this.closeQRISModal.bind(this));
-        cancelPaymentBtn?.addEventListener('click', this.cancelPayment.bind(this));
-        checkPaymentBtn?.addEventListener('click', this.checkPaymentStatus.bind(this));
+    setupModalEventListeners() {
+        // Cash modal
+        const closeCashModal = document.getElementById('close-cash-modal');
+        const cancelCashPayment = document.getElementById('cancel-cash-payment');
+        const confirmCashPayment = document.getElementById('confirm-cash-payment');
+
+        closeCashModal?.addEventListener('click', () => this.closeCashModal());
+        cancelCashPayment?.addEventListener('click', () => this.closeCashModal());
+        confirmCashPayment?.addEventListener('click', () => this.confirmCashPayment());
+
+        // QRIS status modal
+        const closeStatusModal = document.getElementById('close-status-modal');
+        const closeQrisStatusModal = document.getElementById('close-qris-status-modal');
+        const retryPayment = document.getElementById('retry-payment');
+
+        closeStatusModal?.addEventListener('click', () => this.closeQRISStatusModal());
+        closeQrisStatusModal?.addEventListener('click', () => this.closeQRISStatusModal());
+        retryPayment?.addEventListener('click', () => this.retryQRISPayment());
     }
 
     // ========== PRODUCT MANAGEMENT ==========
@@ -186,6 +201,7 @@ class KasirTransaksi {
 
             if (response.ok) {
                 this.products = await response.json();
+                console.log('Products loaded:', this.products.length);
             } else {
                 throw new Error('Gagal memuat data produk');
             }
@@ -374,7 +390,18 @@ class KasirTransaksi {
         const paymentMethod = document.querySelector('input[name="payment-method"]:checked').value;
         const total = this.calculateTotal();
 
+        // Validasi untuk tunai
+        if (paymentMethod === 'TUNAI') {
+            const cashAmount = parseFloat(document.getElementById('cash-amount').value) || 0;
+            if (cashAmount < total) {
+                this.showError('Jumlah uang tidak mencukupi');
+                return;
+            }
+        }
+
         try {
+            this.setLoadingState(true);
+
             // Prepare transaction data
             const transactionData = {
                 metodePembayaran: paymentMethod,
@@ -387,6 +414,8 @@ class KasirTransaksi {
                     subtotal: item.hargaSatuan * item.quantity
                 }))
             };
+
+            console.log('Creating transaction:', transactionData);
 
             // Create transaction
             const response = await fetch('http://localhost:8080/api/transaksi', {
@@ -404,23 +433,76 @@ class KasirTransaksi {
             }
 
             const transaction = await response.json();
+            console.log('Transaction created:', transaction);
 
-            if (paymentMethod === 'NON_TUNAI') {
-                await this.handleQRISPayment(transaction.idTransaksi);
+            // Handle berdasarkan metode pembayaran
+            if (paymentMethod === 'TUNAI') {
+                await this.handleCashPayment(transaction);
             } else {
-                this.showSuccess('Transaksi tunai berhasil disimpan');
-                this.resetTransaction();
-                await this.loadTransactionHistory();
+                await this.handleQRISPayment(transaction.idTransaksi);
             }
 
         } catch (error) {
             console.error('Transaction error:', error);
             this.showError('Gagal menyimpan transaksi: ' + error.message);
+        } finally {
+            this.setLoadingState(false);
         }
     }
 
+    // ========== CASH PAYMENT FLOW ==========
+
+    async handleCashPayment(transaction) {
+        const cashAmount = parseFloat(document.getElementById('cash-amount').value) || 0;
+        const total = transaction.total;
+        const change = cashAmount - total;
+
+        // Tampilkan modal konfirmasi tunai
+        this.showCashModal(transaction, cashAmount, change);
+    }
+
+    showCashModal(transaction, cashAmount, change) {
+        const modal = document.getElementById('cash-modal');
+
+        // Update informasi di modal
+        document.getElementById('cash-total-amount').textContent = this.formatCurrency(transaction.total);
+        document.getElementById('cash-received-amount').textContent = this.formatCurrency(cashAmount);
+        document.getElementById('cash-change-amount').textContent = this.formatCurrency(change);
+
+        modal.style.display = 'flex';
+        this.currentTransaction = transaction;
+    }
+
+    async confirmCashPayment() {
+        try {
+            console.log('✅ Transaksi tunai berhasil, status otomatis PAID');
+
+            this.showSuccess('Pembayaran tunai berhasil! Transaksi #' + this.currentTransaction.idTransaksi);
+            this.closeCashModal();
+            this.resetTransaction();
+            
+            // ✅ PERBAIKAN: Reload produk untuk update stok
+            await this.loadProducts();
+            await this.loadTransactionHistory();
+
+        } catch (error) {
+            console.error('Cash payment confirmation error:', error);
+            this.showError('Gagal mengkonfirmasi pembayaran: ' + error.message);
+        }
+    }
+
+    closeCashModal() {
+        const modal = document.getElementById('cash-modal');
+        modal.style.display = 'none';
+        this.currentTransaction = null;
+    }
+
+    // ========== QRIS PAYMENT FLOW ==========
+
     async handleQRISPayment(transactionId) {
         try {
+            console.log('🔄 Membuat pembayaran QRIS untuk transaksi:', transactionId);
+
             const response = await fetch(`http://localhost:8080/api/payment/qris/${transactionId}`, {
                 method: 'POST',
                 headers: AuthHelper.getAuthHeaders()
@@ -432,7 +514,21 @@ class KasirTransaksi {
             }
 
             const paymentData = await response.json();
-            this.showQRISModal(paymentData, transactionId);
+            console.log('✅ Response Midtrans:', paymentData);
+
+            // ✅ PERBAIKAN: Redirect otomatis ke payment URL
+            const paymentUrl = paymentData.payment_url || paymentData.redirect_url;
+
+            if (paymentUrl) {
+                console.log('🔗 Redirect ke:', paymentUrl);
+                // Buka tab baru untuk payment
+                window.open(paymentUrl, '_blank');
+                
+                // Tampilkan modal waiting dengan polling
+                this.showQRISWaitingModal(transactionId, paymentData.order_id, paymentData);
+            } else {
+                throw new Error('Tidak ada payment URL dari Midtrans');
+            }
 
         } catch (error) {
             console.error('QRIS payment error:', error);
@@ -440,44 +536,139 @@ class KasirTransaksi {
         }
     }
 
-    showQRISModal(paymentData, transactionId) {
-        this.currentTransaction = { id: transactionId, paymentData };
-        
-        const modal = document.getElementById('qris-modal');
-        const qrisCode = document.getElementById('qris-code');
-        const orderId = document.getElementById('qris-order-id');
-        const amount = document.getElementById('qris-amount');
-        const status = document.getElementById('qris-status');
+    showQRISWaitingModal(transactionId, orderId, paymentData) {
+        const modal = document.getElementById('qris-status-modal');
+        const container = document.getElementById('payment-status-container');
 
-        // Display QR code (you might want to use a QR code library)
-        qrisCode.innerHTML = `
-            <div style="text-align: center; padding: 20px; background: white; border-radius: 8px;">
-                <p>QR Code akan ditampilkan di sini</p>
-                <p style="font-size: 12px; color: #666;">Order: ${paymentData.order_id}</p>
+        container.innerHTML = `
+            <div class="status-icon pending">⏳</div>
+            <div class="status-message">Menunggu Pembayaran...</div>
+            
+            <div class="transaction-details">
+                <div class="detail-item">
+                    <span>Transaction ID:</span>
+                    <span>${transactionId}</span>
+                </div>
+                <div class="detail-item">
+                    <span>Order ID:</span>
+                    <span>${orderId}</span>
+                </div>
+                <div class="detail-item">
+                    <span>Amount:</span>
+                    <span>${this.formatCurrency(paymentData.amount || this.calculateTotal())}</span>
+                </div>
+                <div class="detail-item">
+                    <span>Status:</span>
+                    <span class="status-badge status-pending">MENUNGGU</span>
+                </div>
+            </div>
+            
+            <div class="payment-instructions">
+                <p><strong>Instruksi:</strong></p>
+                <ol>
+                    <li>Halaman payment Midtrans telah dibuka di tab baru</li>
+                    <li>Lakukan pembayaran di halaman tersebut</li>
+                    <li>Tutup halaman payment setelah selesai</li>
+                    <li>Status akan otomatis update via webhook</li>
+                </ol>
+                
+                <div class="alert-info">
+                    💡 <strong>Note:</strong> Pembayaran akan diproses otomatis via webhook
+                </div>
             </div>
         `;
 
-        orderId.textContent = paymentData.order_id;
-        amount.textContent = this.formatCurrency(paymentData.amount || this.calculateTotal());
-        status.textContent = 'MENUNGGU';
-        status.className = 'status-pending';
-
         modal.style.display = 'flex';
 
-        // Start polling for payment status
-        this.startPaymentPolling(paymentData.order_id);
+        // Start polling untuk cek status
+        this.startTransactionPolling(transactionId);
     }
 
-    closeQRISModal() {
-        const modal = document.getElementById('qris-modal');
+    startTransactionPolling(transactionId) {
+        // Stop previous polling
+        this.stopPaymentPolling();
+
+        this.paymentInterval = setInterval(async () => {
+            await this.checkTransactionStatus(transactionId);
+        }, 3000); // Cek setiap 3 detik
+    }
+
+    async checkTransactionStatus(transactionId) {
+        try {
+            const response = await fetch(`http://localhost:8080/api/transaksi/${transactionId}`, {
+                headers: AuthHelper.getAuthHeaders()
+            });
+
+            if (response.ok) {
+                const transaction = await response.json();
+                this.updateTransactionStatusDisplay(transaction);
+
+                // Jika sudah paid, stop polling dan refresh data
+                if (transaction.paymentStatus === 'PAID') {
+                    this.handleSuccessfulQRISPayment(transaction);
+                }
+            }
+        } catch (error) {
+            console.error('Error checking transaction status:', error);
+        }
+    }
+
+    updateTransactionStatusDisplay(transaction) {
+        const statusBadge = document.querySelector('.status-badge');
+        const statusMessage = document.querySelector('.status-message');
+        const statusIcon = document.querySelector('.status-icon');
+
+        if (!statusBadge || !statusMessage || !statusIcon) return;
+
+        switch (transaction.paymentStatus) {
+            case 'PAID':
+                statusIcon.textContent = '✅';
+                statusIcon.className = 'status-icon success';
+                statusMessage.textContent = 'Pembayaran Berhasil!';
+                statusMessage.style.color = 'var(--success)';
+                statusBadge.textContent = 'PAID';
+                statusBadge.className = 'status-badge status-paid';
+                break;
+
+            case 'PENDING':
+                statusIcon.textContent = '⏳';
+                statusIcon.className = 'status-icon pending';
+                statusMessage.textContent = 'Menunggu Pembayaran...';
+                statusMessage.style.color = 'var(--warning)';
+                statusBadge.textContent = 'PENDING';
+                statusBadge.className = 'status-badge status-pending';
+                break;
+
+            case 'FAILED':
+                statusIcon.textContent = '❌';
+                statusIcon.className = 'status-icon failed';
+                statusMessage.textContent = 'Pembayaran Gagal';
+                statusMessage.style.color = 'var(--error)';
+                statusBadge.textContent = 'FAILED';
+                statusBadge.className = 'status-badge status-failed';
+                break;
+        }
+    }
+
+    handleSuccessfulQRISPayment(transaction) {
+        this.stopPaymentPolling();
+
+        setTimeout(() => {
+            this.showSuccess('Pembayaran QRIS berhasil! Transaksi #' + transaction.idTransaksi);
+            this.closeQRISStatusModal();
+            this.resetTransaction();
+            
+            // ✅ PERBAIKAN: Reload produk untuk update stok
+            this.loadProducts();
+            this.loadTransactionHistory();
+        }, 2000);
+    }
+
+    closeQRISStatusModal() {
+        const modal = document.getElementById('qris-status-modal');
         modal.style.display = 'none';
         this.stopPaymentPolling();
-    }
-
-    startPaymentPolling(orderId) {
-        this.paymentInterval = setInterval(async () => {
-            await this.checkPaymentStatus(orderId);
-        }, 5000); // Check every 5 seconds
+        this.stopPaymentTimer();
     }
 
     stopPaymentPolling() {
@@ -487,63 +678,23 @@ class KasirTransaksi {
         }
     }
 
-    async checkPaymentStatus(orderId) {
-        try {
-            const response = await fetch(`http://localhost:8080/api/payment/status/${orderId}`, {
-                headers: AuthHelper.getAuthHeaders()
-            });
-
-            if (response.ok) {
-                const status = await response.json();
-                this.updatePaymentStatus(status);
-            }
-        } catch (error) {
-            console.error('Error checking payment status:', error);
+    stopPaymentTimer() {
+        if (this.paymentTimer) {
+            clearInterval(this.paymentTimer);
+            this.paymentTimer = null;
         }
     }
 
-    updatePaymentStatus(status) {
-        const statusElement = document.getElementById('qris-status');
-        
-        if (status.payment_status === 'PAID') {
-            statusElement.textContent = 'BERHASIL';
-            statusElement.className = 'status-paid';
-            this.showSuccess('Pembayaran QRIS berhasil!');
-            this.stopPaymentPolling();
-            setTimeout(() => {
-                this.closeQRISModal();
-                this.resetTransaction();
-                this.loadTransactionHistory();
-            }, 2000);
-        } else if (status.payment_status === 'FAILED') {
-            statusElement.textContent = 'GAGAL';
-            statusElement.className = 'status-failed';
-            this.showError('Pembayaran QRIS gagal');
-            this.stopPaymentPolling();
-        }
-    }
-
-    cancelPayment() {
-        if (confirm('Batalkan pembayaran QRIS?')) {
-            this.closeQRISModal();
-            // You might want to cancel the transaction on backend as well
-        }
+    async retryQRISPayment() {
+        if (!this.currentTransaction) return;
+        await this.handleQRISPayment(this.currentTransaction.id);
     }
 
     // ========== TRANSACTION HISTORY ==========
 
     async loadTransactionHistory() {
         try {
-            const filter = document.getElementById('date-filter').value;
-            let url = 'http://localhost:8080/api/transaksi';
-
-            // Add date filter if needed
-            if (filter !== 'all') {
-                const dateRange = this.getDateRange(filter);
-                url += `?start=${dateRange.start}&end=${dateRange.end}`;
-            }
-
-            const response = await fetch(url, {
+            const response = await fetch('http://localhost:8080/api/transaksi', {
                 headers: AuthHelper.getAuthHeaders()
             });
 
@@ -581,8 +732,8 @@ class KasirTransaksi {
                     <span class="transaction-amount">${this.formatCurrency(transaction.total)}</span>
                 </div>
                 <div class="transaction-details">
-                    <span class="payment-badge ${transaction.metode_pembayaran === 'TUNAI' ? 'cash' : 'qris'}">
-                        ${transaction.metode_pembayaran === 'TUNAI' ? 'TUNAI' : 'QRIS'}
+                    <span class="payment-badge ${transaction.metodePembayaran === 'TUNAI' ? 'cash' : 'qris'}">
+                        ${transaction.metodePembayaran === 'TUNAI' ? 'TUNAI' : 'QRIS'}
                     </span>
                     <span class="status-badge status-${transaction.paymentStatus?.toLowerCase() || 'pending'}">
                         ${transaction.paymentStatus || 'PENDING'}
@@ -611,7 +762,7 @@ class KasirTransaksi {
         const subtotal = this.calculateTotal();
         document.getElementById('subtotal').textContent = this.formatCurrency(subtotal);
         document.getElementById('total-amount').textContent = this.formatCurrency(subtotal);
-        
+
         // Update cash change if cash payment is selected
         this.handleCashInput();
     }
@@ -620,7 +771,7 @@ class KasirTransaksi {
         this.cart = [];
         this.updateCartDisplay();
         this.updateSummary();
-        
+
         // Reset form
         document.getElementById('product-search').value = '';
         document.querySelector('input[name="payment-method"][value="TUNAI"]').checked = true;
@@ -630,38 +781,8 @@ class KasirTransaksi {
 
     getCurrentUserId() {
         // This should come from the authentication system
-        // For now, return a default user ID
-        return 1;
-    }
-
-    getDateRange(filter) {
-        const now = new Date();
-        let start, end;
-
-        switch (filter) {
-            case 'today':
-                start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-                end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
-                break;
-            case 'week':
-                const day = now.getDay();
-                const diff = now.getDate() - day + (day === 0 ? -6 : 1);
-                start = new Date(now.setDate(diff));
-                end = new Date(now.setDate(diff + 6));
-                break;
-            case 'month':
-                start = new Date(now.getFullYear(), now.getMonth(), 1);
-                end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
-                break;
-            default:
-                start = new Date(2000, 0, 1);
-                end = new Date(2100, 0, 1);
-        }
-
-        return {
-            start: start.toISOString(),
-            end: end.toISOString()
-        };
+        // For now, return a default user ID (kasir)
+        return 2; // ID untuk user kasir
     }
 
     formatCurrency(amount) {
@@ -674,462 +795,29 @@ class KasirTransaksi {
 
     formatTime(dateString) {
         const date = new Date(dateString);
-        return date.toLocaleTimeString('id-ID', { 
-            hour: '2-digit', 
-            minute: '2-digit' 
+        return date.toLocaleTimeString('id-ID', {
+            hour: '2-digit',
+            minute: '2-digit'
         });
     }
 
     showError(message) {
-        // Simple error display - enhance with toast notifications
         alert('Error: ' + message);
     }
 
     showSuccess(message) {
-        // Simple success display - enhance with toast notifications
         alert('Sukses: ' + message);
     }
-
-     async completeTransaction() {
-        if (this.cart.length === 0) {
-            this.showError('Keranjang belanja kosong');
-            return;
-        }
-
-        const paymentMethod = document.querySelector('input[name="payment-method"]:checked').value;
-        const total = this.calculateTotal();
-
-        // Validasi untuk tunai
-        if (paymentMethod === 'TUNAI') {
-            const cashAmount = parseFloat(document.getElementById('cash-amount').value) || 0;
-            if (cashAmount < total) {
-                this.showError('Jumlah uang tidak mencukupi');
-                return;
-            }
-        }
-
-        try {
-            // Tampilkan loading state
-            this.setLoadingState(true);
-
-            // Prepare transaction data
-            const transactionData = {
-                metodePembayaran: paymentMethod,
-                total: total,
-                akunId: this.getCurrentUserId(),
-                details: this.cart.map(item => ({
-                    produkId: item.product.idProduk,
-                    jumlah: item.quantity,
-                    hargaSatuan: item.hargaSatuan,
-                    subtotal: item.hargaSatuan * item.quantity
-                }))
-            };
-
-            // Create transaction di backend
-            const response = await fetch('http://localhost:8080/api/transaksi', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...AuthHelper.getAuthHeaders()
-                },
-                body: JSON.stringify(transactionData)
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Gagal membuat transaksi');
-            }
-
-            const transaction = await response.json();
-            
-            // Handle berdasarkan metode pembayaran
-            if (paymentMethod === 'TUNAI') {
-                await this.handleCashPayment(transaction);
-            } else {
-                await this.handleQRISPayment(transaction.idTransaksi);
-            }
-
-        } catch (error) {
-            console.error('Transaction error:', error);
-            this.showError('Gagal menyimpan transaksi: ' + error.message);
-        } finally {
-            this.setLoadingState(false);
-        }
-    }
-
-    // ========== CASH PAYMENT FLOW ==========
-
-    async handleCashPayment(transaction) {
-        const cashAmount = parseFloat(document.getElementById('cash-amount').value) || 0;
-        const total = transaction.total;
-        const change = cashAmount - total;
-
-        // Tampilkan modal konfirmasi tunai
-        this.showCashModal(transaction, cashAmount, change);
-    }
-
-    showCashModal(transaction, cashAmount, change) {
-        const modal = document.getElementById('cash-modal');
-        
-        // Update informasi di modal
-        document.getElementById('cash-total-amount').textContent = this.formatCurrency(transaction.total);
-        document.getElementById('cash-received-amount').textContent = this.formatCurrency(cashAmount);
-        document.getElementById('cash-change-amount').textContent = this.formatCurrency(change);
-
-        modal.style.display = 'flex';
-
-        // Setup event listeners untuk modal
-        this.setupCashModalEvents(transaction);
-    }
-
-    setupCashModalEvents(transaction) {
-        const closeBtn = document.getElementById('close-cash-modal');
-        const cancelBtn = document.getElementById('cancel-cash-payment');
-        const confirmBtn = document.getElementById('confirm-cash-payment');
-
-        // Remove existing listeners
-        closeBtn.replaceWith(closeBtn.cloneNode(true));
-        cancelBtn.replaceWith(cancelBtn.cloneNode(true));
-        confirmBtn.replaceWith(confirmBtn.cloneNode(true));
-
-        // Get new references
-        const newCloseBtn = document.getElementById('close-cash-modal');
-        const newCancelBtn = document.getElementById('cancel-cash-payment');
-        const newConfirmBtn = document.getElementById('confirm-cash-payment');
-
-        newCloseBtn.addEventListener('click', () => this.closeCashModal());
-        newCancelBtn.addEventListener('click', () => this.closeCashModal());
-        newConfirmBtn.addEventListener('click', () => this.confirmCashPayment(transaction));
-    }
-
-    async confirmCashPayment(transaction) {
-        try {
-            // Update transaction status to PAID di backend
-            const updateResponse = await fetch(`http://localhost:8080/api/transaksi/${transaction.idTransaksi}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...AuthHelper.getAuthHeaders()
-                },
-                body: JSON.stringify({
-                    paymentStatus: 'PAID'
-                })
-            });
-
-            if (!updateResponse.ok) {
-                throw new Error('Gagal mengupdate status transaksi');
-            }
-
-            this.showSuccess('Pembayaran tunai berhasil dikonfirmasi!');
-            this.closeCashModal();
-            this.resetTransaction();
-            await this.loadTransactionHistory();
-
-        } catch (error) {
-            console.error('Cash payment confirmation error:', error);
-            this.showError('Gagal mengkonfirmasi pembayaran: ' + error.message);
-        }
-    }
-
-    closeCashModal() {
-        const modal = document.getElementById('cash-modal');
-        modal.style.display = 'none';
-    }
-
-    // ========== QRIS PAYMENT FLOW ==========
-
-    async handleQRISPayment(transactionId) {
-        try {
-            // Create QRIS payment di Midtrans
-            const response = await fetch(`http://localhost:8080/api/payment/qris/${transactionId}`, {
-                method: 'POST',
-                headers: AuthHelper.getAuthHeaders()
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Gagal membuat pembayaran QRIS');
-            }
-
-            const paymentData = await response.json();
-            this.showQRISPaymentModal(paymentData, transactionId);
-
-        } catch (error) {
-            console.error('QRIS payment error:', error);
-            this.showError('Gagal membuat pembayaran QRIS: ' + error.message);
-        }
-    }
-
-    showQRISPaymentModal(paymentData, transactionId) {
-        this.currentTransaction = { 
-            id: transactionId, 
-            paymentData,
-            status: 'PENDING'
-        };
-        
-        const modal = document.getElementById('qris-status-modal');
-        
-        // Display QR code information
-        this.displayQRCodeInfo(paymentData);
-        
-        // Start payment status polling
-        this.startPaymentPolling(paymentData.order_id);
-        
-        // Start countdown timer (15 menit)
-        this.startPaymentTimer(15 * 60);
-        
-        modal.style.display = 'flex';
-        
-        // Setup modal event listeners
-        this.setupQRISModalEvents();
-    }
-
-    displayQRCodeInfo(paymentData) {
-        const statusIcon = document.getElementById('qris-status-icon');
-        const statusMessage = document.getElementById('qris-status-message');
-        const orderId = document.getElementById('status-order-id');
-        const amount = document.getElementById('status-amount');
-        const statusBadge = document.getElementById('status-badge');
-
-        // Reset to pending state
-        statusIcon.innerHTML = '⏳';
-        statusIcon.className = 'status-icon pending';
-        statusMessage.textContent = 'Menunggu Pembayaran QRIS';
-        statusMessage.style.color = 'var(--warning)';
-        
-        orderId.textContent = paymentData.order_id;
-        amount.textContent = this.formatCurrency(paymentData.amount || this.calculateTotal());
-        statusBadge.textContent = 'MENUNGGU';
-        statusBadge.className = 'status-badge status-pending';
-
-        // Display QR code (gunakan data dari Midtrans)
-        this.displayQRCode(paymentData);
-    }
-
-    displayQRCode(paymentData) {
-        const qrCodeContainer = document.querySelector('.payment-status');
-        
-        // Jika ada QR string dari Midtrans, tampilkan QR code
-        if (paymentData.qr_string) {
-            qrCodeContainer.innerHTML = `
-                <div class="qr-code-container">
-                    <div class="qr-code-placeholder">
-                        <div>
-                            <div style="font-size: 32px; margin-bottom: 8px;">📱</div>
-                            <div>QR Code Loaded</div>
-                            <div style="font-size: 10px; margin-top: 4px;">${paymentData.qr_string.substring(0, 20)}...</div>
-                        </div>
-                    </div>
-                    <div class="countdown-timer" id="payment-timer">15:00</div>
-                </div>
-                <div class="qr-instructions">
-                    <h4>Instruksi Pembayaran:</h4>
-                    <ol>
-                        <li>Buka aplikasi e-wallet atau mobile banking Anda</li>
-                        <li>Pilih fitur scan QRIS</li>
-                        <li>Arahkan kamera ke QR code di atas</li>
-                        <li>Konfirmasi pembayaran di aplikasi Anda</li>
-                    </ol>
-                </div>
-                <div class="transaction-details">
-                    <div class="detail-item">
-                        <span>Order ID:</span>
-                        <span id="status-order-id">${paymentData.order_id}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span>Amount:</span>
-                        <span id="status-amount">${this.formatCurrency(paymentData.amount || this.calculateTotal())}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span>Status:</span>
-                        <span class="status-badge status-pending" id="status-badge">MENUNGGU</span>
-                    </div>
-                </div>
-            `;
-        }
-    }
-
-    startPaymentTimer(duration) {
-        let timer = duration;
-        const timerElement = document.getElementById('payment-timer');
-        
-        if (!timerElement) return;
-        
-        this.paymentTimer = setInterval(() => {
-            const minutes = Math.floor(timer / 60);
-            const seconds = timer % 60;
-            
-            timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            
-            if (--timer < 0) {
-                this.handlePaymentTimeout();
-            }
-        }, 1000);
-    }
-
-    handlePaymentTimeout() {
-        this.stopPaymentTimer();
-        this.stopPaymentPolling();
-        
-        // Update UI untuk timeout
-        const statusIcon = document.getElementById('qris-status-icon');
-        const statusMessage = document.getElementById('qris-status-message');
-        const statusBadge = document.getElementById('status-badge');
-        
-        if (statusIcon && statusMessage && statusBadge) {
-            statusIcon.innerHTML = '❌';
-            statusIcon.className = 'status-icon failed';
-            statusMessage.textContent = 'Pembayaran Kadaluarsa';
-            statusMessage.style.color = 'var(--error)';
-            statusBadge.textContent = 'EXPIRED';
-            statusBadge.className = 'status-badge status-failed';
-        }
-        
-        this.showError('Waktu pembayaran QRIS telah habis');
-    }
-
-    stopPaymentTimer() {
-        if (this.paymentTimer) {
-            clearInterval(this.paymentTimer);
-            this.paymentTimer = null;
-        }
-    }
-
-    setupQRISModalEvents() {
-        const closeBtn = document.getElementById('close-qris-status-modal');
-        const closeStatusBtn = document.getElementById('close-status-modal');
-        const retryBtn = document.getElementById('retry-payment');
-
-        // Remove existing listeners
-        closeBtn.replaceWith(closeBtn.cloneNode(true));
-        closeStatusBtn.replaceWith(closeStatusBtn.cloneNode(true));
-        if (retryBtn) retryBtn.replaceWith(retryBtn.cloneNode(true));
-
-        // Get new references
-        const newCloseBtn = document.getElementById('close-qris-status-modal');
-        const newCloseStatusBtn = document.getElementById('close-status-modal');
-        const newRetryBtn = document.getElementById('retry-payment');
-
-        newCloseBtn.addEventListener('click', () => this.closeQRISStatusModal());
-        newCloseStatusBtn.addEventListener('click', () => this.closeQRISStatusModal());
-        
-        if (newRetryBtn) {
-            newRetryBtn.addEventListener('click', () => this.retryQRISPayment());
-        }
-    }
-
-    async checkPaymentStatus(orderId) {
-        try {
-            const response = await fetch(`http://localhost:8080/api/payment/status/${orderId}`, {
-                headers: AuthHelper.getAuthHeaders()
-            });
-
-            if (response.ok) {
-                const status = await response.json();
-                this.updatePaymentStatusDisplay(status);
-                
-                // Jika payment sukses, stop polling
-                if (status.payment_status === 'PAID') {
-                    this.handleSuccessfulPayment(status);
-                }
-            }
-        } catch (error) {
-            console.error('Error checking payment status:', error);
-        }
-    }
-
-    updatePaymentStatusDisplay(status) {
-        const statusIcon = document.getElementById('qris-status-icon');
-        const statusMessage = document.getElementById('qris-status-message');
-        const statusBadge = document.getElementById('status-badge');
-        const retryBtn = document.getElementById('retry-payment');
-
-        if (!statusIcon || !statusMessage || !statusBadge) return;
-
-        switch (status.payment_status) {
-            case 'PAID':
-                statusIcon.innerHTML = '✅';
-                statusIcon.className = 'status-icon success';
-                statusMessage.textContent = 'Pembayaran Berhasil!';
-                statusMessage.style.color = 'var(--success)';
-                statusBadge.textContent = 'BERHASIL';
-                statusBadge.className = 'status-badge status-paid';
-                if (retryBtn) retryBtn.style.display = 'none';
-                break;
-                
-            case 'PENDING':
-                statusIcon.innerHTML = '⏳';
-                statusIcon.className = 'status-icon pending';
-                statusMessage.textContent = 'Menunggu Pembayaran QRIS';
-                statusMessage.style.color = 'var(--warning)';
-                statusBadge.textContent = 'MENUNGGU';
-                statusBadge.className = 'status-badge status-pending';
-                if (retryBtn) retryBtn.style.display = 'none';
-                break;
-                
-            case 'FAILED':
-                statusIcon.innerHTML = '❌';
-                statusIcon.className = 'status-icon failed';
-                statusMessage.textContent = 'Pembayaran Gagal';
-                statusMessage.style.color = 'var(--error)';
-                statusBadge.textContent = 'GAGAL';
-                statusBadge.className = 'status-badge status-failed';
-                if (retryBtn) retryBtn.style.display = 'block';
-                break;
-                
-            case 'EXPIRED':
-                statusIcon.innerHTML = '⏰';
-                statusIcon.className = 'status-icon failed';
-                statusMessage.textContent = 'Pembayaran Kadaluarsa';
-                statusMessage.style.color = 'var(--error)';
-                statusBadge.textContent = 'EXPIRED';
-                statusBadge.className = 'status-badge status-failed';
-                if (retryBtn) retryBtn.style.display = 'block';
-                break;
-        }
-    }
-
-    handleSuccessfulPayment(status) {
-        this.stopPaymentPolling();
-        this.stopPaymentTimer();
-        
-        setTimeout(() => {
-            this.showSuccess('Pembayaran QRIS berhasil!');
-            this.closeQRISStatusModal();
-            this.resetTransaction();
-            this.loadTransactionHistory();
-        }, 2000);
-    }
-
-    async retryQRISPayment() {
-        if (!this.currentTransaction) return;
-        
-        try {
-            this.showQRISPaymentModal(this.currentTransaction.paymentData, this.currentTransaction.id);
-        } catch (error) {
-            this.showError('Gagal memulai ulang pembayaran: ' + error.message);
-        }
-    }
-
-    closeQRISStatusModal() {
-        const modal = document.getElementById('qris-status-modal');
-        modal.style.display = 'none';
-        this.stopPaymentPolling();
-        this.stopPaymentTimer();
-    }
-
-    // ========== UTILITY METHODS ==========
 
     setLoadingState(isLoading) {
         const completeBtn = document.getElementById('complete-transaction');
         if (completeBtn) {
             completeBtn.disabled = isLoading;
-            completeBtn.innerHTML = isLoading ? 
-                'Memproses...' : 
-                '<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Simpan Transaksi';
+            completeBtn.innerHTML = isLoading ?
+                '<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/></svg> Memproses...' :
+                '<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Simpan Transaksi';
         }
     }
-
 }
 
 // Initialize the application

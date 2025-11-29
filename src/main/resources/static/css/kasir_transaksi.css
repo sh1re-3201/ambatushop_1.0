@@ -1192,3 +1192,37 @@ html, body {
     font-size: 16px;
   }
 }
+
+/* Tambahkan di kasir_transaksi.css */
+.alert-info {
+    background: rgba(13, 110, 253, 0.1);
+    border: 1px solid rgba(13, 110, 253, 0.2);
+    border-radius: 8px;
+    padding: 12px;
+    margin: 16px 0;
+    font-size: 14px;
+}
+
+.alert-info code {
+    background: rgba(0, 0, 0, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    word-break: break-all;
+}
+
+.payment-instructions {
+    text-align: left;
+    margin: 20px 0;
+}
+
+.payment-instructions ol {
+    margin: 12px 0;
+    padding-left: 20px;
+}
+
+.payment-instructions li {
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
