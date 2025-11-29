@@ -1041,3 +1041,154 @@ html, body {
     font-size: 20px;
   }
 }
+
+
+/* Payment Summary Styles */
+.payment-summary {
+  margin-bottom: 20px;
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 16px;
+}
+
+.summary-item:last-child {
+  border-bottom: none;
+}
+
+.summary-item.highlight {
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--success);
+  background: rgba(16, 183, 89, 0.1);
+  padding: 16px;
+  border-radius: 8px;
+  margin-top: 8px;
+}
+
+/* Payment Status Styles */
+.payment-status {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.status-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.status-icon.success {
+  color: var(--success);
+}
+
+.status-icon.pending {
+  color: var(--warning);
+}
+
+.status-icon.failed {
+  color: var(--error);
+}
+
+.status-message {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: var(--text-primary);
+}
+
+.transaction-details {
+  background: var(--page-bg);
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.detail-item:last-child {
+  border-bottom: none;
+}
+
+/* Button Variants */
+.btn-success {
+  background: var(--success);
+  color: white;
+}
+
+.btn-success:hover:not(:disabled) {
+  background: #0d9c4d;
+}
+
+/* QR Code Display */
+.qr-code-container {
+  text-align: center;
+  margin: 20px 0;
+}
+
+.qr-code-placeholder {
+  width: 200px;
+  height: 200px;
+  background: #f8f9fa;
+  border: 2px dashed #dee2e6;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  color: #6c757d;
+  font-size: 14px;
+}
+
+.qr-instructions {
+  background: var(--page-bg);
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  margin-top: 16px;
+}
+
+.qr-instructions ol {
+  text-align: left;
+  margin: 0;
+  padding-left: 20px;
+}
+
+.qr-instructions li {
+  margin-bottom: 8px;
+  color: var(--text-secondary);
+}
+
+/* Countdown Timer */
+.countdown-timer {
+  font-size: 14px;
+  color: var(--warning);
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .qr-code-placeholder {
+    width: 150px;
+    height: 150px;
+  }
+  
+  .status-icon {
+    font-size: 36px;
+  }
+  
+  .status-message {
+    font-size: 16px;
+  }
+}
