@@ -477,13 +477,13 @@ class KasirTransaksi {
 
     async confirmCashPayment() {
         try {
-            console.log('✅ Transaksi tunai berhasil, status otomatis PAID');
+            console.log('Transaksi tunai berhasil, status otomatis PAID');
 
             this.showSuccess('Pembayaran tunai berhasil! Transaksi #' + this.currentTransaction.idTransaksi);
             this.closeCashModal();
             this.resetTransaction();
 
-            // ✅ PERBAIKAN: Reload produk untuk update stok
+            // Reload produk untuk update stok
             await this.loadProducts();
             await this.loadTransactionHistory();
 
@@ -516,9 +516,9 @@ class KasirTransaksi {
             }
 
             const paymentData = await response.json();
-            console.log('✅ Response Midtrans:', paymentData);
+            console.log('Response Midtrans:', paymentData);
 
-            // ✅ PERBAIKAN: Redirect otomatis ke payment URL
+            // Redirect otomatis ke payment URL
             const paymentUrl = paymentData.payment_url || paymentData.redirect_url;
 
             if (paymentUrl) {
@@ -660,7 +660,7 @@ class KasirTransaksi {
             this.closeQRISStatusModal();
             this.resetTransaction();
 
-            // ✅ PERBAIKAN: Reload produk untuk update stok
+            // Reload produk untuk update stok
             this.loadProducts();
             this.loadTransactionHistory();
         }, 2000);

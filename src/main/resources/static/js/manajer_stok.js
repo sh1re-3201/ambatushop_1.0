@@ -855,7 +855,7 @@ class BarcodeManager {
         <div class="modal-overlay" id="barcodeModal">
             <div class="modal-content" style="max-width: 500px;">
                 <div class="modal-header">
-                    <h3>🏷️ Barcode - ${product.namaProduk}</h3>
+                    <h3>Barcode - ${product.namaProduk}</h3>
                     <button class="modal-close">&times;</button>
                 </div>
                 <div class="modal-body" style="text-align: center;">

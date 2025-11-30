@@ -346,7 +346,7 @@ function updateProductsTable(products) {
                         <button class="view-barcode-btn" 
                                 onclick="adminBarcodeManager.showBarcodeModal(${JSON.stringify(product).replace(/"/g, '&quot;')})"
                                 style="padding:2px 8px;background:rgba(43,124,255,0.1);color:#2b7cff;border:1px solid rgba(43,124,255,0.3);border-radius:4px;cursor:pointer;font-size:10px">
-                            👁️ Lihat
+                            Lihat
                         </button>
                     </div>
                 ` : `
@@ -450,7 +450,7 @@ class AdminBarcodeManager {
             <div class="modal-overlay" id="barcodeModal">
                 <div class="modal-content" style="max-width: 500px;">
                     <div class="modal-header">
-                        <h3>🏷️ Barcode - ${product.namaProduk}</h3>
+                        <h3>Barcode - ${product.namaProduk}</h3>
                         <button class="modal-close">&times;</button>
                     </div>
                     <div class="modal-body" style="text-align: center;">

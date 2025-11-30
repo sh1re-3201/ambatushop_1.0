@@ -126,6 +126,7 @@ public class BarcodeService {
         return prefix + "-" + category + "-" + idPart;
     }
 
+    // Untuk sementara menggunakan keyword sederhana untuk kategori, tetep ga kita pake tapi untuk jaga" aja
     private String extractCategory(String productName) {
         if (productName == null)
             return "GEN";
