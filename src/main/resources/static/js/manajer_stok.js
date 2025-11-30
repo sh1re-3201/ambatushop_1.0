@@ -130,11 +130,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // ========== STOCK MANAGEMENT FUNCTIONALITY ==========
 
+    // Load search manager
+    searchManager = new SearchManager();
+
     // Load products data
     await loadProductsData();
 
     // Add event listener for "Tambah Produk" button if exists
-    const addProductBtn = document.querySelector('button[style*="background:#2b7cff"]');
+    const addProductBtn = document.getElementById('add-product-btn');
     if (addProductBtn) {
         addProductBtn.addEventListener('click', showAddProductModal);
     }
@@ -152,6 +155,12 @@ async function loadProductsData() {
             const products = await response.json();
             updateProductsTable(products);
             updateStockStats(products);
+
+            // Clear any existing search stats
+            const existingStats = document.getElementById('search-stats');
+            if (existingStats) {
+                existingStats.remove();
+            }
         } else {
             const errorData = await response.json().catch(() => null);
             const errorMsg = errorData?.message || errorData?.details || `HTTP ${response.status}`;
@@ -282,18 +291,16 @@ async function deleteProduct(productId) {
 // ========== UI UPDATE FUNCTIONS ==========
 
 function updateProductsTable(products) {
-    const tbody = document.querySelector('table tbody');
+    const tbody = document.getElementById('products-tbody');
     if (!tbody) return;
 
-    tbody.innerHTML = '';
+    if (products.length === 0) {
+        showEmptyState();
+        return;
+    }
 
-    products.forEach(product => {
-        const row = document.createElement('tr');
-        row.style.borderBottom = '1px solid var(--border-color)';
-
-        const stockStatus = getStockStatus(product.stok);
-
-        row.innerHTML = `
+    tbody.innerHTML = products.map(product => `
+        <tr style="border-bottom:1px solid var(--border-color)">
             <td style="padding:12px 8px;color:var(--text-primary)">
                 <div style="display:flex;align-items:center;gap:8px">
                     <span>${product.namaProduk}</span>
@@ -311,17 +318,17 @@ function updateProductsTable(products) {
                                 ${'█'.repeat(6)}
                             </div>
                         </div>
-                        <button class="view-barcode-btn" 
-                                onclick="barcodeManager.showBarcodeModal(${JSON.stringify(product).replace(/"/g, '&quot;')})"
-                                style="padding:2px 8px;background:rgba(43,124,255,0.1);color:#2b7cff;border:1px solid rgba(43,124,255,0.3);border-radius:4px;cursor:pointer;font-size:10px">
-                            👁️ Lihat
-                        </button>
+                    <button class="generate-barcode-btn" 
+                            data-product-id="${product.idProduk}"
+                            style="padding:6px 12px;background:rgba(16,183,89,0.1);color:#10b759;border:1px solid rgba(16,183,89,0.3);border-radius:6px;cursor:pointer;font-size:11px;font-weight:600">
+                        Generate
+                    </button>
                     </div>
                 ` : `
-                    <button class="generate-barcode-btn" 
-                            onclick="barcodeManager.generateBarcode(${product.idProduk}).then(() => loadProductsData())"
-                            style="padding:6px 12px;background:rgba(16,183,89,0.1);color:#10b759;border:1px solid rgba(16,183,89,0.3);border-radius:6px;cursor:pointer;font-size:11px;font-weight:600">
-                        🏷️ Generate Barcode
+                    <button class="view-barcode-btn" 
+                            data-product-id="${product.idProduk}"
+                            style="padding:2px 8px;background:rgba(43,124,255,0.1);color:#2b7cff;border:1px solid rgba(43,124,255,0.3);border-radius:4px;cursor:pointer;font-size:10px">
+                        Lihat
                     </button>
                 `}
             </td>
@@ -340,8 +347,8 @@ function updateProductsTable(products) {
             </td>
             <td style="padding:12px 8px;text-align:right;color:var(--text-primary)">${formatCurrency(product.harga)}</td>
             <td style="padding:12px 8px;text-align:center">
-                <span style="background:${stockStatus.bg};color:${stockStatus.color};padding:4px 12px;border-radius:12px;font-size:13px;font-weight:600">
-                    ${stockStatus.text}
+                <span style="background:${getStockStatus(product.stok).bg};color:${getStockStatus(product.stok).color};padding:4px 12px;border-radius:12px;font-size:13px;font-weight:600">
+                    ${getStockStatus(product.stok).text}
                 </span>
             </td>
             <td style="padding:12px 8px;text-align:center">
@@ -357,12 +364,10 @@ function updateProductsTable(products) {
                     Hapus
                 </button>
             </td>
-        `;
+        </tr>
+    `).join('');
 
-        tbody.appendChild(row);
-    });
-
-    // Existing event listeners tetap dipertahankan
+    // Re-attach event listeners
     addBarcodeEventListeners();
 }
 
@@ -389,8 +394,12 @@ function addBarcodeEventListeners() {
             }
         });
     });
+}
 
-    // Existing event listeners...
+// ========== PRODUCT ACTION LISTENERS ==========
+
+function addProductActionListeners() {
+    // Edit stock buttons
     document.querySelectorAll('.edit-stock-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const productId = e.target.getAttribute('data-product-id');
@@ -400,6 +409,7 @@ function addBarcodeEventListeners() {
         });
     });
 
+    // Edit product buttons
     document.querySelectorAll('.edit-product-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const productId = e.target.getAttribute('data-product-id');
@@ -407,6 +417,7 @@ function addBarcodeEventListeners() {
         });
     });
 
+    // Delete product buttons
     document.querySelectorAll('.delete-product-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const productId = e.target.getAttribute('data-product-id');
@@ -415,31 +426,6 @@ function addBarcodeEventListeners() {
         });
     });
 }
-
-// Add event listeners to buttons
-document.querySelectorAll('.edit-stock-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-        const productId = e.target.getAttribute('data-product-id');
-        const productName = e.target.getAttribute('data-product-name');
-        const currentStock = e.target.getAttribute('data-current-stock');
-        showEditStockModal(productId, productName, parseInt(currentStock));
-    });
-});
-
-document.querySelectorAll('.edit-product-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-        const productId = e.target.getAttribute('data-product-id');
-        showEditProductModal(productId);
-    });
-});
-
-document.querySelectorAll('.delete-product-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-        const productId = e.target.getAttribute('data-product-id');
-        const productName = e.target.getAttribute('data-product-name');
-        confirmDeleteProduct(productId, productName);
-    });
-});
 
 function updateStockStats(products) {
     // Calculate statistics
@@ -751,17 +737,24 @@ async function manualRegenerateBarcode(productId) {
 }
 
 function showEmptyState() {
-    const tbody = document.querySelector('table tbody');
+    const tbody = document.getElementById('products-tbody');
     if (!tbody) return;
 
     tbody.innerHTML = `
         <tr>
-            <td colspan="6" style="padding: 40px; text-align: center; color: var(--text-secondary)">
-                <div style="font-size: 16px; margin-bottom: 8px;">Tidak dapat memuat data stok</div>
-                <div style="font-size: 14px;">Silakan refresh halaman atau coba lagi nanti</div>
+            <td colspan="7" style="padding:60px;text-align:center;color:var(--text-secondary)">
+                <div style="font-size:48px;margin-bottom:16px;">📦</div>
+                <div style="font-size:16px;margin-bottom:8px;font-weight:600">Tidak ada produk</div>
+                <div style="font-size:14px;margin-bottom:20px;">Produk yang ditambahkan akan muncul di sini</div>
+                <button id="add-first-product" class="btn-primary" style="padding:10px 20px;">
+                    + Tambah Produk Pertama
+                </button>
             </td>
         </tr>
     `;
+
+    // Add event listener untuk tombol tambah produk pertama
+    document.getElementById('add-first-product')?.addEventListener('click', showAddProductModal);
 }
 
 // ========== UTILITY FUNCTIONS ==========
@@ -1279,3 +1272,147 @@ class BarcodeManager {
 
 // Initialize barcode manager
 const barcodeManager = new BarcodeManager();
+
+// ========== SEARCH FUNCTIONALITY ==========
+
+class SearchManager {
+    constructor() {
+        this.searchInput = document.getElementById('product-search-input');
+        this.searchTimeout = null;
+        this.debounceDelay = 300; // ms
+        this.init();
+    }
+
+    init() {
+        if (this.searchInput) {
+            this.searchInput.addEventListener('input', this.handleSearch.bind(this));
+            this.searchInput.addEventListener('keypress', this.handleKeyPress.bind(this));
+        }
+    }
+
+    handleSearch(e) {
+        const query = e.target.value.trim();
+
+        // Clear previous timeout
+        if (this.searchTimeout) {
+            clearTimeout(this.searchTimeout);
+        }
+
+        // Debounce search
+        this.searchTimeout = setTimeout(() => {
+            this.performSearch(query);
+        }, this.debounceDelay);
+    }
+
+    handleKeyPress(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const query = this.searchInput.value.trim();
+            this.performSearch(query);
+        }
+    }
+
+    async performSearch(query) {
+        try {
+            console.log('🔍 Searching products:', query);
+
+            let url = 'http://localhost:8080/api/produk';
+
+            // Jika ada query, gunakan endpoint search
+            if (query && query.length > 0) {
+                url = `http://localhost:8080/api/produk/search?keyword=${encodeURIComponent(query)}`;
+            }
+
+            const response = await fetch(url, {
+                headers: AuthHelper.getAuthHeaders()
+            });
+
+            if (response.ok) {
+                const products = await response.json();
+                this.displaySearchResults(products, query);
+            } else {
+                throw new Error('Gagal melakukan pencarian');
+            }
+        } catch (error) {
+            console.error('Search error:', error);
+            this.showSearchError('Gagal melakukan pencarian: ' + error.message);
+        }
+    }
+
+    displaySearchResults(products, query) {
+        // Update products table
+        updateProductsTable(products);
+
+        // Update search stats
+        this.updateSearchStats(products.length, query);
+
+        // Update main stats cards based on search results
+        updateStockStats(products);
+    }
+
+    updateSearchStats(resultCount, query) {
+        const tableContainer = document.getElementById('products-table-container');
+        const existingStats = document.getElementById('search-stats');
+
+        // Remove existing stats if any
+        if (existingStats) {
+            existingStats.remove();
+        }
+
+        // Add search stats if there's a query
+        if (query && query.length > 0) {
+            const statsHtml = `
+                <div id="search-stats" style="margin-bottom:16px;padding:12px 16px;background:var(--page-bg);border-radius:8px;border:1px solid var(--border-color);font-size:14px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <span>
+                            🔍 Menampilkan <strong>${resultCount}</strong> produk untuk pencarian: 
+                            <strong>"${query}"</strong>
+                        </span>
+                        <button onclick="searchManager.clearSearch()" 
+                                style="padding:4px 8px;background:transparent;border:1px solid var(--border-color);border-radius:4px;cursor:pointer;font-size:12px;">
+                            ✕ Hapus Pencarian
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            tableContainer.insertAdjacentHTML('afterbegin', statsHtml);
+        }
+    }
+
+    clearSearch() {
+        if (this.searchInput) {
+            this.searchInput.value = '';
+        }
+
+        // Reload all products
+        loadProductsData();
+
+        // Remove search stats
+        const existingStats = document.getElementById('search-stats');
+        if (existingStats) {
+            existingStats.remove();
+        }
+    }
+
+    showSearchError(message) {
+        const tbody = document.getElementById('products-tbody');
+        if (!tbody) return;
+
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" style="padding:40px;text-align:center;color:var(--text-secondary)">
+                    <div style="color:var(--error);margin-bottom:8px;">❌</div>
+                    <div>${message}</div>
+                    <button onclick="searchManager.clearSearch()" 
+                            style="margin-top:12px;padding:8px 16px;background:var(--accent);color:white;border:none;border-radius:6px;cursor:pointer;">
+                        Muat Ulang Data
+                    </button>
+                </td>
+            </tr>
+        `;
+    }
+}
+
+// Initialize search manager
+let searchManager;

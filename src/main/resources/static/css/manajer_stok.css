@@ -783,3 +783,52 @@ body.role-kasir .sidebar.closed .menu-item.pill.active .mi-icon {
     border-radius: 6px;
     border: 1px dashed #d1d5db;
 }
+
+/* Search Styles */
+.search-container {
+    position: relative;
+}
+
+.search-container input {
+    transition: all 0.3s ease;
+    border: 1px solid var(--border-color);
+}
+
+.search-container input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(43, 124, 255, 0.1);
+    outline: none;
+}
+
+.btn-primary {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.btn-primary:hover {
+    background: #1a6de0;
+    transform: translateY(-1px);
+}
+
+/* Empty state styling */
+#products-table-container {
+    position: relative;
+}
+
+/* Loading state untuk search */
+.search-loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.search-loading::after {
+    content: " 🔍 Mencari...";
+    font-style: italic;
+    color: var(--text-secondary);
+}
