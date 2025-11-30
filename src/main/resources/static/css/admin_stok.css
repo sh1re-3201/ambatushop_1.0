@@ -391,3 +391,204 @@ body.role-kasir .sidebar.closed .menu-item.pill.active .mi-icon {
   background: rgba(255,255,255,0.12) !important;
   box-shadow: 0 6px 14px rgba(0,0,0,0.08) !important;
 }
+
+/* Search Styles untuk Admin */
+.search-container {
+    position: relative;
+}
+
+.search-container input {
+    transition: all 0.3s ease;
+    border: 1px solid var(--border-color);
+}
+
+.search-container input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(43, 124, 255, 0.1);
+    outline: none;
+}
+
+/* Barcode Styles untuk Admin */
+.barcode-preview {
+    display: inline-block;
+    padding: 4px 8px;
+    background: #f8f9fa;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.barcode-preview:hover {
+    background: #e5e7eb;
+    border-color: #d1d5db;
+}
+
+.view-barcode-btn {
+    padding: 2px 8px;
+    background: rgba(43, 124, 255, 0.1);
+    color: #2b7cff;
+    border: 1px solid rgba(43, 124, 255, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 10px;
+    transition: all 0.2s;
+}
+
+.view-barcode-btn:hover {
+    background: rgba(43, 124, 255, 0.2);
+}
+
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+}
+
+.modal-content {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 24px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-close:hover {
+    color: var(--text-primary);
+}
+
+/* Barcode image styling */
+.barcode-image-container {
+    padding: 20px;
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    margin-bottom: 16px;
+}
+
+.barcode-image {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    image-rendering: crisp-edges;
+    filter: contrast(1.2);
+}
+
+.barcode-text {
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    margin-top: 12px;
+    color: #1f2937;
+    background: #f8f9fa;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px dashed #d1d5db;
+}
+
+.barcode-placeholder, .barcode-error {
+    padding: 40px 20px;
+    background: #f8f9fa;
+    border: 2px dashed #d1d5db;
+    border-radius: 12px;
+    color: #6b7280;
+    text-align: center;
+}
+
+/* Button Styles */
+.btn-primary {
+    background: #2b7cff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.btn-primary:hover {
+    background: #1a6de0;
+    transform: translateY(-1px);
+}
+
+.btn-copy-barcode {
+    background: #8b5cf6;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.btn-copy-barcode:hover {
+    background: #7c3aed;
+    transform: translateY(-1px);
+}
+
+/* Animation */
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
