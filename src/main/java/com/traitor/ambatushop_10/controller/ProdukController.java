@@ -56,7 +56,7 @@ public class ProdukController {
 
     // DELETE produk
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('MANAJER', 'ADMIN')") 
     public String deleteProduk(@PathVariable Long id) {
         produkService.deleteProduk(id);
         return "Produk berhasil dihapus";

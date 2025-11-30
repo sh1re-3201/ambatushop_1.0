@@ -229,19 +229,55 @@ async function updateProductStock(productId, newStock) {
 
 async function deleteProduct(productId) {
     try {
+        console.log('Deleting product:', productId);
+        
         const response = await fetch(`http://localhost:8080/api/produk/${productId}`, {
             method: 'DELETE',
             headers: AuthHelper.getAuthHeaders()
         });
 
+        console.log('Delete response status:', response.status);
+        console.log('Delete response ok:', response.ok);
+
         if (response.ok) {
-            return { success: true };
+            // ✅ PERBAIKAN: Handle case where response body is empty
+            const responseText = await response.text();
+            console.log('Delete response text:', responseText);
+            
+            if (responseText) {
+                try {
+                    const data = JSON.parse(responseText);
+                    return { success: true, data };
+                } catch (e) {
+                    // If it's not JSON but response is ok, still consider it success
+                    return { success: true };
+                }
+            } else {
+                // Empty response but status is ok
+                return { success: true };
+            }
         } else {
-            const data = await response.json();
-            return { success: false, error: data.message || data.details || 'Gagal menghapus produk' };
+            // Handle different error cases
+            const responseText = await response.text();
+            console.error('Delete error response:', responseText);
+            
+            let errorMessage = `HTTP ${response.status}: `;
+            
+            try {
+                const errorData = JSON.parse(responseText);
+                errorMessage += errorData.message || errorData.details || 'Gagal menghapus produk';
+            } catch (e) {
+                errorMessage += responseText || 'Gagal menghapus produk';
+            }
+            
+            return { success: false, error: errorMessage };
         }
     } catch (error) {
-        return { success: false, error: error.message };
+        console.error('Network error deleting product:', error);
+        return { 
+            success: false, 
+            error: 'Network error: ' + error.message 
+        };
     }
 }
 
@@ -583,14 +619,20 @@ async function handleStockUpdate() {
 }
 
 async function confirmDeleteProduct(productId, productName) {
-    if (confirm(`Apakah Anda yakin ingin menghapus produk "${productName}"?`)) {
-        const result = await deleteProduct(productId);
-        
-        if (result.success) {
-            await loadProductsData();
-            showSuccess('Produk berhasil dihapus');
-        } else {
-            showError(result.error);
+    if (confirm(`Apakah Anda yakin ingin menghapus produk "${productName}"?\n\nTindakan ini tidak dapat dibatalkan.`)) {
+        try {
+            const result = await deleteProduct(productId);
+            
+            if (result.success) {
+                await loadProductsData();
+                showSuccess(`Produk "${productName}" berhasil dihapus`);
+            } else {
+                // ✅ PERBAIKAN: Tampilkan error message asli dari backend
+                showError(result.error);
+            }
+        } catch (error) {
+            console.error('Unexpected error in confirmDeleteProduct:', error);
+            showError('Terjadi kesalahan tak terduga: ' + error.message);
         }
     }
 }

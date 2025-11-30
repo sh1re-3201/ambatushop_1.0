@@ -147,56 +147,233 @@ document.addEventListener('DOMContentLoaded', () => {
     loadDashboardData(auth.userRole);
 });
 
+// ========== DASHBOARD DATA FUNCTIONS ==========
+
 async function loadDashboardData(role) {
     try {
-        // Load financial data
-        const financeResponse = await fetch('http://localhost:8080/api/keuangan/summary', {
-            headers: AuthHelper.getAuthHeaders()
-        });
-        
-        if (financeResponse.ok) {
-            const financeData = await financeResponse.json();
-            updateFinanceCard(financeData);
+        console.log('🔄 Loading admin dashboard data...');
+
+        // Load semua data secara parallel
+        const [transactionsResponse, productsResponse, usersResponse, keuanganResponse] = await Promise.all([
+            fetch('http://localhost:8080/api/transaksi', {
+                headers: AuthHelper.getAuthHeaders()
+            }),
+            fetch('http://localhost:8080/api/produk', {
+                headers: AuthHelper.getAuthHeaders()
+            }),
+            fetch('http://localhost:8080/api/admin/akun', {
+                headers: AuthHelper.getAuthHeaders()
+            }),
+            fetch('http://localhost:8080/api/keuangan', {
+                headers: AuthHelper.getAuthHeaders()
+            })
+        ]);
+
+        let transactions = [];
+        let products = [];
+        let users = [];
+        let keuangan = [];
+
+        // Process transactions response
+        if (transactionsResponse.ok) {
+            transactions = await transactionsResponse.json();
+            console.log('✅ Transactions loaded:', transactions.length);
+        } else {
+            console.error('❌ Failed to load transactions:', transactionsResponse.status);
         }
 
-        // Load user data for admin
-        if (role === 'ADMIN') {
-            const usersResponse = await fetch('http://localhost:8080/api/admin/akun', {
-                headers: AuthHelper.getAuthHeaders()
-            });
-            
-            if (usersResponse.ok) {
-                const usersData = await usersResponse.json();
-                updateUsersCard(usersData);
-            }
+        // Process products response
+        if (productsResponse.ok) {
+            products = await productsResponse.json();
+            console.log('✅ Products loaded:', products.length);
+        } else {
+            console.error('❌ Failed to load products:', productsResponse.status);
         }
+
+        // Process users response
+        if (usersResponse.ok) {
+            users = await usersResponse.json();
+            console.log('✅ Users loaded:', users.length);
+        } else {
+            console.error('❌ Failed to load users:', usersResponse.status);
+        }
+
+        // Process keuangan response
+        if (keuanganResponse.ok) {
+            keuangan = await keuanganResponse.json();
+            console.log('✅ Keuangan data loaded:', keuangan.length);
+        } else {
+            console.error('❌ Failed to load keuangan data:', keuanganResponse.status);
+        }
+
+        // Update UI dengan data yang sudah di-load
+        updateFinanceCard(transactions, keuangan);
+        updateStockCard(products);
+        updateUsersCard(users);
 
     } catch (error) {
-        console.error('Error loading dashboard data:', error);
+        console.error('❌ Error loading dashboard data:', error);
+        showError('Gagal memuat data dashboard');
     }
 }
 
-function updateFinanceCard(data) {
+// ========== CARD UPDATE FUNCTIONS ==========
+
+function updateFinanceCard(transactions, keuanganData) {
     const pemasukanElement = document.querySelector('#card-keuangan .finance-row div:first-child .value');
     const pengeluaranElement = document.querySelector('#card-keuangan .finance-row div:last-child .value');
     
-    if (pemasukanElement) {
-        pemasukanElement.textContent = `Rp ${formatCurrency(data.pemasukan || 2865000)}`;
-    }
+    if (!pemasukanElement || !pengeluaranElement) return;
+
+    // Hitung pemasukan dari transaksi yang PAID
+    const totalPemasukan = transactions
+        .filter(transaction => transaction.paymentStatus === 'PAID')
+        .reduce((total, transaction) => total + (transaction.total || 0), 0);
+
+    // Hitung pengeluaran dari data keuangan (jika ada)
+    const totalPengeluaran = keuanganData
+        .filter(item => item.jenis === false || item.jenis === 'PENGELUARAN') // Sesuai dengan model Keuangan
+        .reduce((total, item) => total + (item.nominal || 0), 0);
+
+    // Update UI
+    pemasukanElement.textContent = `Rp ${formatCurrency(totalPemasukan)}`;
+    pengeluaranElement.textContent = `Rp ${formatCurrency(totalPengeluaran)}`;
     
-    if (pengeluaranElement) {
-        pengeluaranElement.textContent = `Rp ${formatCurrency(data.pengeluaran || 2130000)}`;
-    }
+    console.log('💰 Finance card updated:', { 
+        pemasukan: totalPemasukan, 
+        pengeluaran: totalPengeluaran 
+    });
+}
+
+function updateStockCard(products) {
+    const cardStok = document.querySelector('#card-stok .card-body');
+    if (!cardStok) return;
+
+    const totalProducts = products.length;
+    const totalStock = products.reduce((sum, product) => sum + (product.stok || 0), 0);
+    const lowStockProducts = products.filter(product => (product.stok || 0) <= 10 && (product.stok || 0) > 0).length;
+    const outOfStockProducts = products.filter(product => (product.stok || 0) === 0).length;
+
+    // Update card content
+    cardStok.innerHTML = `
+        <h3>Stok Barang</h3>
+        <p class="subtitle">Isi Inventaris</p>
+        <div class="stock-stats" style="margin-top: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="color: var(--text-secondary); font-size: 14px;">Total Produk:</span>
+                <span style="font-weight: 600; color: var(--text-primary);">${totalProducts}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="color: var(--text-secondary); font-size: 14px;">Total Stok:</span>
+                <span style="font-weight: 600; color: var(--text-primary);">${totalStock} unit</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="color: var(--text-secondary); font-size: 14px;">Perhatian:</span>
+                <span style="font-weight: 600; color: ${lowStockProducts + outOfStockProducts > 0 ? '#f59e0b' : '#10b759'};">
+                    ${lowStockProducts + outOfStockProducts} item
+                </span>
+            </div>
+        </div>
+    `;
+    
+    console.log('📦 Stock card updated:', { 
+        totalProducts, 
+        totalStock, 
+        lowStockProducts, 
+        outOfStockProducts 
+    });
 }
 
 function updateUsersCard(users) {
     const onlineElement = document.querySelector('#card-pengguna .users-row div:first-child .value');
     const offlineElement = document.querySelector('#card-pengguna .users-row div:last-child .value');
+    const subtitleElement = document.querySelector('#card-pengguna .subtitle');
     
-    if (onlineElement) onlineElement.textContent = users.length || 2;
-    if (offlineElement) offlineElement.textContent = '0';
+    if (!onlineElement || !offlineElement || !subtitleElement) return;
+
+    const totalUsers = users.length;
+    
+    // Hitung jumlah user per role
+    const roleCounts = {
+        ADMIN: users.filter(user => user.role === 'ADMIN').length,
+        MANAJER: users.filter(user => user.role === 'MANAJER').length,
+        KASIR: users.filter(user => user.role === 'KASIR').length
+    };
+
+    // Untuk demo, anggap 1-2 user online (random), sisanya offline
+    const onlineUsers = Math.min(Math.floor(Math.random() * 3) + 1, totalUsers);
+    const offlineUsers = Math.max(0, totalUsers - onlineUsers);
+
+    // Update UI
+    onlineElement.textContent = onlineUsers;
+    offlineElement.textContent = offlineUsers;
+    subtitleElement.textContent = `Total: ${totalUsers} Pengguna`;
+
+    // Tambahkan detail role di card (opsional)
+    const cardBody = document.querySelector('#card-pengguna .card-body');
+    if (cardBody && !cardBody.querySelector('.role-breakdown')) {
+        const roleBreakdown = document.createElement('div');
+        roleBreakdown.className = 'role-breakdown';
+        roleBreakdown.style.cssText = `
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid var(--border-color);
+            font-size: 11px;
+            color: var(--text-secondary);
+        `;
+        roleBreakdown.innerHTML = `
+            <div style="display: flex; justify-content: space-between;">
+                <span>Admin: ${roleCounts.ADMIN}</span>
+                <span>Manajer: ${roleCounts.MANAJER}</span>
+                <span>Kasir: ${roleCounts.KASIR}</span>
+            </div>
+        `;
+        cardBody.appendChild(roleBreakdown);
+    }
+    
+    console.log('👥 Users card updated:', { 
+        totalUsers, 
+        onlineUsers, 
+        offlineUsers,
+        roleCounts
+    });
 }
+
+// ========== UTILITY FUNCTIONS ==========
 
 function formatCurrency(amount) {
     return new Intl.NumberFormat('id-ID').format(amount);
 }
+
+function showError(message) {
+    console.error('Dashboard Error:', message);
+    // Bisa tambahkan toast notification di sini
+    const errorDiv = document.createElement('div');
+    errorDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #fee2e2;
+        color: #991b1b;
+        padding: 12px 16px;
+        border-radius: 8px;
+        border: 1px solid #fecaca;
+        z-index: 10000;
+        max-width: 400px;
+    `;
+    errorDiv.textContent = 'Error: ' + message;
+    document.body.appendChild(errorDiv);
+    
+    setTimeout(() => {
+        errorDiv.remove();
+    }, 5000);
+}
+
+// Auto-refresh data every 60 seconds
+setInterval(async () => {
+    const auth = AuthHelper.checkAuth();
+    if (auth && (auth.userRole === 'ADMIN' || auth.userRole === 'MANAJER')) {
+        console.log('🔄 Auto-refreshing admin dashboard data...');
+        await loadDashboardData(auth.userRole);
+    }
+}, 60000);

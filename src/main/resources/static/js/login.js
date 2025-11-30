@@ -1,6 +1,5 @@
 /**
- * Login Page JavaScript
- * Handling authentication dan validasi
+ * Login Page JavaScript dengan AuthHelper Enhanced - FIXED VERSION
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -11,6 +10,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginButton = document.querySelector('.login-button');
     const errorMessage = document.getElementById('errorMessage');
 
+    // ========== BASE URL ==========
+    const API_BASE_URL = 'http://localhost:8080'; // Explicit base URL
+
     // ========== VALIDATION FUNCTIONS ==========
     function showError(message) {
         errorMessage.textContent = message;
@@ -18,7 +20,6 @@ document.addEventListener('DOMContentLoaded', () => {
         userIdInput.classList.add('error');
         passwordInput.classList.add('error');
 
-        // Auto hide after 5 seconds
         setTimeout(() => {
             hideError();
         }, 5000);
@@ -46,13 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return false;
         }
 
-        if (password.length < 4) {
-            showError('Password minimal 4 karakter');
-            passwordInput.focus();
-            return false;
-        }
-
-        return true;
+        return true; // ✅ Remove password length validation for now
     }
 
     // ========== LOADING STATE ==========
@@ -72,7 +67,6 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         hideError();
 
-        // Validate inputs
         if (!validateInputs()) {
             return;
         }
@@ -80,12 +74,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const username = userIdInput.value.trim();
         const password = passwordInput.value;
 
-        // Show loading state
         setLoading(true);
 
         try {
-            // Send login request to backend
-            const response = await fetch('/api/auth/login', {
+            console.log('🔍 Attempting login...');
+            
+            // ✅ FIX: Gunakan full URL dengan base URL
+            const loginUrl = `${API_BASE_URL}/api/auth/login`;
+            console.log('Login URL:', loginUrl);
+
+            const response = await fetch(loginUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -96,31 +94,57 @@ document.addEventListener('DOMContentLoaded', () => {
                 })
             });
 
-            const data = await response.json();
+            console.log('🔍 Response status:', response.status);
+            console.log('🔍 Response ok:', response.ok);
+
+            // ✅ FIX: Handle case where response might not be JSON
+            let data;
+            const responseText = await response.text();
+            
+            try {
+                data = responseText ? JSON.parse(responseText) : {};
+            } catch (parseError) {
+                console.error('Parse error:', parseError);
+                data = { message: 'Invalid server response' };
+            }
 
             if (response.ok) {
-                // Login successful
-                console.log('Login successful:', data);
+                console.log('✅ Login successful:', data);
+                
+                // ✅ FIX: Pastikan data yang diperlukan ada
+                if (!data.token || !data.role) {
+                    throw new Error('Invalid response data from server');
+                }
 
-                // Save token and user info
-                localStorage.setItem('authToken', data.token);
-                localStorage.setItem('userRole', data.role);
-                localStorage.setItem('username', data.username);
+                // Save token dan user info
+                AuthHelper.saveLoginInfo(
+                    data.token, 
+                    data.role, 
+                    data.username || username // Fallback ke username input
+                );
 
+                console.log('✅ Auth data saved');
+                
                 // Redirect based on role
                 redirectToRolePage(data.role);
             } else {
-                // Login failed - handle different error formats
+                console.error('❌ Login failed:', data);
                 const errorMsg = data.message ||
                     data.details ||
-                    'Login gagal. Periksa username dan password Anda.';
+                    data.error ||
+                    `Login gagal (Status: ${response.status})`;
                 showError(errorMsg);
             }
         } catch (error) {
-            console.error('Login error:', error);
-            showError('Terjadi kesalahan koneksi. Silakan coba lagi.');
+            console.error('❌ Login error:', error);
+            
+            // ✅ Better error messages
+            if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+                showError('Tidak dapat terhubung ke server. Pastikan backend Spring Boot berjalan di localhost:8080');
+            } else {
+                showError('Terjadi kesalahan: ' + error.message);
+            }
         } finally {
-            // Hide loading state
             setLoading(false);
         }
     });
@@ -129,20 +153,19 @@ document.addEventListener('DOMContentLoaded', () => {
     function redirectToRolePage(role) {
         let targetPage;
 
-        if (role === 'ADMIN' ) {
+        if (role === 'ADMIN') {
             targetPage = 'beranda_admin.html';
         } else if (role === 'KASIR') {
             targetPage = 'kasir_dashboard.html';
-        } else if (role === 'MANAJER'){
+        } else if (role === 'MANAJER') {
             targetPage = 'manajer_dashboard.html';
-        }
-        else {
+        } else {
             targetPage = 'login.html';
         }
 
-        console.log('Redirecting to:', targetPage, 'for role:', role);
+        console.log('🎯 Redirecting to:', targetPage, 'for role:', role);
 
-        // Smooth transition before redirect
+        // Smooth transition
         loginForm.style.opacity = '0';
         loginForm.style.transform = 'translateY(-20px)';
 
@@ -179,6 +202,16 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
         userIdInput.focus();
     }, 500);
+
+    // ========== CHECK IF ALREADY LOGGED IN ==========
+    // ✅ FIX: Comment dulu untuk testing
+    /*
+    const existingAuth = AuthHelper.checkAuth();
+    if (existingAuth) {
+        console.log('User already logged in, redirecting...');
+        redirectToRolePage(existingAuth.userRole);
+    }
+    */
 
     console.log('✅ Login page initialized');
 });
