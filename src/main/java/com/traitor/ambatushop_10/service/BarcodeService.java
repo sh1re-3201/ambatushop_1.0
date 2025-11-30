@@ -5,6 +5,8 @@ import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.common.HybridBinarizer;
+import com.traitor.ambatushop_10.model.Produk;
+
 // import com.google.zxing.multi.qrcode.QRCodeMultiReader;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -92,11 +94,19 @@ public class BarcodeService {
     }
 
     // GENERATE barcode text (auto)
-    public String generateBarcodeText(com.traitor.ambatushop_10.model.Produk produk) {
-        // Format: AMBATU-{KATEGORI}-{ID}
+    public String generateBarcodeText(Produk produk) {
+        // Jika ID masih null (produk baru), gunakan timestamp temporary
+        String idPart;
+        if (produk.getIdProduk() == null) {
+            // Gunakan timestamp sebagai temporary ID
+            String timestamp = String.valueOf(System.currentTimeMillis());
+            idPart = "TEMP" + timestamp.substring(timestamp.length() - 5);
+        } else {
+            idPart = String.format("%05d", produk.getIdProduk());
+        }
+
         String prefix = "AMBATU";
         String category = extractCategory(produk.getNamaProduk());
-        String idPart = String.format("%05d", produk.getIdProduk());
 
         return prefix + "-" + category + "-" + idPart;
     }

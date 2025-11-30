@@ -837,62 +837,57 @@ class BarcodeManager {
         try {
             console.log('🔄 Loading barcode for product:', product);
 
-            // Generate modal HTML dulu
             const modalHtml = `
-            <div class="modal-overlay" id="barcodeModal">
-                <div class="modal-content" style="max-width: 500px;">
-                    <div class="modal-header">
-                        <h3>🏷️ Barcode - ${product.namaProduk}</h3>
-                        <button class="modal-close">&times;</button>
+        <div class="modal-overlay" id="barcodeModal">
+            <div class="modal-content" style="max-width: 500px;">
+                <div class="modal-header">
+                    <h3>🏷️ Barcode - ${product.namaProduk}</h3>
+                    <button class="modal-close">&times;</button>
+                </div>
+                <div class="modal-body" style="text-align: center;">
+                    <div class="barcode-display" id="barcode-display-container">
+                        <div class="loading-barcode">
+                            <div style="padding: 40px;">
+                                <div style="color: #666; margin-bottom: 10px;">⏳</div>
+                                <div style="color: #999; font-size: 14px;">Memuat barcode...</div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="modal-body" style="text-align: center;">
-                        <div class="barcode-display" id="barcode-display-container">
-                            <!-- Content akan diisi oleh JavaScript -->
-                            <div class="loading-barcode">
-                                <div style="padding: 40px;">
-                                    <div style="color: #666; margin-bottom: 10px;">⏳</div>
-                                    <div style="color: #999; font-size: 14px;">Memuat barcode...</div>
-                                </div>
-                            </div>
+                    
+                    <div class="product-info" style="margin-top: 20px; padding: 16px; background: #f8f9fa; border-radius: 8px;">
+                        <div style="font-weight: 600; color: #333;">${product.namaProduk}</div>
+                        <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 14px;">
+                            <span>Harga: ${this.formatCurrency(product.harga)}</span>
+                            <span>Stok: ${product.stok}</span>
                         </div>
-                        
-                        <div class="product-info" style="margin-top: 20px; padding: 16px; background: #f8f9fa; border-radius: 8px;">
-                            <div style="font-weight: 600; color: #333;">${product.namaProduk}</div>
-                            <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 14px;">
-                                <span>Harga: ${this.formatCurrency(product.harga)}</span>
-                                <span>Stok: ${product.stok}</span>
+                        ${product.barcode ? `
+                            <div style="margin-top: 8px; font-family: 'Courier New', monospace; font-size: 12px; color: #666;">
+                                Barcode: ${product.barcode}
                             </div>
-                            ${product.barcode ? `
-                                <div style="margin-top: 8px; font-family: 'Courier New', monospace; font-size: 12px; color: #666;">
-                                    Barcode: ${product.barcode}
-                                </div>
-                            ` : ''}
-                        </div>
-                        
-                        <div class="barcode-actions" style="margin-top: 20px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-                            ${product.barcodeImagePath ? `
-                                <button class="btn-primary" onclick="barcodeManager.downloadBarcode(${product.idProduk})">
-                                    📥 Download PNG
-                                </button>
-                                <button class="btn-secondary" onclick="barcodeManager.printBarcodeLabel(${product.idProduk}, '${product.namaProduk}', '${product.barcode}')">
-                                    🖨️ Print Label
-                                </button>
-                                <button class="btn-success" onclick="barcodeManager.regenerateBarcode(${product.idProduk})">
-                                    🔄 Generate Ulang
-                                </button>
-                            ` : `
-                                <button class="btn-success" onclick="barcodeManager.regenerateBarcode(${product.idProduk})">
-                                    🏷️ Generate Barcode
-                                </button>
-                            `}
-                            <button class="btn-copy-barcode" onclick="barcodeManager.copyBarcodeText('${product.barcode}')" ${!product.barcode ? 'disabled' : ''}>
-                                📋 Copy Barcode
+                        ` : ''}
+                    </div>
+                    
+                    <div class="barcode-actions" style="margin-top: 20px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                        ${product.barcodeImagePath ? `
+                            <button class="btn-primary" onclick="barcodeManager.downloadBarcode(${product.idProduk})">
+                                📥 Download PNG
                             </button>
-                        </div>
+                            <button class="btn-success" onclick="barcodeManager.regenerateBarcode(${product.idProduk})">
+                                🔄 Generate Ulang
+                            </button>
+                        ` : `
+                            <button class="btn-success" onclick="barcodeManager.regenerateBarcode(${product.idProduk})">
+                                🏷️ Generate Barcode
+                            </button>
+                        `}
+                        <button class="btn-copy-barcode" onclick="barcodeManager.copyBarcodeText('${product.barcode}')" ${!product.barcode ? 'disabled' : ''}>
+                            📋 Copy Barcode
+                        </button>
                     </div>
                 </div>
             </div>
-        `;
+        </div>
+    `;
 
             document.body.insertAdjacentHTML('beforeend', modalHtml);
             this.setupBarcodeModalEvents();
@@ -925,7 +920,7 @@ class BarcodeManager {
             console.log('🔗 Loading image with auth header:', imageUrl);
 
             const response = await fetch(imageUrl, {
-                headers: AuthHelper.getAuthHeaders() 
+                headers: AuthHelper.getAuthHeaders()
             });
 
             console.log('📡 Image response status:', response.status);
@@ -1058,22 +1053,33 @@ class BarcodeManager {
     // Download barcode image
     async downloadBarcode(productId) {
         try {
-            const response = await fetch(`http://localhost:8080/api/barcode/produk/${productId}/image`);
+            console.log('📥 Downloading barcode for product:', productId);
+
+            const response = await fetch(`http://localhost:8080/api/barcode/produk/${productId}/image`, {
+                headers: AuthHelper.getAuthHeaders()
+            });
+
             if (response.ok) {
                 const blob = await response.blob();
+
+                // Create download link
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `barcode-${productId}.png`;
+                a.download = `barcode-${productId}-${Date.now()}.png`;
                 document.body.appendChild(a);
                 a.click();
+
+                // Cleanup
                 window.URL.revokeObjectURL(url);
                 document.body.removeChild(a);
+
                 this.showSuccess('Barcode berhasil didownload!');
             } else {
-                throw new Error('Gagal download barcode');
+                throw new Error(`HTTP ${response.status}: Gagal download barcode`);
             }
         } catch (error) {
+            console.error('Download error:', error);
             this.showError('Download error: ' + error.message);
         }
     }

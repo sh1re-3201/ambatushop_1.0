@@ -37,25 +37,29 @@ public class ProdukService {
         if (produk.getStok() < 0) {
             throw new RuntimeException("Stok tidak boleh negatif");
         }
-        if (produk.getBarcode() == null || produk.getBarcode().trim().isEmpty()) {
-            String generatedBarcode = barcodeService.generateBarcodeText(produk);
-            produk.setBarcode(generatedBarcode);
-        }
 
-        if (produkRepository.existsByBarcode(produk.getBarcode())) {
-            throw new RuntimeException("Barcode '" + produk.getBarcode() + "' sudah digunakan");
-        }
-
+        // Simpan produk dulu untuk mendapatkan ID
         Produk savedProduk = produkRepository.save(produk);
 
+        // Generate barcode SETELAH produk disimpan (punya ID)
+        if (savedProduk.getBarcode() == null || savedProduk.getBarcode().trim().isEmpty()) {
+            String generatedBarcode = barcodeService.generateBarcodeText(savedProduk);
+            savedProduk.setBarcode(generatedBarcode);
+        }
+
+        if (produkRepository.existsByBarcode(savedProduk.getBarcode())) {
+            throw new RuntimeException("Barcode '" + savedProduk.getBarcode() + "' sudah digunakan");
+        }
+
         try {
+            // Generate barcode image
             String imagePath = barcodeService.generateBarcodeImage(savedProduk.getBarcode(), savedProduk.getIdProduk());
             savedProduk.setBarcodeImagePath(imagePath);
-            return produkRepository.save(savedProduk);
+            return produkRepository.save(savedProduk); // Save lagi dengan barcode image
         } catch (Exception e) {
             // Jika gagal generate image, tetap simpan produk tanpa image
             System.err.println("Warning: Gagal generate barcode image: " + e.getMessage());
-            return savedProduk;
+            return produkRepository.save(savedProduk);
         }
     }
 

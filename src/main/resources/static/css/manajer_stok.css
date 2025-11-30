@@ -699,3 +699,87 @@ body.role-kasir .sidebar.closed .menu-item.pill.active .mi-icon {
         max-width: 200px;
     }
 }
+/* Improved button styles for barcode modal */
+.btn-primary {
+    background: #2b7cff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.btn-primary:hover {
+    background: #1a6de0;
+    transform: translateY(-1px);
+}
+
+.btn-success {
+    background: #10b759;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.btn-success:hover {
+    background: #0d9c4d;
+    transform: translateY(-1px);
+}
+
+.btn-copy-barcode {
+    background: #8b5cf6;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.btn-copy-barcode:hover:not(:disabled) {
+    background: #7c3aed;
+    transform: translateY(-1px);
+}
+
+.btn-copy-barcode:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+}
+
+/* Barcode image styling */
+.barcode-image-container {
+    padding: 20px;
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    margin-bottom: 16px;
+}
+
+.barcode-image {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    image-rendering: crisp-edges;
+    filter: contrast(1.2);
+}
+
+.barcode-text {
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    margin-top: 12px;
+    color: #1f2937;
+    background: #f8f9fa;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px dashed #d1d5db;
+}
