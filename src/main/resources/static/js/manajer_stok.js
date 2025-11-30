@@ -711,20 +711,41 @@ async function handleStockUpdate() {
 }
 
 async function confirmDeleteProduct(productId, productName) {
-    if (confirm(`Apakah Anda yakin ingin menghapus produk "${productName}"?\n\nTindakan ini tidak dapat dibatalkan.`)) {
+    if (confirm(`Apakah Anda yakin ingin menghapus produk "${productName}"?\n\n⚠️ Tindakan ini akan:\n• Menghapus produk dari database\n• Menghapus file barcode image\n• Tidak dapat dibatalkan`)) {
         try {
             const result = await deleteProduct(productId);
 
             if (result.success) {
                 await loadProductsData();
-                showSuccess(`Produk "${productName}" berhasil dihapus`);
+                showSuccess(`Produk "${productName}" dan barcode image berhasil dihapus`);
             } else {
-                // ✅ PERBAIKAN: Tampilkan error message asli dari backend
                 showError(result.error);
             }
         } catch (error) {
             console.error('Unexpected error in confirmDeleteProduct:', error);
             showError('Terjadi kesalahan tak terduga: ' + error.message);
+        }
+    }
+}
+// Tambahkan fitur manual regenerate barcode jika needed
+async function manualRegenerateBarcode(productId) {
+    if (confirm('Generate ulang barcode image?\n\nIni akan membuat barcode image baru menggantikan yang lama.')) {
+        try {
+            const response = await fetch(`http://localhost:8080/api/barcode/produk/${productId}/generate`, {
+                method: 'POST',
+                headers: AuthHelper.getAuthHeaders()
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                showSuccess('Barcode image berhasil digenerate ulang!');
+                await loadProductsData();
+            } else {
+                throw new Error(result.error || 'Gagal generate ulang barcode');
+            }
+        } catch (error) {
+            showError('Error: ' + error.message);
         }
     }
 }

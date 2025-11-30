@@ -58,6 +58,21 @@ public class BarcodeService {
         }
     }
 
+    // Tambahkan method untuk delete image by productId
+    public void deleteBarcodeImage(Long productId) {
+        try {
+            String filename = "barcode-" + productId + ".png";
+            Path imagePath = Paths.get(barcodeImagePath).resolve(filename);
+            
+            if (Files.exists(imagePath)) {
+                Files.delete(imagePath);
+                System.out.println("Barcode image deleted: " + imagePath);
+            }
+        } catch (Exception e) {
+            System.err.println("Error deleting barcode image for product " + productId + ": " + e.getMessage());
+        }
+    }
+
     // DECODE barcode dari image file
     public String decodeBarcodeFromImage(MultipartFile imageFile) {
         try {
