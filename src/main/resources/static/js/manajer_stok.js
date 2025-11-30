@@ -291,7 +291,6 @@ function updateProductsTable(products) {
         const row = document.createElement('tr');
         row.style.borderBottom = '1px solid var(--border-color)';
 
-        // Determine stock status
         const stockStatus = getStockStatus(product.stok);
 
         row.innerHTML = `
@@ -301,19 +300,28 @@ function updateProductsTable(products) {
                     ${product.stok <= 10 ? '<span style="color:#f59e0b;font-size:12px">⚠️</span>' : ''}
                 </div>
             </td>
-            <td style="padding:12px 8px;text-align:center;color:var(--text-secondary);font-family:'Courier New',monospace;font-size:12px">
+            <td style="padding:12px 8px;text-align:center;" class="barcode-cell">
                 ${product.barcode ? `
-                    <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
-                        <span>${product.barcode}</span>
-                        <button class="view-barcode-btn" data-product-id="${product.idProduk}" 
-                                style="padding:2px 6px;background:rgba(43,124,255,0.1);color:#2b7cff;border:1px solid rgba(43,124,255,0.3);border-radius:4px;cursor:pointer;font-size:10px">
+                    <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+                        <div class="barcode-preview" 
+                             onclick="barcodeManager.showBarcodeModal(${JSON.stringify(product).replace(/"/g, '&quot;')})"
+                             title="Klik untuk lihat barcode lengkap">
+                            <div style="font-size:10px;color:#666;margin-bottom:2px">${product.barcode.substring(0, 8)}...</div>
+                            <div style="display:flex;gap:1px;justify-content:center">
+                                ${'█'.repeat(6)}
+                            </div>
+                        </div>
+                        <button class="view-barcode-btn" 
+                                onclick="barcodeManager.showBarcodeModal(${JSON.stringify(product).replace(/"/g, '&quot;')})"
+                                style="padding:2px 8px;background:rgba(43,124,255,0.1);color:#2b7cff;border:1px solid rgba(43,124,255,0.3);border-radius:4px;cursor:pointer;font-size:10px">
                             👁️ Lihat
                         </button>
                     </div>
                 ` : `
-                    <button class="generate-barcode-btn" data-product-id="${product.idProduk}" 
-                            style="padding:4px 8px;background:rgba(16,183,89,0.1);color:#10b759;border:1px solid rgba(16,183,89,0.3);border-radius:6px;cursor:pointer;font-size:11px">
-                        🏷️ Generate
+                    <button class="generate-barcode-btn" 
+                            onclick="barcodeManager.generateBarcode(${product.idProduk}).then(() => loadProductsData())"
+                            style="padding:6px 12px;background:rgba(16,183,89,0.1);color:#10b759;border:1px solid rgba(16,183,89,0.3);border-radius:6px;cursor:pointer;font-size:11px;font-weight:600">
+                        🏷️ Generate Barcode
                     </button>
                 `}
             </td>
@@ -321,24 +329,41 @@ function updateProductsTable(products) {
             <td style="padding:12px 8px;text-align:center;font-weight:600;color:${getStockColor(product.stok)}">
                 <div style="display:flex;align-items:center;justify-content:center;gap:8px">
                     <span>${product.stok}</span>
-                    <button class="edit-stock-btn" data-product-id="${product.idProduk}" data-product-name="${product.namaProduk}" data-current-stock="${product.stok}" style="padding:2px 6px;background:rgba(43,124,255,0.1);color:#2b7cff;border:1px solid rgba(43,124,255,0.3);border-radius:4px;cursor:pointer;font-size:12px">Edit</button>
+                    <button class="edit-stock-btn" 
+                            data-product-id="${product.idProduk}" 
+                            data-product-name="${product.namaProduk}" 
+                            data-current-stock="${product.stok}" 
+                            style="padding:2px 6px;background:rgba(43,124,255,0.1);color:#2b7cff;border:1px solid rgba(43,124,255,0.3);border-radius:4px;cursor:pointer;font-size:12px">
+                        Edit
+                    </button>
                 </div>
             </td>
             <td style="padding:12px 8px;text-align:right;color:var(--text-primary)">${formatCurrency(product.harga)}</td>
             <td style="padding:12px 8px;text-align:center">
-                <span style="background:${stockStatus.bg};color:${stockStatus.color};padding:4px 12px;border-radius:12px;font-size:13px;font-weight:600">${stockStatus.text}</span>
+                <span style="background:${stockStatus.bg};color:${stockStatus.color};padding:4px 12px;border-radius:12px;font-size:13px;font-weight:600">
+                    ${stockStatus.text}
+                </span>
             </td>
             <td style="padding:12px 8px;text-align:center">
-                <button class="edit-product-btn" data-product-id="${product.idProduk}" style="padding:4px 12px;background:#f3f4f6;border:0;border-radius:6px;cursor:pointer;margin:0 4px">Edit</button>
-                <button class="delete-product-btn" data-product-id="${product.idProduk}" data-product-name="${product.namaProduk}" style="padding:4px 12px;background:#fee2e2;color:#991b1b;border:0;border-radius:6px;cursor:pointer">Hapus</button>
+                <button class="edit-product-btn" 
+                        data-product-id="${product.idProduk}" 
+                        style="padding:4px 12px;background:#f3f4f6;border:0;border-radius:6px;cursor:pointer;margin:0 4px">
+                    Edit
+                </button>
+                <button class="delete-product-btn" 
+                        data-product-id="${product.idProduk}" 
+                        data-product-name="${product.namaProduk}" 
+                        style="padding:4px 12px;background:#fee2e2;color:#991b1b;border:0;border-radius:6px;cursor:pointer">
+                    Hapus
+                </button>
             </td>
         `;
 
         tbody.appendChild(row);
     });
 
-    // Add event listeners untuk barcode buttons
-    this.addBarcodeEventListeners();
+    // Existing event listeners tetap dipertahankan
+    addBarcodeEventListeners();
 }
 
 // Add barcode event listeners
@@ -773,7 +798,6 @@ setInterval(async () => {
 }, 30000);
 
 // ========== BARCODE MANAGEMENT ==========
-
 class BarcodeManager {
     constructor() {
         this.initBarcodeFeatures();
@@ -808,61 +832,224 @@ class BarcodeManager {
         }
     }
 
-    // Show barcode modal
-    showBarcodeModal(product) {
-        const modalHtml = `
+    // Show barcode modal dengan REAL barcode image
+    async showBarcodeModal(product) {
+        try {
+            console.log('🔄 Loading barcode for product:', product);
+
+            // Generate modal HTML dulu
+            const modalHtml = `
             <div class="modal-overlay" id="barcodeModal">
-                <div class="modal-content">
+                <div class="modal-content" style="max-width: 500px;">
                     <div class="modal-header">
-                        <h3>Barcode - ${product.namaProduk}</h3>
+                        <h3>🏷️ Barcode - ${product.namaProduk}</h3>
                         <button class="modal-close">&times;</button>
                     </div>
                     <div class="modal-body" style="text-align: center;">
-                        <div class="barcode-display">
-                            ${product.barcodeImagePath ? `
-                                <img src="http://localhost:8080/api/barcode/produk/${product.idProduk}/image?t=${new Date().getTime()}" 
-                                     alt="Barcode ${product.barcode}" 
-                                     style="max-width: 100%; border: 1px solid #ddd; padding: 15px; background: white; margin-bottom: 15px;">
-                            ` : `
-                                <div style="padding: 40px; background: #f5f5f5; border-radius: 8px; margin-bottom: 15px;">
-                                    <div style="color: #666; margin-bottom: 10px;">📷</div>
-                                    <div style="color: #999; font-size: 14px;">Barcode image belum tersedia</div>
+                        <div class="barcode-display" id="barcode-display-container">
+                            <!-- Content akan diisi oleh JavaScript -->
+                            <div class="loading-barcode">
+                                <div style="padding: 40px;">
+                                    <div style="color: #666; margin-bottom: 10px;">⏳</div>
+                                    <div style="color: #999; font-size: 14px;">Memuat barcode...</div>
                                 </div>
-                            `}
-                            <div style="margin-top: 10px; font-family: 'Courier New', monospace; font-size: 16px; font-weight: bold; color: #333;">
-                                ${product.barcode || 'No barcode'}
-                            </div>
-                            <div style="margin-top: 5px; font-size: 12px; color: #666;">
-                                Scan barcode ini di kasir untuk input otomatis
                             </div>
                         </div>
-                        <div class="barcode-actions" style="margin-top: 20px; display: flex; gap: 10px; justify-content: center;">
-                            <button class="btn-secondary" onclick="barcodeManager.printBarcode(${product.idProduk})">
-                                🖨️ Print Label
-                            </button>
-                            <button class="btn-primary" onclick="barcodeManager.downloadBarcode(${product.idProduk})" ${!product.barcodeImagePath ? 'disabled' : ''}>
-                                📥 Download PNG
-                            </button>
-                            ${!product.barcode ? `
-                                <button class="btn-success" onclick="barcodeManager.regenerateBarcode(${product.idProduk})">
-                                    🔄 Generate Barcode
-                                </button>
+                        
+                        <div class="product-info" style="margin-top: 20px; padding: 16px; background: #f8f9fa; border-radius: 8px;">
+                            <div style="font-weight: 600; color: #333;">${product.namaProduk}</div>
+                            <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 14px;">
+                                <span>Harga: ${this.formatCurrency(product.harga)}</span>
+                                <span>Stok: ${product.stok}</span>
+                            </div>
+                            ${product.barcode ? `
+                                <div style="margin-top: 8px; font-family: 'Courier New', monospace; font-size: 12px; color: #666;">
+                                    Barcode: ${product.barcode}
+                                </div>
                             ` : ''}
+                        </div>
+                        
+                        <div class="barcode-actions" style="margin-top: 20px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                            ${product.barcodeImagePath ? `
+                                <button class="btn-primary" onclick="barcodeManager.downloadBarcode(${product.idProduk})">
+                                    📥 Download PNG
+                                </button>
+                                <button class="btn-secondary" onclick="barcodeManager.printBarcodeLabel(${product.idProduk}, '${product.namaProduk}', '${product.barcode}')">
+                                    🖨️ Print Label
+                                </button>
+                                <button class="btn-success" onclick="barcodeManager.regenerateBarcode(${product.idProduk})">
+                                    🔄 Generate Ulang
+                                </button>
+                            ` : `
+                                <button class="btn-success" onclick="barcodeManager.regenerateBarcode(${product.idProduk})">
+                                    🏷️ Generate Barcode
+                                </button>
+                            `}
+                            <button class="btn-copy-barcode" onclick="barcodeManager.copyBarcodeText('${product.barcode}')" ${!product.barcode ? 'disabled' : ''}>
+                                📋 Copy Barcode
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
         `;
 
-        document.body.insertAdjacentHTML('beforeend', modalHtml);
-        this.setupBarcodeModalEvents();
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            this.setupBarcodeModalEvents();
+
+            // Load barcode image setelah modal ditampilkan
+            await this.loadBarcodeImage(product);
+
+        } catch (error) {
+            console.error('Error showing barcode modal:', error);
+            this.showError('Gagal memuat barcode: ' + error.message);
+        }
+    }
+
+    // Method baru untuk load barcode image
+    async loadBarcodeImage(product) {
+        const container = document.getElementById('barcode-display-container');
+        if (!container) return;
+
+        try {
+            console.log('🔄 Loading barcode image for product:', product);
+
+            if (!product.barcodeImagePath) {
+                console.log('❌ No barcode image path for product:', product.idProduk);
+                container.innerHTML = this.getBarcodePlaceholderHTML(product.idProduk);
+                return;
+            }
+
+            // AUTH HEADER - Aman karena sama-sama dalam aplikasi kita
+            const imageUrl = `http://localhost:8080/api/barcode/produk/${product.idProduk}/image?t=${new Date().getTime()}`;
+            console.log('🔗 Loading image with auth header:', imageUrl);
+
+            const response = await fetch(imageUrl, {
+                headers: AuthHelper.getAuthHeaders() 
+            });
+
+            console.log('📡 Image response status:', response.status);
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            // Convert to blob URL untuk reliable display
+            const blob = await response.blob();
+
+            if (blob.size === 0) {
+                throw new Error('Barcode image is empty');
+            }
+
+            const blobUrl = URL.createObjectURL(blob);
+
+            container.innerHTML = `
+            <div class="barcode-image-container">
+                <img src="${blobUrl}" 
+                     alt="Barcode ${product.barcode}" 
+                     class="barcode-image"
+                     onload="console.log(' Barcode image loaded successfully'); URL.revokeObjectURL(this.src)"
+                     onerror="(function() { 
+                         URL.revokeObjectURL(this.src);
+                         barcodeManager.handleImageError(${product.idProduk}, 'Image load failed'); 
+                     }).call(this)">
+                <div class="barcode-text">${product.barcode}</div>
+            </div>
+        `;
+
+            console.log('Barcode image loaded successfully');
+
+        } catch (error) {
+            console.error('Error loading barcode image:', error);
+            this.handleImageError(product.idProduk, error.message);
+        }
+    }
+
+    // TAMBAHKAN helper method untuk placeholder
+    getBarcodePlaceholderHTML(productId) {
+        return `
+        <div class="barcode-placeholder">
+            <div style="font-size: 48px; margin-bottom: 16px;">📷</div>
+            <div style="color: #666; margin-bottom: 8px;">Barcode image belum tersedia</div>
+            <div style="font-size: 12px; color: #999;">Klik Generate untuk membuat barcode</div>
+            <button class="btn-success" onclick="barcodeManager.regenerateBarcode(${productId})" 
+                    style="margin-top: 12px; padding: 8px 16px;">
+                🏷️ Generate Barcode
+            </button>
+        </div>
+    `;
+    }
+
+    // UPDATE handleImageError dengan info lebih detail
+    handleImageError(productId, errorMessage = '') {
+        const container = document.getElementById('barcode-display-container');
+        if (!container) return;
+
+        console.error('🔄 Handling image error for product:', productId, errorMessage);
+
+        container.innerHTML = `
+        <div class="barcode-error">
+            <div style="font-size: 48px; margin-bottom: 16px;">❌</div>
+            <div style="color: #ef4444; margin-bottom: 8px;">Gagal memuat barcode image</div>
+            <div style="font-size: 12px; color: #999; margin-bottom: 8px;">
+                ${errorMessage || 'Barcode image mungkin belum digenerate atau terjadi error'}
+            </div>
+            <div style="display: flex; gap: 8px; justify-content: center;">
+                <button class="btn-success" onclick="barcodeManager.regenerateBarcode(${productId})" 
+                        style="padding: 8px 16px;">
+                    🔄 Generate Ulang
+                </button>
+                <button class="btn-secondary" onclick="barcodeManager.testImageUrl(${productId})" 
+                        style="padding: 8px 16px;">
+                    🧪 Test URL
+                </button>
+            </div>
+        </div>
+    `;
+    }
+
+    // TAMBAHKAN method untuk test URL
+    async testImageUrl(productId) {
+        const testUrl = `http://localhost:8080/api/barcode/produk/${productId}/image`;
+        console.log('🧪 Testing image URL:', testUrl);
+
+        try {
+            const response = await fetch(testUrl);
+            console.log('📡 Test response:', {
+                status: response.status,
+                statusText: response.statusText,
+                headers: Object.fromEntries(response.headers.entries())
+            });
+
+            if (response.ok) {
+                this.showSuccess('✅ Image URL accessible! Status: ' + response.status);
+            } else {
+                this.showError('❌ Image URL not accessible. Status: ' + response.status);
+            }
+        } catch (error) {
+            console.error('Test error:', error);
+            this.showError('Test failed: ' + error.message);
+        }
+    }
+
+    // TAMBAHKAN method formatCurrency di BarcodeManager
+    formatCurrency(amount) {
+        if (!amount && amount !== 0) return 'Rp 0';
+        return new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0
+        }).format(amount);
     }
 
     setupBarcodeModalEvents() {
         const modal = document.getElementById('barcodeModal');
         const closeBtn = modal.querySelector('.modal-close');
 
-        closeBtn.addEventListener('click', () => modal.remove());
+        closeBtn.addEventListener('click', () => {
+            modal.remove();
+        });
+
         modal.addEventListener('click', (e) => {
             if (e.target === modal) modal.remove();
         });
@@ -882,7 +1069,7 @@ class BarcodeManager {
                 a.click();
                 window.URL.revokeObjectURL(url);
                 document.body.removeChild(a);
-                this.showSuccess('Barcode downloaded!');
+                this.showSuccess('Barcode berhasil didownload!');
             } else {
                 throw new Error('Gagal download barcode');
             }
@@ -891,52 +1078,89 @@ class BarcodeManager {
         }
     }
 
-    // Print barcode
-    async printBarcode(productId) {
+    // Print barcode label yang lebih professional
+    async printBarcodeLabel(productId, productName, barcodeText) {
         try {
             const response = await fetch(`http://localhost:8080/api/barcode/produk/${productId}/image`);
             if (response.ok) {
                 const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
+                const imageUrl = URL.createObjectURL(blob);
 
                 const printWindow = window.open('', '_blank');
                 printWindow.document.write(`
+                    <!DOCTYPE html>
                     <html>
-                        <head>
-                            <title>Print Barcode</title>
-                            <style>
-                                body { 
-                                    margin: 0; 
-                                    padding: 20px; 
-                                    font-family: Arial, sans-serif;
-                                    text-align: center;
-                                }
-                                img { 
-                                    max-width: 100%; 
-                                    height: auto; 
-                                    margin-bottom: 10px;
-                                }
-                                .barcode-text {
-                                    font-family: 'Courier New', monospace;
-                                    font-size: 14px;
-                                    font-weight: bold;
-                                    margin-top: 10px;
-                                }
-                                @media print {
-                                    body { margin: 0; }
-                                }
-                            </style>
-                        </head>
-                        <body>
-                            <img src="${url}" alt="Barcode">
-                            <div class="barcode-text">${productId}</div>
-                            <script>
-                                window.onload = function() {
-                                    window.print();
-                                    setTimeout(() => window.close(), 1000);
-                                }
-                            </script>
-                        </body>
+                    <head>
+                        <title>Print Barcode Label - ${productName}</title>
+                        <style>
+                            @media print {
+                                @page { margin: 0; size: 80mm 50mm; }
+                                body { margin: 0; padding: 5mm; font-family: Arial, sans-serif; }
+                            }
+                            body {
+                                margin: 0;
+                                padding: 10px;
+                                font-family: Arial, sans-serif;
+                                text-align: center;
+                                width: 80mm;
+                                height: 50mm;
+                                display: flex;
+                                flex-direction: column;
+                                justify-content: space-between;
+                            }
+                            .store-name {
+                                font-size: 14px;
+                                font-weight: bold;
+                                margin-bottom: 5px;
+                                color: #333;
+                            }
+                            .product-name {
+                                font-size: 12px;
+                                margin-bottom: 8px;
+                                color: #666;
+                                max-height: 32px;
+                                overflow: hidden;
+                                text-overflow: ellipsis;
+                            }
+                            .barcode-container {
+                                margin: 5px 0;
+                            }
+                            .barcode-image {
+                                max-width: 100%;
+                                height: 40px;
+                                image-rendering: pixelated;
+                            }
+                            .barcode-text {
+                                font-family: 'Courier New', monospace;
+                                font-size: 10px;
+                                letter-spacing: 1px;
+                                margin-top: 2px;
+                            }
+                            .price {
+                                font-size: 16px;
+                                font-weight: bold;
+                                color: #d00;
+                                margin-top: 5px;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="store-name">AMBATUSHOP</div>
+                        <div class="product-name">${productName}</div>
+                        <div class="barcode-container">
+                            <img src="${imageUrl}" alt="Barcode" class="barcode-image">
+                            <div class="barcode-text">${barcodeText}</div>
+                        </div>
+                        <script>
+                            window.onload = function() {
+                                window.print();
+                                setTimeout(() => {
+                                    URL.revokeObjectURL('${imageUrl}');
+                                    window.close();
+                                }, 500);
+                            }
+                        </script>
+                    </body>
                     </html>
                 `);
                 printWindow.document.close();
@@ -953,10 +1177,33 @@ class BarcodeManager {
     async regenerateBarcode(productId) {
         const updatedProduct = await this.generateBarcode(productId);
         if (updatedProduct) {
-            // Close modal and refresh data
+            // Close modal and reopen dengan data baru
             document.getElementById('barcodeModal')?.remove();
-            await loadProductsData();
+            await this.showBarcodeModal(updatedProduct);
+            await loadProductsData(); // Refresh table
         }
+    }
+
+    // Copy barcode text ke clipboard
+    async copyBarcodeText(barcodeText) {
+        try {
+            await navigator.clipboard.writeText(barcodeText);
+            this.showSuccess('Barcode berhasil disalin ke clipboard!');
+        } catch (error) {
+            // Fallback untuk browser lama
+            const textArea = document.createElement('textarea');
+            textArea.value = barcodeText;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            this.showSuccess('Barcode berhasil disalin!');
+        }
+    }
+
+    // Show barcode langsung di table (hover preview)
+    showBarcodePreview(productId, element) {
+        // Implement hover preview jika diperlukan
     }
 
     // Utility functions
@@ -969,7 +1216,14 @@ class BarcodeManager {
     }
 
     showFeedback(message, type) {
+        // Remove existing feedback
+        const existingFeedback = document.querySelector('.barcode-feedback');
+        if (existingFeedback) {
+            existingFeedback.remove();
+        }
+
         const feedback = document.createElement('div');
+        feedback.className = 'barcode-feedback';
         feedback.style.cssText = `
             position: fixed;
             top: 20px;
@@ -981,13 +1235,17 @@ class BarcodeManager {
             font-weight: 600;
             z-index: 10000;
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            animation: slideIn 0.3s ease;
         `;
         feedback.textContent = message;
 
         document.body.appendChild(feedback);
 
         setTimeout(() => {
-            feedback.remove();
+            feedback.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => {
+                feedback.remove();
+            }, 300);
         }, 3000);
     }
 }

@@ -568,3 +568,134 @@ body.role-kasir .sidebar.closed .menu-item.pill.active .mi-icon {
         width: 200px;
     }
 }
+
+/* Tambahkan di manajer_stok.css */
+
+/* Barcode Modal Styling */
+.barcode-image-container {
+    padding: 20px;
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    margin-bottom: 16px;
+}
+
+.barcode-image {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    image-rendering: crisp-edges;
+    filter: contrast(1.2); /* Enhance barcode visibility */
+}
+
+.barcode-text {
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    margin-top: 12px;
+    color: #1f2937;
+    background: #f8f9fa;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px dashed #d1d5db;
+}
+
+.barcode-placeholder {
+    padding: 40px 20px;
+    background: #f8f9fa;
+    border: 2px dashed #d1d5db;
+    border-radius: 12px;
+    color: #6b7280;
+}
+
+/* Button Styling */
+.btn-copy-barcode {
+    padding: 8px 16px;
+    background: #8b5cf6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.btn-copy-barcode:hover:not(:disabled) {
+    background: #7c3aed;
+    transform: translateY(-1px);
+}
+
+.btn-copy-barcode:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+}
+
+/* Animation */
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+/* Table barcode column styling */
+.barcode-cell {
+    text-align: center;
+    font-family: 'Courier New', monospace;
+}
+
+.barcode-preview {
+    display: inline-block;
+    padding: 4px 8px;
+    background: #f8f9fa;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.barcode-preview:hover {
+    background: #e5e7eb;
+    border-color: #d1d5db;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .barcode-image-container {
+        padding: 15px;
+    }
+    
+    .barcode-text {
+        font-size: 12px;
+        padding: 6px 10px;
+    }
+    
+    .barcode-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .barcode-actions button {
+        width: 100%;
+        max-width: 200px;
+    }
+}
