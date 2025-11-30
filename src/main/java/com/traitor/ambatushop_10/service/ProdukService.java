@@ -10,9 +10,11 @@ import java.util.List;
 public class ProdukService {
 
     private final ProdukRepository produkRepository;
+    private final BarcodeService barcodeService;
 
-    public ProdukService(ProdukRepository produkRepository) {
+    public ProdukService(ProdukRepository produkRepository, BarcodeService barcodeService) {
         this.produkRepository = produkRepository;
+        this.barcodeService = barcodeService;
     }
 
     public List<Produk> getAllProduk() {
@@ -35,8 +37,26 @@ public class ProdukService {
         if (produk.getStok() < 0) {
             throw new RuntimeException("Stok tidak boleh negatif");
         }
+        if (produk.getBarcode() == null || produk.getBarcode().trim().isEmpty()) {
+            String generatedBarcode = barcodeService.generateBarcodeText(produk);
+            produk.setBarcode(generatedBarcode);
+        }
 
-        return produkRepository.save(produk);
+        if (produkRepository.existsByBarcode(produk.getBarcode())) {
+            throw new RuntimeException("Barcode '" + produk.getBarcode() + "' sudah digunakan");
+        }
+
+        Produk savedProduk = produkRepository.save(produk);
+
+        try {
+            String imagePath = barcodeService.generateBarcodeImage(savedProduk.getBarcode(), savedProduk.getIdProduk());
+            savedProduk.setBarcodeImagePath(imagePath);
+            return produkRepository.save(savedProduk);
+        } catch (Exception e) {
+            // Jika gagal generate image, tetap simpan produk tanpa image
+            System.err.println("Warning: Gagal generate barcode image: " + e.getMessage());
+            return savedProduk;
+        }
     }
 
     public Produk updateProduk(Long id, Produk produkUpdate) {
@@ -50,6 +70,22 @@ public class ProdukService {
         }
         if (produkUpdate.getStok() >= 0) {
             existing.setStok(produkUpdate.getStok());
+        }
+        // ✅ UPDATE BARCODE JIKA DIUBAH
+        if (produkUpdate.getBarcode() != null && !produkUpdate.getBarcode().equals(existing.getBarcode())) {
+            // Validasi barcode unique
+            if (produkRepository.existsByBarcode(produkUpdate.getBarcode())) {
+                throw new RuntimeException("Barcode '" + produkUpdate.getBarcode() + "' sudah digunakan");
+            }
+            existing.setBarcode(produkUpdate.getBarcode());
+
+            // Regenerate barcode image
+            try {
+                String imagePath = barcodeService.generateBarcodeImage(existing.getBarcode(), id);
+                existing.setBarcodeImagePath(imagePath);
+            } catch (Exception e) {
+                System.err.println("Warning: Gagal regenerate barcode image: " + e.getMessage());
+            }
         }
 
         return produkRepository.save(existing);
