@@ -29,18 +29,19 @@ public class BarcodeController {
         this.produkService = produkService;
     }
     
-    // GET barcode image
+    // GET barcode image 
     @GetMapping("/produk/{id}/image")
     public ResponseEntity<byte[]> getBarcodeImage(@PathVariable Long id) {
         try {
             Produk produk = produkService.getProdukById(id);
-            if (produk.getBarcodeImagePath() == null) {
+            
+            // Check if barcodeImagePath exists and not null
+            if (produk.getBarcodeImagePath() == null || produk.getBarcodeImagePath().trim().isEmpty()) {
                 return ResponseEntity.notFound().build();
             }
             
             Path imagePath = Paths.get("./barcodes/" + produk.getBarcodeImagePath());
             
-            // Check if file exists
             if (!Files.exists(imagePath)) {
                 return ResponseEntity.notFound().build();
             }
@@ -61,20 +62,16 @@ public class BarcodeController {
     @PostMapping("/decode")
     public ResponseEntity<Map<String, Object>> decodeBarcode(@RequestParam("image") MultipartFile imageFile) {
         try {
-            // Validate file
             if (imageFile.isEmpty()) {
                 throw new RuntimeException("File gambar kosong");
             }
             
-            // Validate file type
             String contentType = imageFile.getContentType();
             if (contentType == null || !contentType.startsWith("image/")) {
                 throw new RuntimeException("File harus berupa gambar");
             }
             
             String barcodeText = barcodeService.decodeBarcodeFromImage(imageFile);
-            
-            // Cari produk berdasarkan barcode
             Optional<Produk> produk = findProductByBarcode(barcodeText);
             
             Map<String, Object> response = new HashMap<>();
@@ -93,14 +90,14 @@ public class BarcodeController {
         }
     }
     
-    // POST generate barcode untuk produk
+    // POST generate barcode untuk produk - FIXED
     @PostMapping("/produk/{id}/generate")
     public ResponseEntity<Map<String, Object>> generateBarcode(@PathVariable Long id) {
         try {
             Produk produk = produkService.getProdukById(id);
             
             // Generate barcode text jika belum ada
-            if (produk.getBarcode() == null) {
+            if (produk.getBarcode() == null || produk.getBarcode().trim().isEmpty()) {
                 String barcodeText = barcodeService.generateBarcodeText(produk);
                 produk.setBarcode(barcodeText);
             }
@@ -109,6 +106,7 @@ public class BarcodeController {
             String imagePath = barcodeService.generateBarcodeImage(produk.getBarcode(), id);
             produk.setBarcodeImagePath(imagePath);
             
+            // Save updated product
             Produk updated = produkService.updateProduk(id, produk);
             
             Map<String, Object> response = new HashMap<>();
@@ -149,8 +147,7 @@ public class BarcodeController {
     }
     
     private Optional<Produk> findProductByBarcode(String barcode) {
-        // Implement search logic - bisa melalui repository custom query
-        // Untuk sementara, difilter manual
+        // Use repository method instead of manual filtering
         List<Produk> allProducts = produkService.getAllProduk();
         return allProducts.stream()
             .filter(p -> p.getBarcode() != null && p.getBarcode().equals(barcode))
