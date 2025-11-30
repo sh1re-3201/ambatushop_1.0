@@ -152,6 +152,39 @@
             <div class="search-results" id="search-results"></div>
           </div>
 
+          <!-- Tambahkan setelah search section di kasir_transaksi.html -->
+          <div class="camera-scanner-section" style="margin-top: 16px;">
+            <div class="scanner-controls">
+              <button id="start-camera-btn" class="btn-camera">
+                📷 Buka Kamera Scanner
+              </button>
+              <button id="stop-camera-btn" class="btn-camera secondary" style="display: none;">
+                ❌ Tutup Kamera
+              </button>
+              <button id="upload-image-btn" class="btn-camera">
+                📁 Upload Gambar Barcode
+              </button>
+            </div>
+
+            <!-- Camera Preview -->
+            <div id="camera-preview" style="display: none; margin-top: 12px; position: relative;">
+              <video id="camera-stream" width="100%" height="300" autoplay playsinline
+                style="border-radius: 8px; border: 2px solid #2b7cff; background: #000;"></video>
+              <div class="scanner-frame"></div>
+              <div style="text-align: center; margin-top: 8px;">
+                <button id="capture-scan-btn" class="btn-primary" style="padding: 10px 20px;">
+                  📸 Capture & Scan
+                </button>
+                <div style="font-size: 12px; color: #666; margin-top: 4px;">
+                  Arahkan barcode ke area hijau, lalu klik Capture
+                </div>
+              </div>
+            </div>
+
+            <!-- Upload Input (hidden) -->
+            <input type="file" id="barcode-image-input" accept="image/*" style="display: none;">
+          </div>
+
           <!-- Daftar Produk yang Dipilih -->
           <div class="cart-section">
             <h3>Keranjang Belanja</h3>

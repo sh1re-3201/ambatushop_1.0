@@ -16,6 +16,8 @@ class KasirTransaksi {
         this.initEventListeners();
         await this.loadProducts();
         await this.loadTransactionHistory();
+
+        this.cameraScanner = new CameraBarcodeScanner(this);
     }
 
     async checkAuth() {

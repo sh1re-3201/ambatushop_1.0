@@ -521,3 +521,50 @@ body.role-kasir .sidebar.closed .menu-item.pill.active .mi-icon {
 .btn-submit:hover {
     background: #1a6de0;
 }
+
+/* Tambahkan di manajer_stok.css */
+.btn-success {
+    background: #10b759;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.btn-success:hover:not(:disabled) {
+    background: #0d9c4d;
+}
+
+.btn-success:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+}
+
+/* Barcode modal styling */
+.barcode-display {
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.barcode-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* Responsive barcode */
+@media (max-width: 768px) {
+    .barcode-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .barcode-actions button {
+        width: 200px;
+    }
+}
