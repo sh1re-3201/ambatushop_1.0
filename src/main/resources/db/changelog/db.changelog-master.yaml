@@ -13,3 +13,5 @@ databaseChangeLog:
       file: db/changelog/006-create-akses-log.yaml 
   - include:
       file: db/changelog/007-add-payment-fields.yaml
+  - include:
+      file: db/changelog/008-add-barcode-fields.yaml

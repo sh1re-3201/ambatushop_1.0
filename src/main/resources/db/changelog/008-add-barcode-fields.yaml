@@ -1,0 +1,23 @@
+-- Liquibase migration: 008-add-barcode-fields.yaml
+databaseChangeLog:
+  - changeSet:
+      id: 8
+      author: your_name
+      changes:
+        - addColumn:
+            tableName: produk
+            columns:
+              - column:
+                  name: barcode
+                  type: VARCHAR(50)
+                  constraints:
+                    unique: true
+                    nullable: true
+              - column:
+                  name: barcode_image_path
+                  type: VARCHAR(255)
+              - column:
+                  name: barcode_type
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: true
