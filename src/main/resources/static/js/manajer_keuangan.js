@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
     themeToggle?.addEventListener('click', () => {
         const currentTheme = document.documentElement.getAttribute('data-theme');
         const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-        
+
         document.documentElement.setAttribute('data-theme', newTheme);
         localStorage.setItem('theme', newTheme);
         updateThemeIcon(newTheme);
@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
         e.stopPropagation();
         sidebar.classList.remove('closed');
         sidebar.setAttribute('aria-hidden', 'false');
-        
+
         // fokus ke menu pertama
         const first = document.querySelector('.menu-item.pill');
         first?.focus();
@@ -84,19 +84,19 @@ document.addEventListener('DOMContentLoaded', () => {
     avatarOptions.forEach(option => {
         option.addEventListener('click', () => {
             const avatarSrc = option.src;
-            
+
             // Update current avatar
             currentAvatar.src = avatarSrc;
             currentAvatar.style.display = 'block';
             defaultAvatar.style.display = 'none';
-            
+
             // Update selected state
             avatarOptions.forEach(opt => opt.classList.remove('selected'));
             option.classList.add('selected');
-            
+
             // Save to localStorage
             localStorage.setItem('selectedAvatar', avatarSrc);
-            
+
             // Close dropdown
             avatarDropdown.classList.remove('show');
         });
@@ -108,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentAvatar.src = savedAvatar;
         currentAvatar.style.display = 'block';
         defaultAvatar.style.display = 'none';
-        
+
         // Mark the selected avatar
         avatarOptions.forEach(option => {
             if (option.src === savedAvatar) {
@@ -155,6 +155,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+    document.getElementById('download-btn')?.addEventListener('click', function (e) {
+        e.preventDefault();
+
+        const a = document.createElement('a');
+        a.href = '/api/export/download'; // direct reference to the download endpoint
+        a.download = 'laporan_keuangan.xlsx'; // suggested filename
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+    });
+
 
     // (opsional) jangan crash bila user klik di luar; tidak auto-close supaya UX stabil
 });
