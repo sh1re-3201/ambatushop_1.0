@@ -188,13 +188,7 @@ class CameraBarcodeScanner {
         try {
             console.log('📁 Processing uploaded image...');
             
-            const barcode = await this.scanBarcodeFromBlob(file);
-            
-            if (barcode) {
-                console.log('✅ Barcode from upload:', barcode);
-            } else {
-                this.showError('Tidak dapat membaca barcode dari gambar');
-            }
+            await this.scanBarcodeFromBlob(file);
 
         } catch (error) {
             console.error('❌ Upload scan error:', error);
