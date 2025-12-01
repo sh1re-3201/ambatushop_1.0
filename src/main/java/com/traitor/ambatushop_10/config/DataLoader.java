@@ -44,10 +44,10 @@ public class DataLoader implements CommandLineRunner {
         if (produkRepository.count() == 0) {
             /*
             Jangan lupa casting argumen stok ke short, karena di model bertipe short
-             */
-            produkRepository.save(new Produk("Pop Sea Soda", 12500.0, (short) 117));
-            produkRepository.save(new Produk("Marlboro Filter Black", 39000.0, (short) 56));
-            produkRepository.save(new Produk("Tepung Lingkaran Hitam 1000G", 15000.0, (short) 98));
+            //  */
+            // produkRepository.save(new Produk("Pop Sea Soda", 12500.0, (short) 117));
+            // produkRepository.save(new Produk("Marlboro Filter Black", 39000.0, (short) 56));
+            // produkRepository.save(new Produk("Tepung Lingkaran Hitam 1000G", 15000.0, (short) 98));
         }
 
         // Dummy data for seeding, get the dummy kasir account

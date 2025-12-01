@@ -1,6 +1,7 @@
 package com.traitor.ambatushop_10.controller;
 
 import com.traitor.ambatushop_10.model.Produk;
+import com.traitor.ambatushop_10.repository.ProdukRepository;
 import com.traitor.ambatushop_10.service.BarcodeService;
 import com.traitor.ambatushop_10.service.ProdukService;
 import org.springframework.http.HttpHeaders;
@@ -23,10 +24,13 @@ public class BarcodeController {
 
     private final BarcodeService barcodeService;
     private final ProdukService produkService;
+    private final ProdukRepository produkRepository;
 
-    public BarcodeController(BarcodeService barcodeService, ProdukService produkService) {
+    public BarcodeController(BarcodeService barcodeService, ProdukService produkService,
+            ProdukRepository produkRepository) {
         this.barcodeService = barcodeService;
         this.produkService = produkService;
+        this.produkRepository = produkRepository;
     }
 
     // GET barcode image
@@ -72,17 +76,31 @@ public class BarcodeController {
     @PostMapping("/decode")
     public ResponseEntity<Map<String, Object>> decodeBarcode(@RequestParam("image") MultipartFile imageFile) {
         try {
+            System.out.println("Received barcode decode request");
+            System.out.println("File size: " + imageFile.getSize() + " bytes");
+            System.out.println("Content type: " + imageFile.getContentType());
+
             if (imageFile.isEmpty()) {
+                System.out.println("File is empty");
                 throw new RuntimeException("File gambar kosong");
             }
 
             String contentType = imageFile.getContentType();
             if (contentType == null || !contentType.startsWith("image/")) {
-                throw new RuntimeException("File harus berupa gambar");
+                System.out.println("Invalid content type: " + contentType);
+                throw new RuntimeException("File harus berupa gambar (JPEG, PNG, etc)");
             }
 
+            System.out.println("Calling barcodeService.decodeBarcodeFromImage...");
             String barcodeText = barcodeService.decodeBarcodeFromImage(imageFile);
-            Optional<Produk> produk = findProductByBarcode(barcodeText);
+            System.out.println("Decoded barcode: " + barcodeText);
+
+            if (barcodeText == null || barcodeText.trim().isEmpty()) {
+                System.out.println("No barcode found in image");
+                throw new RuntimeException("Tidak dapat membaca barcode dari gambar");
+            }
+
+            Optional<Produk> produk = findProductByBarcode(barcodeText.trim());
 
             Map<String, Object> response = new HashMap<>();
             response.put("barcode", barcodeText);
@@ -90,9 +108,14 @@ public class BarcodeController {
             response.put("found", produk.isPresent());
             response.put("success", true);
 
+            System.out.println("Response: " + response);
+
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
+            System.err.println("Error decoding barcode: " + e.getMessage());
+            e.printStackTrace();
+
             Map<String, Object> error = new HashMap<>();
             error.put("error", e.getMessage());
             error.put("success", false);
@@ -139,16 +162,21 @@ public class BarcodeController {
     @GetMapping("/check/{barcode}")
     public ResponseEntity<Map<String, Object>> checkBarcode(@PathVariable String barcode) {
         try {
-            Optional<Produk> produk = findProductByBarcode(barcode);
+            System.out.println("Checking barcode: " + barcode);
+
+            Optional<Produk> produk = findProductByBarcode(barcode.trim());
 
             Map<String, Object> response = new HashMap<>();
             response.put("exists", produk.isPresent());
             response.put("produk", produk.orElse(null));
             response.put("barcode", barcode);
+            response.put("success", true);
 
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
+            System.err.println("Error checking barcode: " + e.getMessage());
+
             Map<String, Object> error = new HashMap<>();
             error.put("error", e.getMessage());
             error.put("success", false);
@@ -157,10 +185,7 @@ public class BarcodeController {
     }
 
     private Optional<Produk> findProductByBarcode(String barcode) {
-        // Use repository method instead of manual filtering
-        List<Produk> allProducts = produkService.getAllProduk();
-        return allProducts.stream()
-                .filter(p -> p.getBarcode() != null && p.getBarcode().equals(barcode))
-                .findFirst();
+        // Gunakan repository method yang sudah ada
+        return produkRepository.findByBarcode(barcode);
     }
 }

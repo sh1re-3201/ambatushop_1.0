@@ -367,6 +367,8 @@ function updateProductsTable(products) {
         </tr>
     `).join('');
 
+    addProductActionListeners();
+
     // Re-attach event listeners
     addBarcodeEventListeners();
 }
@@ -399,12 +401,15 @@ function addBarcodeEventListeners() {
 // ========== PRODUCT ACTION LISTENERS ==========
 
 function addProductActionListeners() {
+    console.log('🔄 Attaching product action listeners...');
+
     // Edit stock buttons
     document.querySelectorAll('.edit-stock-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const productId = e.target.getAttribute('data-product-id');
             const productName = e.target.getAttribute('data-product-name');
             const currentStock = e.target.getAttribute('data-current-stock');
+            console.log('📝 Edit stock clicked:', { productId, productName, currentStock });
             showEditStockModal(productId, productName, parseInt(currentStock));
         });
     });
@@ -413,7 +418,13 @@ function addProductActionListeners() {
     document.querySelectorAll('.edit-product-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const productId = e.target.getAttribute('data-product-id');
-            showEditProductModal(productId);
+            const productName = e.target.getAttribute('data-product-name');
+            const productPrice = e.target.getAttribute('data-product-price');
+            const productStock = e.target.getAttribute('data-product-stock');
+            console.log('✏️ Edit product clicked:', { productId, productName });
+
+            // Show edit modal dengan data yang ada
+            showEditProductModal(productId, productName, productPrice, productStock);
         });
     });
 
@@ -422,10 +433,28 @@ function addProductActionListeners() {
         btn.addEventListener('click', (e) => {
             const productId = e.target.getAttribute('data-product-id');
             const productName = e.target.getAttribute('data-product-name');
+            console.log('🗑️ Delete product clicked:', { productId, productName });
             confirmDeleteProduct(productId, productName);
         });
     });
 }
+
+// Edit product buttons
+document.querySelectorAll('.edit-product-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        const productId = e.target.getAttribute('data-product-id');
+        showEditProductModal(productId);
+    });
+});
+
+// Delete product buttons
+document.querySelectorAll('.delete-product-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        const productId = e.target.getAttribute('data-product-id');
+        const productName = e.target.getAttribute('data-product-name');
+        confirmDeleteProduct(productId, productName);
+    });
+});
 
 function updateStockStats(products) {
     // Calculate statistics

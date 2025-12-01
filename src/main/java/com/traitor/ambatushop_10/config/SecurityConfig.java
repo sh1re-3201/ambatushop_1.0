@@ -2,6 +2,7 @@ package com.traitor.ambatushop_10.config;
 
 import com.traitor.ambatushop_10.service.CustomUserDetailsService;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.context.annotation.Bean;
@@ -19,6 +20,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
@@ -88,9 +92,15 @@ public class SecurityConfig {
 
                         // FIX: Allow Midtrans webhook without authentication
                         .requestMatchers("/api/payment/webhook").permitAll()
+
+                        // Barcode endpoints 
+                        .requestMatchers(HttpMethod.GET, "/api/barcode/produk/*/image").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/barcode/check/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/barcode/decode").permitAll()
+
                         // API auth
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/barcode/produk/*/image").permitAll()
+                        // .requestMatchers("/api/barcode/produk/*/image").permitAll()
 
                         .requestMatchers(HttpMethod.GET, "/api/export/download").permitAll()
 
@@ -118,6 +128,19 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
+    
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:8080"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(true);
+        
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
 
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
@@ -129,6 +152,6 @@ public class SecurityConfig {
 
     // @Bean
     // public WebSecurityCustomizer webSecurityCustomizer() {
-    //     return (web) -> web.ignoring().requestMatchers("/api/payment/webhook");
+    // return (web) -> web.ignoring().requestMatchers("/api/payment/webhook");
     // }
 }
