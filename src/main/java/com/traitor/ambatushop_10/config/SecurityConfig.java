@@ -89,6 +89,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/payment/webhook").permitAll()
                         // API auth
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/barcode/produk/*/image").permitAll()
 
                         // Protect API endpoints
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")

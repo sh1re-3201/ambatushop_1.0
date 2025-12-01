@@ -131,7 +131,7 @@
             <div class="card-body">
               <h3>Total Produk</h3>
               <p class="subtitle">Jenis Barang</p>
-              <div class="value" style="font-size:24px;margin-top:8px">156 Produk</div>
+              <div class="value" style="font-size:24px;margin-top:8px" id="total-products">0 Produk</div>
             </div>
           </div>
 
@@ -146,7 +146,7 @@
             <div class="card-body">
               <h3>Stok Tersedia</h3>
               <p class="subtitle">Siap Dijual</p>
-              <div class="value" style="font-size:24px;margin-top:8px;color:#10b759">8.245 Unit</div>
+              <div class="value" style="font-size:24px;margin-top:8px;color:#10b759" id="available-stock">0 Unit</div>
             </div>
           </div>
 
@@ -161,7 +161,7 @@
             <div class="card-body">
               <h3>Stok Menipis</h3>
               <p class="subtitle">Perlu Restock</p>
-              <div class="value" style="font-size:24px;margin-top:8px;color:#ff5252">23 Produk</div>
+              <div class="value" style="font-size:24px;margin-top:8px;color:#ff5252" id="low-stock-products">0 Produk</div>
             </div>
           </div>
 
@@ -176,7 +176,7 @@
             <div class="card-body">
               <h3>Nilai Stok</h3>
               <p class="subtitle">Total Inventaris</p>
-              <div class="value" style="font-size:24px;margin-top:8px">Rp 124.5 Jt</div>
+              <div class="value" style="font-size:24px;margin-top:8px" id="total-stock-value">Rp 0</div>
             </div>
           </div>
         </div>
@@ -185,56 +185,39 @@
         <div class="card" style="margin-top:28px;padding:24px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
             <h3 style="margin:0;color:var(--text-primary)">Daftar Stok Produk</h3>
-            <span style="padding:6px 12px;background:rgba(100,100,100,0.1);color:var(--text-secondary);border-radius:6px;font-size:13px">Admin tidak memiliki akses edit</span>
+            <div style="display:flex;gap:12px;align-items:center">
+              <!-- Search Box -->
+              <div class="search-container" style="position:relative">
+                <input type="text" id="product-search-input" placeholder="Cari produk..." 
+                       style="padding:8px 16px 8px 36px;border:1px solid var(--border-color);border-radius:8px;width:250px;font-size:14px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" 
+                     style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-secondary)">
+                  <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+                  <path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <span style="padding:6px 12px;background:rgba(100,100,100,0.1);color:var(--text-secondary);border-radius:6px;font-size:13px">Admin tidak memiliki akses edit</span>
+            </div>
           </div>
-          <table style="width:100%;border-collapse:collapse">
-            <thead>
-              <tr style="border-bottom:2px solid var(--border-color)">
-                <th style="text-align:left;padding:12px 8px;color:var(--text-secondary);font-weight:600">Nama Produk</th>
-                <th style="text-align:center;padding:12px 8px;color:var(--text-secondary);font-weight:600">SKU</th>
-                <th style="text-align:center;padding:12px 8px;color:var(--text-secondary);font-weight:600">Stok</th>
-                <th style="text-align:right;padding:12px 8px;color:var(--text-secondary);font-weight:600">Harga</th>
-                <th style="text-align:center;padding:12px 8px;color:var(--text-secondary);font-weight:600">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr style="border-bottom:1px solid var(--border-color)">
-                <td style="padding:12px 8px;color:var(--text-primary)">Laptop Asus ROG</td>
-                <td style="padding:12px 8px;text-align:center;color:var(--text-secondary)">LAP-001</td>
-                <td style="padding:12px 8px;text-align:center;font-weight:600;color:var(--text-primary)">45</td>
-                <td style="padding:12px 8px;text-align:right;color:var(--text-primary)">Rp 15.500.000</td>
-                <td style="padding:12px 8px;text-align:center"><span style="background:#d1fae5;color:#065f46;padding:4px 12px;border-radius:12px;font-size:13px;font-weight:600">Tersedia</span></td>
-              </tr>
-              <tr style="border-bottom:1px solid var(--border-color)">
-                <td style="padding:12px 8px;color:var(--text-primary)">Mouse Logitech MX</td>
-                <td style="padding:12px 8px;text-align:center;color:var(--text-secondary)">MOU-002</td>
-                <td style="padding:12px 8px;text-align:center;font-weight:600;color:var(--text-primary)">8</td>
-                <td style="padding:12px 8px;text-align:right;color:var(--text-primary)">Rp 850.000</td>
-                <td style="padding:12px 8px;text-align:center"><span style="background:#fee2e2;color:#991b1b;padding:4px 12px;border-radius:12px;font-size:13px;font-weight:600">Menipis</span></td>
-              </tr>
-              <tr style="border-bottom:1px solid var(--border-color)">
-                <td style="padding:12px 8px;color:var(--text-primary)">Keyboard Mechanical</td>
-                <td style="padding:12px 8px;text-align:center;color:var(--text-secondary)">KEY-003</td>
-                <td style="padding:12px 8px;text-align:center;font-weight:600;color:var(--text-primary)">124</td>
-                <td style="padding:12px 8px;text-align:right;color:var(--text-primary)">Rp 1.200.000</td>
-                <td style="padding:12px 8px;text-align:center"><span style="background:#d1fae5;color:#065f46;padding:4px 12px;border-radius:12px;font-size:13px;font-weight:600">Tersedia</span></td>
-              </tr>
-              <tr style="border-bottom:1px solid var(--border-color)">
-                <td style="padding:12px 8px;color:var(--text-primary)">Monitor LG 27"</td>
-                <td style="padding:12px 8px;text-align:center;color:var(--text-secondary)">MON-004</td>
-                <td style="padding:12px 8px;text-align:center;font-weight:600;color:var(--text-primary)">32</td>
-                <td style="padding:12px 8px;text-align:right;color:var(--text-primary)">Rp 3.500.000</td>
-                <td style="padding:12px 8px;text-align:center"><span style="background:#d1fae5;color:#065f46;padding:4px 12px;border-radius:12px;font-size:13px;font-weight:600">Tersedia</span></td>
-              </tr>
-              <tr>
-                <td style="padding:12px 8px;color:var(--text-primary)">Headset Gaming</td>
-                <td style="padding:12px 8px;text-align:center;color:var(--text-secondary)">HEA-005</td>
-                <td style="padding:12px 8px;text-align:center;font-weight:600;color:var(--text-primary)">3</td>
-                <td style="padding:12px 8px;text-align:right;color:var(--text-primary)">Rp 650.000</td>
-                <td style="padding:12px 8px;text-align:center"><span style="background:#fee2e2;color:#991b1b;padding:4px 12px;border-radius:12px;font-size:13px;font-weight:600">Menipis</span></td>
-              </tr>
-            </tbody>
-          </table>
+          
+          <div id="products-table-container">
+            <div id="search-stats"></div>
+            <table style="width:100%;border-collapse:collapse">
+              <thead>
+                <tr style="border-bottom:2px solid var(--border-color)">
+                  <th style="text-align:left;padding:12px 8px;color:var(--text-secondary);font-weight:600">Nama Produk</th>
+                  <th style="text-align:center;padding:12px 8px;color:var(--text-secondary);font-weight:600">Barcode</th>
+                  <th style="text-align:center;padding:12px 8px;color:var(--text-secondary);font-weight:600">SKU</th>
+                  <th style="text-align:center;padding:12px 8px;color:var(--text-secondary);font-weight:600">Stok</th>
+                  <th style="text-align:right;padding:12px 8px;color:var(--text-secondary);font-weight:600">Harga</th>
+                  <th style="text-align:center;padding:12px 8px;color:var(--text-secondary);font-weight:600">Status</th>
+                </tr>
+              </thead>
+              <tbody id="products-tbody">
+                <!-- Data akan di-load oleh JavaScript -->
+              </tbody>
+            </table>
+          </div>
         </div>
       </section>
     </main>
