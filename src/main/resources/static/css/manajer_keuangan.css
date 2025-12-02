@@ -669,3 +669,387 @@ body.role-kasir .sidebar.closed .menu-item.pill.active .mi-icon {
     opacity: 0.7;
     margin-left: 6px;
 }
+
+/* === RESPONSIVE TABLE STYLES === */
+
+/* Container untuk tabel scrollable */
+.table-responsive-wrapper {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch; /* Smooth scroll di iOS */
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--card);
+  max-height: 600px;
+}
+
+/* Tabel styling */
+.expenses-table {
+  width: 100%;
+  min-width: 800px; /* Minimum width sebelum scroll */
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.expenses-table thead {
+  background: var(--page-bg);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.expenses-table th {
+  padding: 16px 12px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  background: var(--page-bg);
+  border-bottom: 2px solid var(--border-color);
+  position: sticky;
+  top: 0;
+}
+
+.expenses-table td {
+  padding: 14px 12px;
+  border-bottom: 1px solid var(--border-color);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.expenses-table tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.expenses-table tbody tr:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* Column khusus untuk action buttons */
+.action-column {
+  position: sticky;
+  right: 0;
+  background: var(--card);
+  box-shadow: -2px 0 4px rgba(0, 0, 0, 0.05);
+  min-width: 120px;
+  text-align: center;
+  z-index: 5;
+}
+
+.sticky-column {
+  position: sticky;
+  left: 0;
+  background: var(--card);
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.05);
+  z-index: 5;
+}
+
+.sticky-action {
+  position: sticky;
+  right: 120px; /* Sesuaikan dengan lebar action column */
+  background: var(--page-bg);
+  z-index: 4;
+}
+
+/* Status badge */
+.status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-verified {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.status-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-rejected {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* Action buttons */
+.action-buttons-group {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: nowrap;
+}
+
+.btn-icon {
+  padding: 6px 10px;
+  border: 1px solid var(--border-color);
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  min-width: 36px;
+  min-height: 36px;
+}
+
+.btn-icon:hover {
+  background: var(--page-bg);
+  transform: translateY(-1px);
+}
+
+.btn-edit {
+  color: #2563eb;
+  border-color: rgba(37, 99, 235, 0.2);
+}
+
+.btn-delete {
+  color: #dc2626;
+  border-color: rgba(220, 38, 38, 0.2);
+}
+
+.btn-view {
+  color: #10b759;
+  border-color: rgba(16, 183, 89, 0.2);
+}
+
+/* Loading spinner */
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border-color);
+  border-top-color: #10b759;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Scrollbar styling */
+.table-responsive::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+  background: var(--text-secondary);
+  border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+  background: var(--text-primary);
+}
+
+/* Pagination */
+.table-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-top: 1px solid var(--border-color);
+  background: var(--card);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.pagination-info {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pagination-btn {
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--text-primary);
+  font-weight: 600;
+  min-width: 40px;
+}
+
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: var(--page-bg);
+}
+
+.page-numbers {
+  display: flex;
+  gap: 4px;
+}
+
+.page-number {
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--text-primary);
+  min-width: 40px;
+}
+
+.page-number.active {
+  background: #10b759;
+  color: white;
+  border-color: #10b759;
+}
+
+.page-size select {
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text-primary);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .table-responsive-wrapper {
+    margin: 0 -16px;
+    width: calc(100% + 32px);
+  }
+  
+  .table-responsive {
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+  
+  .expenses-table th,
+  .expenses-table td {
+    padding: 12px 8px;
+    font-size: 13px;
+  }
+  
+  .expenses-table {
+    min-width: 600px;
+  }
+  
+  .action-buttons-group {
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .btn-icon {
+    min-width: 32px;
+    min-height: 32px;
+  }
+  
+  .table-pagination {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+  
+  .pagination-controls {
+    justify-content: center;
+  }
+  
+  .page-size {
+    text-align: center;
+  }
+  
+  .filter-section {
+    width: 100%;
+  }
+  
+  .search-input,
+  .filter-select {
+    width: 100%;
+    min-width: unset;
+  }
+}
+
+@media (max-width: 480px) {
+  .expenses-table {
+    min-width: 500px;
+  }
+  
+  .expenses-table th,
+  .expenses-table td {
+    padding: 10px 6px;
+    font-size: 12px;
+  }
+  
+  .sticky-action {
+    right: 100px;
+  }
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-secondary);
+}
+
+.empty-state svg {
+  width: 80px;
+  height: 80px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+/* Export button */
+.btn-secondary {
+  padding: 8px 16px;
+  border: 1px solid var(--border-color);
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--text-primary);
+  font-weight: 500;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-secondary:hover {
+  background: var(--page-bg);
+}
+
+/* Responsive untuk judul dan filter */
+@media (max-width: 640px) {
+  .card > div:first-child {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  
+  .filter-section {
+    width: 100%;
+  }
+}

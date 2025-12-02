@@ -1,4 +1,11 @@
-// File: js/manajer_keuangan.js - VERSION LENGKAP DIPERBAIKI
+// File: js/manajer_keuangan.js - VERSION LENGKAP DIPERBAIKI dengan TABEL RESPONSIVE
+
+// ========== VARIABLES GLOBAL ==========
+let currentPage = 1;
+let currentPageSize = 10;
+let currentSearch = '';
+let currentFilter = '';
+let allRecords = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
     // ========== AUTH CHECK ==========
@@ -23,29 +30,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         expenseForm.addEventListener('submit', handleExpenseSubmit);
     }
 
-    // Setup search/filter
-    const searchInput = document.getElementById('expense-search');
-    const filterSelect = document.getElementById('expense-filter');
+    // Setup search/filter untuk tabel responsive
+    setupTableSearchFilter();
 
-    if (searchInput) {
-        searchInput.addEventListener('input', debounce(() => {
-            filterExpenses();
-        }, 300));
-    }
+    // Setup pagination untuk tabel
+    setupPaginationControls();
 
-    if (filterSelect) {
-        filterSelect.addEventListener('change', filterExpenses);
-    }
-
-    // Download button
+    // Download button untuk Excel
     document.getElementById('download-btn')?.addEventListener('click', function (e) {
         e.preventDefault();
-        const a = document.createElement('a');
-        a.href = '/api/export/download';
-        a.download = 'laporan_keuangan.xlsx';
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
+        window.location.href = '/api/export/download';
+    });
+
+    // Export button untuk tabel pengeluaran
+    document.getElementById('export-expenses-btn')?.addEventListener('click', function() {
+        exportExpensesToExcel();
     });
 
     // Setup auto-sync untuk update real-time
@@ -181,12 +180,15 @@ async function loadFinancialData() {
 
         // PROSES DATA TERINTEGRASI
         const integratedData = processIntegratedData(safeKeuanganData, safeTransaksiData);
+        
+        // Simpan semua records untuk filtering/pagination
+        allRecords = integratedData.records || [];
 
         // Update UI dengan data REAL
         updateFinancialUI(integratedData);
 
-        // Tampilkan semua records terintegrasi
-        displayIntegratedRecords(integratedData);
+        // Tampilkan semua records terintegrasi dengan tabel responsive
+        displayIntegratedRecordsResponsive(integratedData);
 
     } catch (error) {
         console.error('❌ Error loading financial data:', error);
@@ -196,7 +198,6 @@ async function loadFinancialData() {
 
 // ========== FUNGSI BARU UNTUK INTEGRASI ==========
 
-// FUNGSI BARU yang benar
 function processIntegratedData(keuanganData, transaksiData) {
     console.log('🔧 Processing integrated data dengan LOGIKA YANG BENAR...');
 
@@ -212,7 +213,6 @@ function processIntegratedData(keuanganData, transaksiData) {
     const allTransaksi = Array.isArray(transaksiData) ? transaksiData : [];
 
     // PEMASUKAN: Hanya transaksi PAID yang BUKAN stock purchase
-    // LOGIC BARU: Stock purchase TIDAK ADA di tabel transaksi lagi
     const incomeTransactions = allTransaksi.filter(t => {
         if (!t) return false;
 
@@ -235,7 +235,7 @@ function processIntegratedData(keuanganData, transaksiData) {
     const totalPengeluaran = manualExpenses.reduce((sum, k) => sum + (parseFloat(k.nominal) || 0), 0);
     const labaBersih = totalPemasukan - totalPengeluaran;
 
-    // 4. GABUNGKAN RECORDS
+    // 4. GABUNGKAN RECORDS UNTUK TABEL RESPONSIVE
     const allRecords = [];
 
     // ✅ PEMASUKAN HANYA DARI PENJUALAN
@@ -313,51 +313,6 @@ function categorizeExpense(keterangan) {
     return 'LAINNYA';
 }
 
-function parseStockPurchaseNotes(notes) {
-    if (!notes) return 'Pembelian Stok';
-
-    try {
-        // Format: "STOCK_PURCHASE|Product:xxx|Supplier:yyy|Notes:zzz"
-        const parts = notes.split('|');
-        let description = 'Pembelian Stok';
-
-        parts.forEach(part => {
-            if (part.includes('Product:')) {
-                const product = part.split(':')[1] || '';
-                description = `Pembelian Stok: ${product}`;
-            } else if (part.includes('Supplier:')) {
-                description += ` dari ${part.split(':')[1]}`;
-            } else if (part.includes('Notes:')) {
-                description += ` (${part.split(':')[1]})`;
-            }
-        });
-
-        return description;
-    } catch (e) {
-        return 'Pembelian Stok';
-    }
-}
-
-// TAMBAHKAN fungsi helper untuk cek stock purchase
-function isStockPurchase(transaksi) {
-    if (!transaksi) return false;
-
-    // Cek berdasarkan paymentGatewayResponse
-    if (transaksi.paymentGatewayResponse) {
-        const response = transaksi.paymentGatewayResponse.toString().toUpperCase();
-        return response.includes('STOCK_PURCHASE') ||
-            response.includes('PEMBELIAN') ||
-            response.includes('BELI') ||
-            response.includes('STOK');
-    }
-
-    // Cek berdasarkan metode pembayaran dan total (fallback)
-    // Stock purchase biasanya TUNAI dan ada di transaksi khusus
-    return transaksi.metodePembayaran === 'TUNAI' &&
-        transaksi.paymentStatus === 'PAID' &&
-        !transaksi.referenceNumber?.includes('TRX'); // bukan transaksi penjualan reguler
-}
-
 function updateFinancialUI(integratedData) {
     console.log('🎨 Updating UI with integrated data...');
 
@@ -392,204 +347,378 @@ function updateFinancialCards(pemasukan, pengeluaran, laba, transaksiCount) {
     });
 }
 
-function displayIntegratedRecords(integratedData) {
-    const { records } = integratedData;
+// ========== FUNGSI TABEL RESPONSIVE ==========
 
-    // 1. Update Tabel Daftar Pengeluaran (sekarang jadi terintegrasi)
-    updateIntegratedExpensesTable(records);
+function displayIntegratedRecordsResponsive(integratedData) {
+    const { records, totalPemasukan, totalPengeluaran } = integratedData;
 
-    // 2. Update filter stats
-    updateRecordStats(records);
+    // Update total di footer tabel
+    updateExpensesTotal(totalPengeluaran);
+
+    // Render tabel dengan pagination
+    renderTableWithPagination();
 }
 
-function updateIntegratedExpensesTable(records) {
+function renderTableWithPagination() {
     const tbody = document.getElementById('expenses-tbody');
+    const pagination = document.querySelector('.table-pagination');
+    
     if (!tbody) return;
 
-    if (!records || records.length === 0) {
+    // Filter records berdasarkan search dan filter
+    const filteredRecords = filterRecords(allRecords, currentSearch, currentFilter);
+    const totalItems = filteredRecords.length;
+    const totalPages = Math.ceil(totalItems / currentPageSize);
+    
+    // Hitung data untuk halaman saat ini
+    const startIndex = (currentPage - 1) * currentPageSize;
+    const endIndex = Math.min(startIndex + currentPageSize, totalItems);
+    const pageRecords = filteredRecords.slice(startIndex, endIndex);
+
+    // Clear loading
+    tbody.innerHTML = '';
+
+    if (pageRecords.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="5" style="padding:40px;text-align:center;color:var(--text-secondary)">
-                    <div style="font-size:48px;margin-bottom:16px;">📊</div>
-                    <div style="font-size:16px;margin-bottom:8px;font-weight:600">Belum ada data keuangan</div>
-                    <div style="font-size:14px;">Mulai dengan transaksi atau tambah pengeluaran</div>
+                <td colspan="7" class="empty-state">
+                    <svg viewBox="0 0 64 64" fill="none">
+                        <rect x="16" y="20" width="32" height="24" rx="3" stroke="currentColor" stroke-width="2" fill="none"/>
+                        <path d="M24 36h4M24 40h8M40 36h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M24 28h16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                    <p style="font-size:16px;margin:8px 0">${currentSearch || currentFilter ? 'Tidak ada data yang sesuai' : 'Belum ada data pengeluaran'}</p>
+                    <p style="color:var(--text-secondary);font-size:14px">
+                        ${currentSearch || currentFilter ? 'Coba kata kunci atau filter lain' : 'Tambahkan pengeluaran baru untuk melihat data di sini'}
+                    </p>
                 </td>
             </tr>
         `;
+        if (pagination) pagination.style.display = 'none';
         return;
     }
 
-    // Tampilkan maksimal 50 records
-    const displayRecords = records.slice(0, 50);
+    // Render rows
+    pageRecords.forEach((record, index) => {
+        const rowIndex = startIndex + index + 1;
+        const row = createTableRow(record, rowIndex);
+        tbody.appendChild(row);
+    });
 
-    tbody.innerHTML = displayRecords.map(record => {
-        const isIncome = record.type === 'PEMASUKAN';
-        const typeClass = isIncome ? 'badge-success' : 'badge-expense';
-        const typeText = isIncome ? 'PEMASUKAN' : 'PENGELUARAN';
-        const amountColor = isIncome ? '#10b759' : '#ef4444';
-        const amountSign = isIncome ? '+' : '-';
-        const sourceIcon = getSourceIcon(record.source);
-        const categoryClass = `badge-${record.category.toLowerCase()}`;
+    // Setup pagination
+    setupPagination(totalPages, currentPage, totalItems, currentPageSize);
+    if (pagination) pagination.style.display = 'flex';
+}
 
-        // Hanya tampilkan delete button untuk keuangan manual
-        const showDelete = record.source === 'KEUANGAN_MANUAL';
-        const recordId = record.id.replace('EXP-MANUAL-', '');
-        const safeDescription = record.description ? record.description.replace(/'/g, "\\'") : '';
+function createTableRow(record, index) {
+    const row = document.createElement('tr');
+    
+    const isIncome = record.type === 'PEMASUKAN';
+    const typeClass = isIncome ? 'badge-success' : 'badge-expense';
+    const typeText = isIncome ? 'PEMASUKAN' : 'PENGELUARAN';
+    const amountColor = isIncome ? '#10b759' : '#ef4444';
+    const amountSign = isIncome ? '+' : '-';
+    const sourceIcon = getSourceIcon(record.source);
+    const categoryClass = `badge-${record.category.toLowerCase()}`;
+    
+    // Hanya tampilkan delete button untuk keuangan manual
+    const showDelete = record.source === 'KEUANGAN';
+    const recordId = record.id.replace('EXP-', '');
+    const safeDescription = record.description ? record.description.replace(/'/g, "\\'") : '';
 
-        return `
-            <tr class="finance-row" data-type="${record.category}" data-source="${record.source}">
-                <td style="padding:12px 8px;color:var(--text-primary);font-size:13px">
-                    ${formatDateTime(record.tanggal)}
-                    ${sourceIcon ? `<span style="margin-left:6px;opacity:0.6" title="${record.source}">${sourceIcon}</span>` : ''}
-                </td>
-                <td style="padding:12px 8px;">
-                    <span class="badge ${typeClass}" style="margin-right:6px">
-                        ${typeText}
-                    </span>
-                    <span class="badge ${categoryClass}">
-                        ${record.category}
-                    </span>
-                </td>
-                <td style="padding:12px 8px;color:var(--text-primary)" title="${safeDescription}">
-                    ${truncateText(record.description, 60)}
-                    ${record.details?.kasir ? `<br><small style="color:#666">Oleh: ${record.details.kasir}</small>` : ''}
-                </td>
-                <td style="padding:12px 8px;text-align:right;font-weight:600;color:${amountColor}">
-                    ${amountSign} ${formatCurrency(record.amount)}
-                </td>
-                <td style="padding:12px 8px;text-align:center">
-                    ${showDelete ? `
-                        <button onclick="deleteExpense('${recordId}', '${safeDescription}')" 
-                                style="padding:4px 12px;background:#fee2e2;color:#991b1b;border:0;border-radius:6px;cursor:pointer;font-size:12px">
-                            Hapus
-                        </button>
-                    ` : '<span style="color:#666;font-size:12px">Otomatis</span>'}
-                </td>
-            </tr>
-        `;
-    }).join('');
+    row.innerHTML = `
+        <td class="sticky-column">${index}</td>
+        <td>${formatDateTime(record.tanggal)}</td>
+        <td>
+            <span class="badge ${typeClass}" style="margin-right:6px">
+                ${typeText}
+            </span>
+            <span class="badge ${categoryClass}">
+                ${record.category}
+            </span>
+        </td>
+        <td title="${safeDescription}">
+            ${truncateText(record.description, 50)}
+            ${record.details?.kasir ? `<br><small style="color:#666">Oleh: ${record.details.kasir}</small>` : ''}
+            ${sourceIcon ? `<br><small style="color:#666">${sourceIcon} ${record.source}</small>` : ''}
+        </td>
+        <td style="text-align:right;font-weight:600;color:${amountColor}">
+            ${amountSign} ${formatCurrency(record.amount)}
+        </td>
+        <td class="sticky-action">
+            <span class="status-badge status-verified">${isIncome ? 'PAID' : 'VERIFIED'}</span>
+        </td>
+        <td class="action-column">
+            <div class="action-buttons-group">
+                <button class="btn-icon btn-view" onclick="viewRecordDetail('${record.id}')" title="Lihat Detail">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="2" fill="none"/>
+                        <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" fill="none"/>
+                    </svg>
+                </button>
+                ${showDelete ? `
+                    <button class="btn-icon btn-delete" onclick="deleteExpense('${recordId}', '${safeDescription}')" title="Hapus">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                            <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                ` : ''}
+            </div>
+        </td>
+    `;
+    
+    return row;
+}
+
+function filterRecords(records, search, filter) {
+    if (!records || !Array.isArray(records)) return [];
+    
+    return records.filter(record => {
+        // Filter by search
+        const matchesSearch = !search || 
+            record.description.toLowerCase().includes(search.toLowerCase()) ||
+            record.category.toLowerCase().includes(search.toLowerCase()) ||
+            (record.details?.kasir || '').toLowerCase().includes(search.toLowerCase());
+        
+        // Filter by type
+        let matchesFilter = true;
+        if (filter) {
+            if (filter === 'INCOME') {
+                matchesFilter = record.type === 'PEMASUKAN';
+            } else if (filter === 'ALL') {
+                matchesFilter = true;
+            } else {
+                matchesFilter = record.category === filter;
+            }
+        }
+        
+        return matchesSearch && matchesFilter;
+    });
+}
+
+function setupPagination(totalPages, currentPage, totalItems, pageSize) {
+    const pageStart = (currentPage - 1) * pageSize + 1;
+    const pageEnd = Math.min(currentPage * pageSize, totalItems);
+    
+    // Update pagination info
+    document.getElementById('page-start').textContent = pageStart;
+    document.getElementById('page-end').textContent = pageEnd;
+    document.getElementById('total-items').textContent = totalItems;
+    
+    // Update page numbers
+    const pageNumbers = document.getElementById('page-numbers');
+    pageNumbers.innerHTML = '';
+    
+    // Show limited page numbers
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    
+    if (endPage - startPage + 1 < maxVisiblePages) {
+        startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+        const pageBtn = document.createElement('button');
+        pageBtn.className = `page-number ${i === currentPage ? 'active' : ''}`;
+        pageBtn.textContent = i;
+        pageBtn.onclick = () => {
+            currentPage = i;
+            renderTableWithPagination();
+        };
+        pageNumbers.appendChild(pageBtn);
+    }
+    
+    // Update prev/next buttons
+    const prevBtn = document.getElementById('prev-page');
+    const nextBtn = document.getElementById('next-page');
+    
+    prevBtn.disabled = currentPage === 1;
+    nextBtn.disabled = currentPage === totalPages;
+    
+    prevBtn.onclick = () => {
+        if (currentPage > 1) {
+            currentPage--;
+            renderTableWithPagination();
+        }
+    };
+    
+    nextBtn.onclick = () => {
+        if (currentPage < totalPages) {
+            currentPage++;
+            renderTableWithPagination();
+        }
+    };
+}
+
+function setupTableSearchFilter() {
+    const searchInput = document.getElementById('expense-search');
+    const filterSelect = document.getElementById('expense-filter');
+    
+    if (searchInput) {
+        searchInput.addEventListener('input', debounce((e) => {
+            currentSearch = e.target.value;
+            currentPage = 1; // Reset to first page when searching
+            renderTableWithPagination();
+        }, 300));
+    }
+    
+    if (filterSelect) {
+        filterSelect.addEventListener('change', (e) => {
+            currentFilter = e.target.value;
+            currentPage = 1; // Reset to first page when filtering
+            renderTableWithPagination();
+        });
+    }
+}
+
+function setupPaginationControls() {
+    const pageSizeSelect = document.getElementById('page-size-select');
+    
+    if (pageSizeSelect) {
+        pageSizeSelect.addEventListener('change', (e) => {
+            currentPageSize = parseInt(e.target.value);
+            currentPage = 1; // Reset to first page when changing page size
+            renderTableWithPagination();
+        });
+    }
+}
+
+function updateExpensesTotal(total) {
+    const totalElement = document.getElementById('total-expenses');
+    if (totalElement) {
+        totalElement.textContent = formatCurrency(total);
+    }
 }
 
 function updateBreakdownSummary(integratedData) {
     const { breakdown, totalPemasukan, totalPengeluaran, labaBersih } = integratedData;
 
-    // Update ringkasan keuangan - FIXED LOGIC
+    // Update ringkasan keuangan
     const summaryHtml = `
         <tr style="border-bottom:1px solid var(--border-color)">
             <td style="padding:12px 8px;color:var(--text-primary)">Penjualan Produk</td>
-            <td style="padding:12px 8px;text-align:right;font-weight:600;color:var(--text-primary)">
+            <td style="padding:12px 8px;text-align:right;font-weight:600;color:#10b759">
                 ${formatCurrency(breakdown.salesIncome)}
             </td>
-            <td style="padding:12px 8px;text-align:right;color:#10b759">
-                ${calculateGrowth('penjualan', breakdown.salesIncome)}%
+            <td style="padding:12px 8px;text-align:right;color:#666;font-size:12px">
+                Pemasukan dari transaksi
             </td>
         </tr>
         <tr style="border-bottom:1px solid var(--border-color)">
-            <td style="padding:12px 8px;color:var(--text-primary)">Pembelian Stok</td>
-            <td style="padding:12px 8px;text-align:right;font-weight:600;color:var(--text-primary)">
-                ${formatCurrency(breakdown.stockExpenses)}
+            <td style="padding:12px 8px;color:var(--text-primary)">Total Pengeluaran</td>
+            <td style="padding:12px 8px;text-align:right;font-weight:600;color:#ff5252">
+                -${formatCurrency(totalPengeluaran)}
             </td>
-            <td style="padding:12px 8px;text-align:right;color:#ff5252">
-                ${calculateGrowth('stok', breakdown.stockExpenses)}%
-            </td>
-        </tr>
-        <tr style="border-bottom:1px solid var(--border-color)">
-            <td style="padding:12px 8px;color:var(--text-primary)">Operasional & Lainnya</td>
-            <td style="padding:12px 8px;text-align:right;font-weight:600;color:var(--text-primary)">
-                ${formatCurrency(breakdown.manualExpenses)}
-            </td>
-            <td style="padding:12px 8px;text-align:right;color:#ff5252">
-                ${calculateGrowth('operasional', breakdown.manualExpenses)}%
+            <td style="padding:12px 8px;text-align:right;color:#666;font-size:12px">
+                Semua pengeluaran
             </td>
         </tr>
-        <tr>
-            <td style="padding:12px 8px;font-weight:700;color:var(--text-primary)">Total Laba</td>
-            <td style="padding:12px 8px;text-align:right;font-weight:700;color:#10b759">
+        <tr style="border-top:2px solid var(--border-color)">
+            <td style="padding:12px 8px;font-weight:700;color:var(--text-primary)">Laba Bersih</td>
+            <td style="padding:12px 8px;text-align:right;font-weight:700;color:${labaBersih >= 0 ? '#10b759' : '#ff5252'}">
                 ${formatCurrency(labaBersih)}
             </td>
-            <td style="padding:12px 8px;text-align:right;color:#10b759;font-weight:600">
-                ${calculateGrowth('laba', labaBersih)}%
+            <td style="padding:12px 8px;text-align:right;color:#666;font-size:12px">
+                ${labaBersih >= 0 ? '✅ Keuntungan' : '⚠️ Kerugian'}
             </td>
         </tr>
     `;
 
-    const tbody = document.querySelector('.card table tbody');
+    const tbody = document.getElementById('financial-summary-tbody');
     if (tbody) {
         tbody.innerHTML = summaryHtml;
     }
 }
 
-function calculateGrowth(category, currentAmount) {
-    // Simple growth calculation (untuk demo)
-    const growthRates = {
-        'penjualan': 12.5,
-        'stok': 8.2,
-        'operasional': 3.1,
-        'laba': labaGrowthCalculation(currentAmount)
-    };
+// ========== EXPORT FUNCTIONS ==========
 
-    return growthRates[category] || 0.0;
-}
-
-function labaGrowthCalculation(laba) {
-    if (laba <= 0) return 0.0;
-    // Simple simulation: laba growth antara 5-25%
-    return Math.min(25, Math.max(5, Math.round(laba / 1000000)));
-}
-
-function getSourceIcon(source) {
-    const icons = {
-        'TRANSAKSI': '💰',
-        'KEUANGAN_MANUAL': '📝',
-        'STOCK_PURCHASE': '📦'
-    };
-    return icons[source] || '';
-}
-
-function updateRecordStats(records) {
-    const incomeCount = records.filter(r => r.type === 'PEMASUKAN').length;
-    const expenseCount = records.filter(r => r.type === 'PENGELUARAN').length;
-
-    console.log(`📊 Records: ${incomeCount} pemasukan, ${expenseCount} pengeluaran`);
-
-    // Update filter dropdown jika perlu
-    const filterSelect = document.getElementById('expense-filter');
-    if (filterSelect) {
-        // Tambah opsi "SEMUA" dan "PEMASUKAN" jika belum ada
-        if (!filterSelect.querySelector('option[value="ALL"]')) {
-            const allOption = document.createElement('option');
-            allOption.value = 'ALL';
-            allOption.textContent = 'Semua Data';
-            filterSelect.prepend(allOption);
-        }
-
-        if (!filterSelect.querySelector('option[value="INCOME"]')) {
-            const incomeOption = document.createElement('option');
-            incomeOption.value = 'INCOME';
-            incomeOption.textContent = 'Pemasukan';
-            filterSelect.appendChild(incomeOption);
-        }
+async function exportExpensesToExcel() {
+    try {
+        showNotification('success', 'Menyiapkan file Excel...');
+        
+        const response = await fetch('/api/export/download', {
+            headers: AuthHelper.getAuthHeaders()
+        });
+        
+        if (!response.ok) throw new Error('Gagal mengekspor data');
+        
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `laporan-pengeluaran-${new Date().toISOString().split('T')[0]}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        
+        showNotification('success', 'File Excel berhasil diunduh');
+    } catch (error) {
+        console.error('Export error:', error);
+        showNotification('error', 'Gagal mengekspor data');
     }
 }
 
-// Auto-check for updates
-function setupAutoSync() {
-    // Check for updates from localStorage
-    setInterval(() => {
-        const lastUpdate = localStorage.getItem('finance_needs_refresh');
-        if (lastUpdate) {
-            const updateTime = parseInt(lastUpdate);
-            const now = Date.now();
+// ========== RECORD VIEW FUNCTIONS ==========
 
-            // Jika update dalam 30 detik terakhir, refresh
-            if (now - updateTime < 30000) {
-                console.log('🔄 Detected finance update, refreshing...');
-                loadFinancialData();
-                localStorage.removeItem('finance_needs_refresh');
-            }
-        }
-    }, 5000); // Check every 5 seconds
+function viewRecordDetail(recordId) {
+    const record = allRecords.find(r => r.id === recordId);
+    if (!record) {
+        showError('Data tidak ditemukan');
+        return;
+    }
+    
+    const detailHtml = `
+        <div style="padding:16px;max-width:500px">
+            <h3 style="margin:0 0 16px 0;color:var(--text-primary)">Detail ${record.type}</h3>
+            <div style="background:var(--page-bg);padding:16px;border-radius:8px;margin-bottom:16px">
+                <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+                    <span style="color:var(--text-secondary)">ID:</span>
+                    <span style="font-weight:600">${record.id}</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+                    <span style="color:var(--text-secondary)">Tanggal:</span>
+                    <span>${formatDateTime(record.tanggal)}</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+                    <span style="color:var(--text-secondary)">Kategori:</span>
+                    <span class="badge badge-${record.category.toLowerCase()}">${record.category}</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+                    <span style="color:var(--text-secondary)">Jumlah:</span>
+                    <span style="font-weight:600;color:${record.type === 'PEMASUKAN' ? '#10b759' : '#ff5252'}">
+                        ${record.type === 'PEMASUKAN' ? '+' : '-'}${formatCurrency(record.amount)}
+                    </span>
+                </div>
+                <div style="margin-top:12px">
+                    <div style="color:var(--text-secondary);margin-bottom:4px">Deskripsi:</div>
+                    <div style="background:var(--bg);padding:12px;border-radius:6px;border:1px solid var(--border-color)">
+                        ${record.description}
+                    </div>
+                </div>
+                ${record.details ? `
+                    <div style="margin-top:12px">
+                        <div style="color:var(--text-secondary);margin-bottom:4px">Detail Tambahan:</div>
+                        <div style="background:var(--bg);padding:12px;border-radius:6px;border:1px solid var(--border-color);font-size:14px">
+                            ${Object.entries(record.details).map(([key, value]) => `
+                                <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                                    <span style="color:var(--text-secondary)">${key}:</span>
+                                    <span>${value}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+            </div>
+        </div>
+    `;
+    
+    // Show in modal or alert
+    alertify.alert(detailHtml).set('title', `Detail ${record.type}`);
 }
+
+// ========== API FETCH FUNCTIONS ==========
 
 async function fetchKeuanganData() {
     try {
@@ -612,52 +741,6 @@ async function fetchKeuanganData() {
     }
 }
 
-function updateFinancialSummaryTable(integratedData) {
-    const tbody = document.getElementById('financial-summary-tbody');
-    if (!tbody) return;
-
-    const { breakdown, totalPemasukan, totalPengeluaran, labaBersih } = integratedData;
-
-    tbody.innerHTML = `
-        <tr style="border-bottom:1px solid var(--border-color)">
-            <td style="padding:12px 8px;color:var(--text-primary)">📈 Penjualan Produk</td>
-            <td style="padding:12px 8px;text-align:right;font-weight:600;color:#10b759">
-                ${formatCurrency(breakdown.salesIncome)}
-            </td>
-            <td style="padding:12px 8px;text-align:right;color:#666;font-size:12px">
-                Pemasukan dari transaksi penjualan
-            </td>
-        </tr>
-        <tr style="border-bottom:1px solid var(--border-color)">
-            <td style="padding:12px 8px;color:var(--text-primary)">📦 Pembelian Stok</td>
-            <td style="padding:12px 8px;text-align:right;font-weight:600;color:#ff5252">
-                -${formatCurrency(breakdown.stockExpenses)}
-            </td>
-            <td style="padding:12px 8px;text-align:right;color:#666;font-size:12px">
-                Pengeluaran untuk restock produk
-            </td>
-        </tr>
-        <tr style="border-bottom:1px solid var(--border-color)">
-            <td style="padding:12px 8px;color:var(--text-primary)">💰 Operasional & Lainnya</td>
-            <td style="padding:12px 8px;text-align:right;font-weight:600;color:#ff5252">
-                -${formatCurrency(breakdown.manualExpenses)}
-            </td>
-            <td style="padding:12px 8px;text-align:right;color:#666;font-size:12px">
-                Pengeluaran operasional manual
-            </td>
-        </tr>
-        <tr style="border-top:2px solid var(--border-color)">
-            <td style="padding:12px 8px;font-weight:700;color:var(--text-primary)">💰 Total Laba Bersih</td>
-            <td style="padding:12px 8px;text-align:right;font-weight:700;color:${labaBersih >= 0 ? '#10b759' : '#ff5252'}">
-                ${formatCurrency(labaBersih)}
-            </td>
-            <td style="padding:12px 8px;text-align:right;color:#666;font-size:12px">
-                ${labaBersih >= 0 ? '✅ Keuntungan' : '⚠️ Kerugian'}
-            </td>
-        </tr>
-    `;
-}
-
 async function fetchTransaksiData() {
     try {
         console.log('🔍 Fetching transaksi data...');
@@ -677,34 +760,6 @@ async function fetchTransaksiData() {
         showError('Gagal mengambil data pemasukan');
         return [];
     }
-}
-
-// ========== EXPENSE FILTERING ==========
-
-function filterExpenses() {
-    const searchTerm = (document.getElementById('expense-search')?.value || '').toLowerCase();
-    const filterType = document.getElementById('expense-filter')?.value || '';
-
-    document.querySelectorAll('.finance-row').forEach(row => {
-        const rowType = row.getAttribute('data-type') || '';
-        const rowSource = row.getAttribute('data-source') || '';
-        const rowText = row.textContent.toLowerCase();
-
-        let matchesSearch = !searchTerm || rowText.includes(searchTerm);
-        let matchesFilter = true;
-
-        if (filterType) {
-            if (filterType === 'INCOME') {
-                matchesFilter = rowSource === 'TRANSAKSI';
-            } else if (filterType === 'ALL') {
-                matchesFilter = true; // Show all
-            } else {
-                matchesFilter = rowType === filterType;
-            }
-        }
-
-        row.style.display = matchesSearch && matchesFilter ? '' : 'none';
-    });
 }
 
 // ========== FORM HANDLING ==========
@@ -737,7 +792,6 @@ async function handleExpenseSubmit(e) {
         // Get user info
         const authData = AuthHelper.getAuthData();
         if (!authData || !authData.userId) {
-            // Fallback: coba ambil dari localStorage
             const storedId = localStorage.getItem('userId');
             if (!storedId) {
                 throw new Error('User tidak terautentikasi. Silakan login ulang.');
@@ -745,7 +799,6 @@ async function handleExpenseSubmit(e) {
             authData.userId = parseInt(storedId);
         }
 
-        // Prepare data sesuai dengan model Keuangan
         const expenseData = {
             jenis: 'PENGELUARAN',
             keterangan: getExpenseDescription(typeSelect.value, descriptionInput.value),
@@ -758,7 +811,6 @@ async function handleExpenseSubmit(e) {
 
         console.log('📤 Adding expense:', expenseData);
 
-        // Send request
         const response = await fetch('http://localhost:8080/api/keuangan', {
             method: 'POST',
             headers: AuthHelper.getAuthHeaders(),
@@ -773,18 +825,13 @@ async function handleExpenseSubmit(e) {
         const result = await response.json();
         console.log('✅ Expense added successfully:', result);
 
-        // Success
         showSuccess('Pengeluaran berhasil ditambahkan');
 
-        // Reset form
         typeSelect.value = '';
         amountInput.value = '';
         descriptionInput.value = '';
 
-        // Reload data
         await loadFinancialData();
-
-        // Notify untuk auto-refresh
         localStorage.setItem('finance_needs_refresh', Date.now().toString());
 
     } catch (error) {
@@ -822,8 +869,6 @@ async function deleteExpense(id, description) {
         if (response.ok) {
             showSuccess('Pengeluaran berhasil dihapus');
             await loadFinancialData();
-
-            // Notify untuk auto-refresh
             localStorage.setItem('finance_needs_refresh', Date.now().toString());
         } else {
             const errorText = await response.text();
@@ -887,6 +932,15 @@ function truncateText(text, maxLength) {
     return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
 }
 
+function getSourceIcon(source) {
+    const icons = {
+        'TRANSAKSI': '💰',
+        'KEUANGAN': '📝',
+        'STOCK_PURCHASE': '📦'
+    };
+    return icons[source] || '';
+}
+
 function debounce(func, wait) {
     let timeout;
     return function executedFunction(...args) {
@@ -925,9 +979,39 @@ function showSuccess(message) {
     setTimeout(() => successDiv.remove(), 3000);
 }
 
+function showNotification(type, message) {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
+// Auto-check for updates
+function setupAutoSync() {
+    setInterval(() => {
+        const lastUpdate = localStorage.getItem('finance_needs_refresh');
+        if (lastUpdate) {
+            const updateTime = parseInt(lastUpdate);
+            const now = Date.now();
+
+            if (now - updateTime < 30000) {
+                console.log('🔄 Detected finance update, refreshing...');
+                loadFinancialData();
+                localStorage.removeItem('finance_needs_refresh');
+            }
+        }
+    }, 5000);
+}
+
 // ========== GLOBAL FUNCTIONS ==========
 
 window.deleteExpense = deleteExpense;
+window.viewRecordDetail = viewRecordDetail;
 
 // Auto-refresh setiap 30 detik
 setInterval(async () => {
