@@ -37,17 +37,21 @@ public class Transaksi {
     @Column(name = "payment_method_detail")
     private String paymentMethodDetail; // "QRIS_GOPAY", "QRIS_SHOPEEPAY", dll
 
-    public Transaksi(MetodePembayaran metode_pembayaran, LocalDateTime tanggal, Double total, Akun akun) {
+    public Transaksi(MetodePembayaran metode_pembayaran, LocalDateTime tanggal, Double total, Akun akun, String kasirName) {
         this.metode_pembayaran = metode_pembayaran;
         this.tanggal = tanggal;
         this.total = total;
         this.akun = akun;
+        this.kasirName = kasirName;
         this.paymentStatus = PaymentStatus.PENDING;
         this.referenceNumber = generateReferenceNumber();
     }
 
     @Column(nullable = false)
     private LocalDateTime tanggal = LocalDateTime.now();
+
+    @Column(name = "kasir_name", length = 100)
+    private String kasirName;
 
     @Column(nullable = false)
     private Double total;

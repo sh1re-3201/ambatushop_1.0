@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return false;
         }
 
-        return true; // ✅ Remove password length validation for now
+        return true; // Remove password length validation for now
     }
 
     // ========== LOADING STATE ==========
@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             console.log('🔍 Attempting login...');
             
-            // ✅ FIX: Gunakan full URL dengan base URL
+            //  Gunakan full URL dengan base URL
             const loginUrl = `${API_BASE_URL}/api/auth/login`;
             console.log('Login URL:', loginUrl);
 
@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('🔍 Response status:', response.status);
             console.log('🔍 Response ok:', response.ok);
 
-            // ✅ FIX: Handle case where response might not be JSON
+            //  Handle case where response might not be JSON
             let data;
             const responseText = await response.text();
             
@@ -111,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (response.ok) {
                 console.log('✅ Login successful:', data);
                 
-                // ✅ FIX: Pastikan data yang diperlukan ada
+                //  Pastikan data yang diperlukan ada
                 if (!data.token || !data.role) {
                     throw new Error('Invalid response data from server');
                 }
@@ -120,7 +120,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 AuthHelper.saveLoginInfo(
                     data.token, 
                     data.role, 
-                    data.username || username // Fallback ke username input
+                    data.username || username, // Fallback ke username input
+                    data.userId
                 );
 
                 console.log('✅ Auth data saved');

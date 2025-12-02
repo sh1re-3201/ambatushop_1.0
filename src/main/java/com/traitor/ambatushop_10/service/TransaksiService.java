@@ -1,11 +1,14 @@
 package com.traitor.ambatushop_10.service;
 
+import com.traitor.ambatushop_10.dto.StockPurchaseRequest;
 import com.traitor.ambatushop_10.dto.TransaksiRequest;
 import com.traitor.ambatushop_10.model.Akun;
+import com.traitor.ambatushop_10.model.Keuangan;
 import com.traitor.ambatushop_10.model.Produk;
 import com.traitor.ambatushop_10.model.Transaksi;
 import com.traitor.ambatushop_10.model.TransaksiDetail;
 import com.traitor.ambatushop_10.repository.AkunRepository;
+import com.traitor.ambatushop_10.repository.KeuanganRepository;
 import com.traitor.ambatushop_10.repository.ProdukRepository;
 import com.traitor.ambatushop_10.repository.TransaksiRepository;
 import org.springframework.stereotype.Service;
@@ -22,27 +25,29 @@ public class TransaksiService {
     private final TransaksiRepository transaksiRepository;
     private final ProdukRepository produkRepository;
     private final AkunRepository akunRepository;
+    private final KeuanganRepository keuanganRepository;
 
     public TransaksiService(TransaksiRepository transaksiRepository,
             ProdukRepository produkRepository,
-            AkunRepository akunRepository) {
+            AkunRepository akunRepository, KeuanganRepository keuanganRepository) {
         this.transaksiRepository = transaksiRepository;
         this.produkRepository = produkRepository;
         this.akunRepository = akunRepository;
+        this.keuanganRepository = keuanganRepository;
     }
 
-    // ✅ GET semua transaksi
+    // GET semua transaksi
     public List<Transaksi> getAllTransaksi() {
         return transaksiRepository.findAll();
     }
 
-    // ✅ GET transaksi by ID
+    // GET transaksi by ID
     public Transaksi getTransaksiById(Long id) {
         return transaksiRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Transaksi tidak ditemukan dengan ID: " + id));
     }
 
-    // ✅ CREATE transaksi dengan DTO
+    // CREATE transaksi dengan DTO
     public Transaksi createTransaksi(TransaksiRequest request) {
         // Validasi akun exists
         Akun akun = akunRepository.findById(request.getAkunId())
@@ -56,7 +61,7 @@ public class TransaksiService {
             throw new RuntimeException("Metode pembayaran tidak valid: " + request.getMetodePembayaran());
         }
 
-        // ✅ PERBAIKAN: Untuk TUNAI langsung PAID, untuk NON_TUNAI tetap PENDING
+        // Untuk TUNAI langsung PAID, untuk NON_TUNAI tetap PENDING
         Transaksi.PaymentStatus initialStatus = (metodePembayaran == Transaksi.MetodePembayaran.TUNAI)
                 ? Transaksi.PaymentStatus.PAID
                 : Transaksi.PaymentStatus.PENDING;
@@ -66,7 +71,8 @@ public class TransaksiService {
         transaksi.setMetode_pembayaran(metodePembayaran);
         transaksi.setTotal(request.getTotal());
         transaksi.setAkun(akun);
-        transaksi.setPaymentStatus(initialStatus); // ✅ Status berdasarkan metode
+        transaksi.setKasirName(request.getKasirName());
+        transaksi.setPaymentStatus(initialStatus); // Status berdasarkan metode
         transaksi.setReferenceNumber(generateReferenceNumber());
 
         // Validasi & proses details
@@ -147,6 +153,20 @@ public class TransaksiService {
         }).toList();
     }
 
+    public void updateOldTransactionsWithKasirName() {
+        List<Transaksi> allTransactions = transaksiRepository.findAll();
+
+        for (Transaksi transaksi : allTransactions) {
+            if (transaksi.getKasirName() == null && transaksi.getAkun() != null) {
+                // Set kasir name dari akun
+                transaksi.setKasirName(transaksi.getAkun().getUsername());
+                transaksiRepository.save(transaksi);
+                System.out.println("Updated transaction " + transaksi.getIdTransaksi() +
+                        " with kasir: " + transaksi.getAkun().getUsername());
+            }
+        }
+    }
+
     private void updateProductStock(List<com.traitor.ambatushop_10.dto.TransaksiDetailRequest> details,
             boolean restore) {
         for (com.traitor.ambatushop_10.dto.TransaksiDetailRequest detail : details) {
@@ -167,10 +187,53 @@ public class TransaksiService {
             produkRepository.save(produk);
         }
     }
+
     private String generateReferenceNumber() {
         String date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         String random = String.format("%03d", new Random().nextInt(1000));
         return "TRX-" + date + "-" + random;
+    }
+
+    /**
+     * CREATE stock purchase - HANYA sebagai pengeluaran, BUKAN transaksi
+     * Method ini diubah total logic-nya
+     */
+    public Keuangan createStockPurchase(StockPurchaseRequest request) {
+        System.out.println("🛒 Creating stock purchase (PENGELUARAN only): " + request);
+
+        // Validasi akun
+        Akun akun = akunRepository.findById(request.getAkunId())
+                .orElseThrow(() -> {
+                    System.out.println("❌ Akun tidak ditemukan: " + request.getAkunId());
+                    return new RuntimeException("Akun tidak ditemukan dengan ID: " + request.getAkunId());
+                });
+
+        System.out.println("✅ Akun ditemukan: " + akun.getUsername());
+
+        // HANYA CREATE KEUANGAN ENTRY, BUKAN TRANSAKSI
+        Keuangan keuangan = new Keuangan();
+        keuangan.setJenis(Keuangan.JenisTransaksi.PENGELUARAN);
+
+        // Buat keterangan yang informative
+        String keterangan = "Pembelian stok: " + request.getProductName();
+        if (request.getSupplierName() != null && !request.getSupplierName().isEmpty()) {
+            keterangan += " (Supplier: " + request.getSupplierName() + ")";
+        }
+        if (request.getNotes() != null && !request.getNotes().isEmpty()) {
+            keterangan += " - " + request.getNotes();
+        }
+
+        keuangan.setKeterangan(keterangan);
+        keuangan.setNominal(request.getTotalAmount());
+        keuangan.setTanggal(LocalDateTime.now());
+        keuangan.setAkun(akun);
+
+        Keuangan savedKeuangan = keuanganRepository.save(keuangan);
+
+        System.out.println("✅ Pengeluaran stok dicatat: " + savedKeuangan.getIdKeuangan() +
+                " - " + keterangan + " - Rp" + request.getTotalAmount());
+
+        return savedKeuangan; // Return Keuangan, bukan Transaksi
     }
 
 }

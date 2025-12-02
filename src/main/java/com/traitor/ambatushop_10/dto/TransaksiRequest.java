@@ -9,5 +9,6 @@ public class TransaksiRequest {
     private String metodePembayaran; // "TUNAI" atau "NON_TUNAI"
     private Double total;
     private Long akunId;
+    private String kasirName;
     private List<TransaksiDetailRequest> details;
 }

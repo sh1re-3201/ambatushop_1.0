@@ -15,3 +15,5 @@ databaseChangeLog:
       file: db/changelog/007-add-payment-fields.yaml
   - include:
       file: db/changelog/008-add-barcode-fields.yaml
+  - include:
+      file: db/changelog/009-add-kasir-name.yaml

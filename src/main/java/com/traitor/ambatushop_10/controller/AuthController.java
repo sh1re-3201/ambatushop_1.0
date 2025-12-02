@@ -26,18 +26,18 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
-    
+
     private final AuthenticationManager authenticationManager;
     private final AkunRepository akunRepository;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
     private final ValidationService validationService;
 
-    public AuthController(AuthenticationManager authenticationManager, 
-                         AkunRepository akunRepository, 
-                         JwtService jwtService,
-                         PasswordEncoder passwordEncoder,
-                         ValidationService validationService) {
+    public AuthController(AuthenticationManager authenticationManager,
+            AkunRepository akunRepository,
+            JwtService jwtService,
+            PasswordEncoder passwordEncoder,
+            ValidationService validationService) {
         this.authenticationManager = authenticationManager;
         this.akunRepository = akunRepository;
         this.jwtService = jwtService;
@@ -53,48 +53,48 @@ public class AuthController {
             String password = validationService.sanitizeInput(request.password());
 
             logger.info("Login attempt for username: {}", username);
-            
+
             // Authenticate user
             Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(username, password)
-            );
+                    new UsernamePasswordAuthenticationToken(username, password));
 
             logger.info("Authentication successful for: {}", username);
 
             // Find user details
             Akun akun = akunRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User tidak ditemukan"));
-                
-            String token = jwtService.generateToken(akun.getUsername(), akun.getRole().name());
-            
-            logger.info("JWT Token generated for: {} with role: {}", akun.getUsername(), akun.getRole());
-            
-            return ResponseEntity.ok(
-                new AuthResponse(token, akun.getRole().name(), akun.getUsername(), "Login berhasil")
+                    .orElseThrow(() -> new RuntimeException("User tidak ditemukan"));
+
+            String token = jwtService.generateToken(
+                    akun.getUsername(),
+                    akun.getRole().name(),
+                    akun.getIdPegawai() 
             );
+
+            logger.info("JWT Token generated for: {} (ID: {}) with role: {}", 
+                   akun.getUsername(), akun.getIdPegawai(), akun.getRole());
+
+            return ResponseEntity.ok(
+                    new AuthResponse(token, akun.getRole().name(), akun.getUsername(), akun.getIdPegawai(), "Login berhasil"));
 
         } catch (BadCredentialsException e) {
             logger.error("Bad credentials for user: {}", request.username());
             ErrorResponse error = new ErrorResponse(
-                401, "UNAUTHORIZED", "Username atau password salah", 
-                "Pastikan username dan password benar", "/api/auth/login"
-            );
+                    401, "UNAUTHORIZED", "Username atau password salah",
+                    "Pastikan username dan password benar", "/api/auth/login");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
-            
+
         } catch (AuthenticationException e) {
             logger.error("Authentication failed for user: {}", request.username(), e);
             ErrorResponse error = new ErrorResponse(
-                401, "AUTH_FAILED", "Autentikasi gagal", 
-                e.getMessage(), "/api/auth/login"
-            );
+                    401, "AUTH_FAILED", "Autentikasi gagal",
+                    e.getMessage(), "/api/auth/login");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
-            
+
         } catch (Exception e) {
             logger.error("UNEXPECTED ERROR during login: ", e);
             ErrorResponse error = new ErrorResponse(
-                500, "INTERNAL_ERROR", "Terjadi kesalahan sistem", 
-                e.getMessage(), "/api/auth/login"
-            );
+                    500, "INTERNAL_ERROR", "Terjadi kesalahan sistem",
+                    e.getMessage(), "/api/auth/login");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }
@@ -104,7 +104,7 @@ public class AuthController {
     public String logout(HttpServletRequest request) {
         String token = extractTokenFromRequest(request);
         String username = jwtService.extractUsername(token);
-        
+
         System.out.println("User logout: " + username);
         return "Logout berhasil. Silakan hapus token di client.";
     }
