@@ -247,7 +247,7 @@ async function deleteProduct(productId) {
         console.log('Delete response ok:', response.ok);
 
         if (response.ok) {
-            // ✅ PERBAIKAN: Handle case where response body is empty
+            // Handle case where response body is empty
             const responseText = await response.text();
             console.log('Delete response text:', responseText);
 
@@ -368,8 +368,6 @@ function updateProductsTable(products) {
     `).join('');
 
     addProductActionListeners();
-
-    // Re-attach event listeners
     addBarcodeEventListeners();
 }
 
@@ -418,13 +416,8 @@ function addProductActionListeners() {
     document.querySelectorAll('.edit-product-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const productId = e.target.getAttribute('data-product-id');
-            const productName = e.target.getAttribute('data-product-name');
-            const productPrice = e.target.getAttribute('data-product-price');
-            const productStock = e.target.getAttribute('data-product-stock');
-            console.log('✏️ Edit product clicked:', { productId, productName });
-
-            // Show edit modal dengan data yang ada
-            showEditProductModal(productId, productName, productPrice, productStock);
+            console.log('✏️ Edit product clicked:', { productId });
+            showEditProductModal(productId);
         });
     });
 
@@ -439,23 +432,6 @@ function addProductActionListeners() {
     });
 }
 
-// Edit product buttons
-document.querySelectorAll('.edit-product-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-        const productId = e.target.getAttribute('data-product-id');
-        showEditProductModal(productId);
-    });
-});
-
-// Delete product buttons
-document.querySelectorAll('.delete-product-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-        const productId = e.target.getAttribute('data-product-id');
-        const productName = e.target.getAttribute('data-product-name');
-        confirmDeleteProduct(productId, productName);
-    });
-});
-
 function updateStockStats(products) {
     // Calculate statistics
     const totalProducts = products.length;
@@ -463,12 +439,9 @@ function updateStockStats(products) {
     const lowStockProducts = products.filter(product => product.stok <= 10).length;
     const totalStockValue = products.reduce((sum, product) => sum + (product.harga * product.stok), 0);
 
-    // Available stock is total stock minus low stock items
-    const availableStock = totalStock;
-
     // Update cards
     updateCardValue('.card.feature:nth-child(1) .value', `${totalProducts} Produk`);
-    updateCardValue('.card.feature:nth-child(2) .value', `${availableStock} Unit`);
+    updateCardValue('.card.feature:nth-child(2) .value', `${totalStock} Unit`);
     updateCardValue('.card.feature:nth-child(3) .value', `${lowStockProducts} Produk`);
     updateCardValue('.card.feature:nth-child(4) .value', `${formatCurrency(totalStockValue)}`);
 }
@@ -513,13 +486,13 @@ function formatCurrency(amount) {
 
 function showAddProductModal() {
     const modalHtml = `
-        <div class="modal-overlay" id="productModal">
+        <div class="modal-overlay" id="addProductModal">
             <div class="modal-content" style="max-width: 600px;">
                 <div class="modal-header">
                     <h3>Tambah Produk Baru</h3>
                     <button class="modal-close">&times;</button>
                 </div>
-                <form id="productForm" class="modal-form">
+                <form id="addProductForm" class="modal-form">
                     <div class="form-section" style="margin-bottom: 20px;">
                         <h4 style="margin: 0 0 12px 0; color: var(--text-primary);">Detail Produk</h4>
                         <div class="form-group">
@@ -582,30 +555,7 @@ function showAddProductModal() {
     `;
 
     document.body.insertAdjacentHTML('beforeend', modalHtml);
-    setupProductModalEvents();
-
-    // Event listener untuk toggle
-    const expenseToggle = document.getElementById('recordAsExpense');
-    const expenseDetails = document.getElementById('expenseDetails');
-
-    expenseToggle.addEventListener('change', function () {
-        expenseDetails.style.display = this.checked ? 'block' : 'none';
-    });
-
-    // Real-time calculation
-    const purchaseCostInput = document.getElementById('purchaseCost');
-    const stockInput = document.getElementById('productStock');
-    const totalExpensePreview = document.getElementById('totalExpensePreview');
-
-    function calculateTotalExpense() {
-        const cost = parseFloat(purchaseCostInput.value) || 0;
-        const stock = parseInt(stockInput.value) || 0;
-        const total = cost * stock;
-        totalExpensePreview.textContent = formatCurrency(total);
-    }
-
-    purchaseCostInput.addEventListener('input', calculateTotalExpense);
-    stockInput.addEventListener('input', calculateTotalExpense);
+    setupAddProductModalEvents();
 }
 
 function showEditProductModal(productId) {
@@ -616,25 +566,25 @@ function showEditProductModal(productId) {
         .then(response => response.json())
         .then(product => {
             const modalHtml = `
-            <div class="modal-overlay" id="productModal">
+            <div class="modal-overlay" id="editProductModal">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h3>Edit Produk</h3>
                         <button class="modal-close">&times;</button>
                     </div>
-                    <form id="productForm" class="modal-form">
+                    <form id="editProductForm" class="modal-form">
                         <input type="hidden" id="productId" value="${product.idProduk}">
                         <div class="form-group">
-                            <label for="productName">Nama Produk *</label>
-                            <input type="text" id="productName" value="${product.namaProduk}" required>
+                            <label for="editProductName">Nama Produk *</label>
+                            <input type="text" id="editProductName" value="${product.namaProduk}" required>
                         </div>
                         <div class="form-group">
-                            <label for="productPrice">Harga *</label>
-                            <input type="number" id="productPrice" value="${product.harga}" min="0" step="100" required>
+                            <label for="editProductPrice">Harga *</label>
+                            <input type="number" id="editProductPrice" value="${product.harga}" min="0" step="100" required>
                         </div>
                         <div class="form-group">
-                            <label for="productStock">Stok *</label>
-                            <input type="number" id="productStock" value="${product.stok}" min="0" required>
+                            <label for="editProductStock">Stok *</label>
+                            <input type="number" id="editProductStock" value="${product.stok}" min="0" required>
                         </div>
                         <div class="modal-actions">
                             <button type="button" class="btn-cancel">Batal</button>
@@ -646,7 +596,7 @@ function showEditProductModal(productId) {
         `;
 
             document.body.insertAdjacentHTML('beforeend', modalHtml);
-            setupProductModalEvents();
+            setupEditProductModalEvents();
         })
         .catch(error => {
             showError('Gagal memuat data produk: ' + error.message);
@@ -685,9 +635,11 @@ function showEditStockModal(productId, productName, currentStock) {
     setupStockModalEvents();
 }
 
-function setupProductModalEvents() {
-    const modal = document.getElementById('productModal');
-    const form = document.getElementById('productForm');
+// ========== MODAL EVENT HANDLERS ==========
+
+function setupAddProductModalEvents() {
+    const modal = document.getElementById('addProductModal');
+    const form = document.getElementById('addProductForm');
     const closeBtn = modal.querySelector('.modal-close');
     const cancelBtn = modal.querySelector('.btn-cancel');
 
@@ -701,7 +653,59 @@ function setupProductModalEvents() {
     // Form submit event
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        await handleProductSubmit();
+        await handleAddProductSubmit();
+    });
+
+    // Close modal when clicking outside
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
+
+    // Expense toggle functionality (only for add modal)
+    const expenseToggle = document.getElementById('recordAsExpense');
+    const expenseDetails = document.getElementById('expenseDetails');
+
+    if (expenseToggle && expenseDetails) {
+        expenseToggle.addEventListener('change', function () {
+            expenseDetails.style.display = this.checked ? 'block' : 'none';
+        });
+
+        // Real-time expense calculation
+        const purchaseCostInput = document.getElementById('purchaseCost');
+        const stockInput = document.getElementById('productStock');
+        const totalExpensePreview = document.getElementById('totalExpensePreview');
+
+        function calculateTotalExpense() {
+            const cost = parseFloat(purchaseCostInput.value) || 0;
+            const stock = parseInt(stockInput.value) || 0;
+            const total = cost * stock;
+            totalExpensePreview.textContent = formatCurrency(total);
+        }
+
+        purchaseCostInput.addEventListener('input', calculateTotalExpense);
+        stockInput.addEventListener('input', calculateTotalExpense);
+    }
+}
+
+function setupEditProductModalEvents() {
+    const modal = document.getElementById('editProductModal');
+    const form = document.getElementById('editProductForm');
+    const closeBtn = modal.querySelector('.modal-close');
+    const cancelBtn = modal.querySelector('.btn-cancel');
+
+    // Close modal events
+    [closeBtn, cancelBtn].forEach(btn => {
+        btn.addEventListener('click', () => {
+            modal.remove();
+        });
+    });
+
+    // Form submit event
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await handleEditProductSubmit();
     });
 
     // Close modal when clicking outside
@@ -739,8 +743,9 @@ function setupStockModalEvents() {
     });
 }
 
-async function handleProductSubmit() {
-    const form = document.getElementById('productForm');
+// ========== FORM HANDLERS ==========
+
+async function handleAddProductSubmit() {
     const productName = document.getElementById('productName').value;
     const productPrice = parseFloat(document.getElementById('productPrice').value);
     const productStock = parseInt(document.getElementById('productStock').value);
@@ -775,12 +780,6 @@ async function handleProductSubmit() {
         try {
             console.log('💰 Recording stock purchase as expense...');
 
-            const auth = AuthHelper.getAuth();
-            if (!auth) {
-                throw new Error('User tidak terautentikasi');
-            }
-
-            // Dapatkan userId dengan cara yang lebih reliable
             const userId = await getCurrentUserIdForExpense();
             console.log('User ID for expense:', userId);
 
@@ -793,7 +792,8 @@ async function handleProductSubmit() {
                 productName: productName,
                 totalAmount: purchaseCost * productStock,
                 supplierName: supplierName || null,
-                notes: purchaseNotes || null
+                notes: `STOCK_PURCHASE|Product:${productName}|Supplier:${supplierName || 'Tidak disebutkan'}|Notes:${purchaseNotes || 'Pembelian stok untuk restock'}`
+                // ✅ Pastikan ada flag STOCK_PURCHASE di notes
             };
 
             console.log('📤 Sending stock purchase data:', expenseData);
@@ -824,6 +824,11 @@ async function handleProductSubmit() {
                 console.log('✅ Stock purchase recorded successfully:', expenseResult);
                 showSuccess('✅ Produk berhasil ditambahkan dan dicatat sebagai pengeluaran');
             }
+
+            setTimeout(() => {
+                notifyFinanceUpdate();
+            }, 1000);
+
         } catch (error) {
             console.error('❌ Error recording expense:', error);
             showSuccess('Produk berhasil ditambahkan (catatan pengeluaran gagal: ' + error.message + ')');
@@ -833,55 +838,37 @@ async function handleProductSubmit() {
     }
 
     // 4. Tutup modal dan refresh
-    document.getElementById('productModal').remove();
+    document.getElementById('addProductModal').remove();
     await loadProductsData();
 }
 
-async function getCurrentUserIdForExpense() {
-    // Coba berbagai cara
-    const authData = AuthHelper.getAuthData();
-    if (authData?.userId) {
-        console.log('Got userId from authData:', authData.userId);
-        return authData.userId;
+async function handleEditProductSubmit() {
+    const productId = document.getElementById('productId').value;
+    const productName = document.getElementById('editProductName').value;
+    const productPrice = parseFloat(document.getElementById('editProductPrice').value);
+    const productStock = parseInt(document.getElementById('editProductStock').value);
+
+    // Validasi
+    if (!productName || productPrice <= 0 || productStock < 0) {
+        showError('Harap isi semua field dengan benar');
+        return;
     }
-    
-    // Cek localStorage
-    const storedId = localStorage.getItem('userId');
-    if (storedId) {
-        console.log('Got userId from localStorage:', storedId);
-        return parseInt(storedId);
+
+    const productData = {
+        namaProduk: productName,
+        harga: productPrice,
+        stok: productStock
+    };
+
+    const result = await updateProduct(productId, productData);
+
+    if (result.success) {
+        showSuccess('Produk berhasil diupdate');
+        document.getElementById('editProductModal').remove();
+        await loadProductsData();
+    } else {
+        showError('Gagal mengupdate produk: ' + result.error);
     }
-    
-    // Fallback: cari dari API berdasarkan username
-    try {
-        const username = localStorage.getItem('username');
-        if (!username) {
-            console.warn('No username in localStorage');
-            return null;
-        }
-        
-        console.log('🔍 Fetching user ID for username:', username);
-        const response = await fetch(`http://localhost:8080/api/admin/akun/search?keyword=${encodeURIComponent(username)}`, {
-            headers: AuthHelper.getAuthHeaders()
-        });
-        
-        if (response.ok) {
-            const users = await response.json();
-            console.log('Users found:', users);
-            const user = users.find(u => u.username === username);
-            if (user && user.idPegawai) {
-                console.log('Found user ID:', user.idPegawai);
-                // Simpan untuk next time
-                localStorage.setItem('userId', user.idPegawai.toString());
-                return user.idPegawai;
-            }
-        }
-    } catch (error) {
-        console.error('Error fetching user ID:', error);
-    }
-    
-    console.warn('❌ No user ID found');
-    return null;
 }
 
 async function handleStockUpdate() {
@@ -917,27 +904,82 @@ async function confirmDeleteProduct(productId, productName) {
         }
     }
 }
-// Tambahkan fitur manual regenerate barcode jika needed
-async function manualRegenerateBarcode(productId) {
-    if (confirm('Generate ulang barcode image?\n\nIni akan membuat barcode image baru menggantikan yang lama.')) {
+
+// ========== HELPER FUNCTIONS ==========
+
+function notifyFinanceUpdate() {
+    console.log('📢 Notifying finance module about stock purchase...');
+
+    // Method 1: Broadcast ke semua tab
+    if (typeof BroadcastChannel !== 'undefined') {
+        const channel = new BroadcastChannel('finance_updates');
+        channel.postMessage({ type: 'STOCK_PURCHASE_ADDED' });
+        console.log('📡 Broadcast message sent');
+    }
+
+    // Method 2: LocalStorage flag (lebih reliable)
+    localStorage.setItem('finance_needs_refresh', Date.now().toString());
+    console.log('🏷️ Finance refresh flag set');
+
+    // Method 3: Jika halaman keuangan terbuka di tab lain
+    if (window.opener && !window.opener.closed) {
         try {
-            const response = await fetch(`http://localhost:8080/api/barcode/produk/${productId}/generate`, {
-                method: 'POST',
-                headers: AuthHelper.getAuthHeaders()
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                showSuccess('Barcode image berhasil digenerate ulang!');
-                await loadProductsData();
-            } else {
-                throw new Error(result.error || 'Gagal generate ulang barcode');
-            }
-        } catch (error) {
-            showError('Error: ' + error.message);
+            window.opener.postMessage({
+                type: 'FINANCE_UPDATE',
+                action: 'STOCK_PURCHASE'
+            }, '*');
+            console.log('📤 Message sent to opener window');
+        } catch (e) {
+            console.log('⚠️ Cannot send to opener:', e.message);
         }
     }
+}
+
+async function getCurrentUserIdForExpense() {
+    // Coba berbagai cara
+    const authData = AuthHelper.getAuthData();
+    if (authData?.userId) {
+        console.log('Got userId from authData:', authData.userId);
+        return authData.userId;
+    }
+
+    // Cek localStorage
+    const storedId = localStorage.getItem('userId');
+    if (storedId) {
+        console.log('Got userId from localStorage:', storedId);
+        return parseInt(storedId);
+    }
+
+    // Fallback: cari dari API berdasarkan username
+    try {
+        const username = localStorage.getItem('username');
+        if (!username) {
+            console.warn('No username in localStorage');
+            return null;
+        }
+
+        console.log('🔍 Fetching user ID for username:', username);
+        const response = await fetch(`http://localhost:8080/api/admin/akun/search?keyword=${encodeURIComponent(username)}`, {
+            headers: AuthHelper.getAuthHeaders()
+        });
+
+        if (response.ok) {
+            const users = await response.json();
+            console.log('Users found:', users);
+            const user = users.find(u => u.username === username);
+            if (user && user.idPegawai) {
+                console.log('Found user ID:', user.idPegawai);
+                // Simpan untuk next time
+                localStorage.setItem('userId', user.idPegawai.toString());
+                return user.idPegawai;
+            }
+        }
+    } catch (error) {
+        console.error('Error fetching user ID:', error);
+    }
+
+    console.warn('❌ No user ID found');
+    return null;
 }
 
 function showEmptyState() {
@@ -1119,7 +1161,7 @@ class BarcodeManager {
         }
     }
 
-    // Method baru untuk load barcode image
+    // Method untuk load barcode image
     async loadBarcodeImage(product) {
         const container = document.getElementById('barcode-display-container');
         if (!container) return;
@@ -1178,7 +1220,7 @@ class BarcodeManager {
         }
     }
 
-    // TAMBAHKAN helper method untuk placeholder
+    // Helper method untuk placeholder
     getBarcodePlaceholderHTML(productId) {
         return `
         <div class="barcode-placeholder">
@@ -1302,101 +1344,6 @@ class BarcodeManager {
         }
     }
 
-    // Print barcode label yang lebih professional
-    async printBarcodeLabel(productId, productName, barcodeText) {
-        try {
-            const response = await fetch(`http://localhost:8080/api/barcode/produk/${productId}/image`);
-            if (response.ok) {
-                const blob = await response.blob();
-                const imageUrl = URL.createObjectURL(blob);
-
-                const printWindow = window.open('', '_blank');
-                printWindow.document.write(`
-                    <!DOCTYPE html>
-                    <html>
-                    <head>
-                        <title>Print Barcode Label - ${productName}</title>
-                        <style>
-                            @media print {
-                                @page { margin: 0; size: 80mm 50mm; }
-                                body { margin: 0; padding: 5mm; font-family: Arial, sans-serif; }
-                            }
-                            body {
-                                margin: 0;
-                                padding: 10px;
-                                font-family: Arial, sans-serif;
-                                text-align: center;
-                                width: 80mm;
-                                height: 50mm;
-                                display: flex;
-                                flex-direction: column;
-                                justify-content: space-between;
-                            }
-                            .store-name {
-                                font-size: 14px;
-                                font-weight: bold;
-                                margin-bottom: 5px;
-                                color: #333;
-                            }
-                            .product-name {
-                                font-size: 12px;
-                                margin-bottom: 8px;
-                                color: #666;
-                                max-height: 32px;
-                                overflow: hidden;
-                                text-overflow: ellipsis;
-                            }
-                            .barcode-container {
-                                margin: 5px 0;
-                            }
-                            .barcode-image {
-                                max-width: 100%;
-                                height: 40px;
-                                image-rendering: pixelated;
-                            }
-                            .barcode-text {
-                                font-family: 'Courier New', monospace;
-                                font-size: 10px;
-                                letter-spacing: 1px;
-                                margin-top: 2px;
-                            }
-                            .price {
-                                font-size: 16px;
-                                font-weight: bold;
-                                color: #d00;
-                                margin-top: 5px;
-                            }
-                        </style>
-                    </head>
-                    <body>
-                        <div class="store-name">AMBATUSHOP</div>
-                        <div class="product-name">${productName}</div>
-                        <div class="barcode-container">
-                            <img src="${imageUrl}" alt="Barcode" class="barcode-image">
-                            <div class="barcode-text">${barcodeText}</div>
-                        </div>
-                        <script>
-                            window.onload = function() {
-                                window.print();
-                                setTimeout(() => {
-                                    URL.revokeObjectURL('${imageUrl}');
-                                    window.close();
-                                }, 500);
-                            }
-                        </script>
-                    </body>
-                    </html>
-                `);
-                printWindow.document.close();
-
-            } else {
-                throw new Error('Gagal load barcode untuk print');
-            }
-        } catch (error) {
-            this.showError('Print error: ' + error.message);
-        }
-    }
-
     // Regenerate barcode
     async regenerateBarcode(productId) {
         const updatedProduct = await this.generateBarcode(productId);
@@ -1423,11 +1370,6 @@ class BarcodeManager {
             document.body.removeChild(textArea);
             this.showSuccess('Barcode berhasil disalin!');
         }
-    }
-
-    // Show barcode langsung di table (hover preview)
-    showBarcodePreview(productId, element) {
-        // Implement hover preview jika diperlukan
     }
 
     // Utility functions

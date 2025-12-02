@@ -172,7 +172,7 @@ class KasirKeuangan {
 
             if (response.ok) {
                 const transactions = await response.json();
-                this.calculateFinancialSummary(transactions);
+                await this.calculateFinancialSummary(transactions);
             }
 
             // Load expenses
@@ -184,27 +184,47 @@ class KasirKeuangan {
         }
     }
 
-    calculateFinancialSummary(transactions) {
-        // Filter hanya transaksi yang sudah PAID
-        const paidTransactions = transactions.filter(t => 
-            t.paymentStatus === 'PAID' || t.paymentStatus === 'LUNAS'
-        );
+    async calculateFinancialSummary(transactions) {
+        try {
+            // Juga ambil data keuangan untuk pengeluaran
+            const keuanganResponse = await fetch('http://localhost:8080/api/keuangan', {
+                headers: AuthHelper.getAuthHeaders()
+            });
+            
+            let totalPengeluaran = 0;
+            if (keuanganResponse.ok) {
+                const keuanganData = await keuanganResponse.json();
+                totalPengeluaran = keuanganData
+                    .filter(k => k.jenis === 'PENGELUARAN' || 
+                               (k.jenis && k.jenis.toString().toUpperCase().includes('PENGELUARAN')))
+                    .reduce((sum, k) => sum + (k.nominal || 0), 0);
+            }
+            
+            // Filter hanya transaksi yang sudah PAID
+            const paidTransactions = transactions.filter(t => 
+                t.paymentStatus === 'PAID' || t.paymentStatus === 'LUNAS'
+            );
 
-        // Hitung total pemasukan
-        const totalIncome = paidTransactions.reduce((sum, t) => sum + (t.total || 0), 0);
-        
-        // Hitung rata-rata transaksi
-        const avgTransaction = paidTransactions.length > 0 
-            ? totalIncome / paidTransactions.length 
-            : 0;
+            // Hitung total pemasukan
+            const totalIncome = paidTransactions.reduce((sum, t) => sum + (t.total || 0), 0);
+            
+            // Hitung rata-rata transaksi
+            const avgTransaction = paidTransactions.length > 0 
+                ? totalIncome / paidTransactions.length 
+                : 0;
 
-        // Update UI
-        document.getElementById('total-income').textContent = this.formatCurrency(totalIncome);
-        document.getElementById('success-transactions').textContent = paidTransactions.length;
-        document.getElementById('average-transaction').textContent = this.formatCurrency(avgTransaction);
+            // Update UI
+            document.getElementById('total-income').textContent = this.formatCurrency(totalIncome);
+            document.getElementById('total-expense').textContent = this.formatCurrency(totalPengeluaran);
+            document.getElementById('success-transactions').textContent = paidTransactions.length;
+            document.getElementById('average-transaction').textContent = this.formatCurrency(avgTransaction);
 
-        // Tampilkan detail pemasukan
-        this.displayIncomeDetails(paidTransactions);
+            // Tampilkan detail pemasukan
+            this.displayIncomeDetails(paidTransactions);
+            
+        } catch (error) {
+            console.error('Error in calculateFinancialSummary:', error);
+        }
     }
 
     async loadExpenses() {
@@ -230,20 +250,26 @@ class KasirKeuangan {
             return;
         }
 
-        incomeList.innerHTML = transactions.slice(0, 10).map(transaction => `
-            <div class="detail-item-card">
-                <div class="detail-item-header">
-                    <span class="detail-item-title">Transaksi #${transaction.referenceNumber}</span>
-                    <span class="detail-item-amount income">${this.formatCurrency(transaction.total)}</span>
+        incomeList.innerHTML = transactions.slice(0, 10).map(transaction => {
+            const metode = transaction.metodePembayaran || transaction.metode_pembayaran || 'TUNAI';
+            const kasir = transaction.namaKasir || transaction.kasirName || 'Kasir';
+            
+            return `
+                <div class="detail-item-card">
+                    <div class="detail-item-header">
+                        <span class="detail-item-title">Transaksi #${transaction.referenceNumber || transaction.idTransaksi}</span>
+                        <span class="detail-item-amount income">${this.formatCurrency(transaction.total)}</span>
+                    </div>
+                    <div class="detail-item-description">
+                        Pembayaran ${metode} • ${this.formatDate(transaction.tanggal)}
+                    </div>
+                    <div class="detail-item-date">
+                        ${this.formatDateTime(transaction.tanggal)}
+                        <span style="margin-left:8px;color:#666">• Oleh: ${kasir}</span>
+                    </div>
                 </div>
-                <div class="detail-item-description">
-                    Pembayaran ${transaction.paymentMethod || 'TUNAI'} • ${this.formatDate(transaction.tanggal)}
-                </div>
-                <div class="detail-item-date">
-                    ${this.formatDateTime(transaction.tanggal)}
-                </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
     }
 
     displayExpenses(expenses) {
@@ -256,50 +282,87 @@ class KasirKeuangan {
             return;
         }
 
+        // Filter hanya pengeluaran
+        const expenseItems = expenses.filter(e => 
+            e.jenis === 'PENGELUARAN' || 
+            (e.jenis && e.jenis.toString().toUpperCase().includes('PENGELUARAN'))
+        );
+        
         // Total pengeluaran
-        const totalExpense = expenses.reduce((sum, e) => sum + (e.nominal || 0), 0);
-        document.getElementById('total-expense').textContent = this.formatCurrency(totalExpense);
+        const totalExpense = expenseItems.reduce((sum, e) => sum + (e.nominal || 0), 0);
+        
+        // Update total expense card
+        const totalExpenseElement = document.getElementById('total-expense');
+        if (totalExpenseElement) {
+            totalExpenseElement.textContent = this.formatCurrency(totalExpense);
+        }
 
         // Display expense list
-        expenseList.innerHTML = expenses.map(expense => `
-            <div class="detail-item-card">
-                <div class="detail-item-header">
-                    <span class="detail-item-title">${expense.keterangan}</span>
-                    <span class="detail-item-amount expense">${this.formatCurrency(expense.nominal)}</span>
+        expenseList.innerHTML = expenseItems.map(expense => {
+            const jenis = this.getExpenseTypeText(expense.jenis);
+            const kategori = this.getExpenseCategory(expense.keterangan);
+            const pegawai = expense.akun?.username || 'System';
+            
+            return `
+                <div class="detail-item-card">
+                    <div class="detail-item-header">
+                        <span class="detail-item-title">${expense.keterangan || 'Pengeluaran'}</span>
+                        <span class="detail-item-amount expense">${this.formatCurrency(expense.nominal)}</span>
+                    </div>
+                    <div class="detail-item-description">
+                        ${jenis} • ${kategori}
+                    </div>
+                    <div class="detail-item-date">
+                        ${this.formatDateTime(expense.tanggal)}
+                        <span style="margin-left:8px;color:#666">• Dicatat oleh: ${pegawai}</span>
+                    </div>
                 </div>
-                <div class="detail-item-description">
-                    ${this.getExpenseTypeText(expense.jenis)}
-                </div>
-                <div class="detail-item-date">
-                    ${this.formatDateTime(expense.tanggal)}
-                </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
 
         // Display recent expenses (max 5)
-        const recentExpenses = expenses.slice(0, 5);
-        recentList.innerHTML = recentExpenses.map(expense => `
-            <div class="recent-item">
-                <div class="recent-header">
-                    <span class="recent-type ${expense.jenis || 'LAINNYA'}">
-                        ${this.getExpenseTypeText(expense.jenis)}
-                    </span>
-                    <span class="recent-amount">${this.formatCurrency(expense.nominal)}</span>
+        const recentExpenses = expenseItems.slice(0, 5);
+        recentList.innerHTML = recentExpenses.map(expense => {
+            const jenis = this.getExpenseTypeText(expense.jenis);
+            
+            return `
+                <div class="recent-item">
+                    <div class="recent-header">
+                        <span class="recent-type ${this.getExpenseCategory(expense.keterangan)}">
+                            ${jenis}
+                        </span>
+                        <span class="recent-amount">${this.formatCurrency(expense.nominal)}</span>
+                    </div>
+                    <div class="recent-description">${expense.keterangan}</div>
+                    <div class="recent-date">${this.formatDate(expense.tanggal)}</div>
                 </div>
-                <div class="recent-description">${expense.keterangan}</div>
-                <div class="recent-date">${this.formatDate(expense.tanggal)}</div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
     }
 
     getExpenseTypeText(type) {
-        const typeMap = {
-            'OPERASIONAL': 'Operasional',
-            'STOK': 'Pembelian Stok',
-            'GAJI': 'Gaji Karyawan',
-            'LAINNYA': 'Lainnya'
-        };
-        return typeMap[type] || 'Lainnya';
+        if (!type) return 'Lainnya';
+        
+        const typeStr = type.toString().toUpperCase();
+        if (typeStr.includes('OPERASIONAL')) return 'Operasional';
+        if (typeStr.includes('STOK') || typeStr.includes('STOCK')) return 'Pembelian Stok';
+        if (typeStr.includes('GAJI') || typeStr.includes('SALARY')) return 'Gaji Karyawan';
+        if (typeStr.includes('PENGELUARAN')) return 'Pengeluaran';
+        
+        return 'Lainnya';
+    }
+    
+    getExpenseCategory(keterangan) {
+        if (!keterangan) return 'LAINNYA';
+        
+        const k = keterangan.toLowerCase();
+        if (k.includes('stok') || k.includes('beli') || k.includes('pembelian')) return 'STOK';
+        if (k.includes('gaji') || k.includes('upah')) return 'GAJI';
+        if (k.includes('listrik') || k.includes('air') || k.includes('pln')) return 'UTILITAS';
+        if (k.includes('sewa')) return 'SEWA';
+        if (k.includes('operasional')) return 'OPERASIONAL';
+        
+        return 'LAINNYA';
     }
 
     async handleExpenseSubmit(e) {
@@ -315,12 +378,26 @@ class KasirKeuangan {
                 return;
             }
 
+            if (amount <= 0) {
+                this.showError('Jumlah harus lebih dari 0');
+                return;
+            }
+
+            // Get user info
+            const authData = AuthHelper.getAuthData();
+            if (!authData) {
+                throw new Error('User tidak terautentikasi');
+            }
+
             const expenseData = {
                 jenis: type,
                 nominal: amount,
                 keterangan: description,
-                tanggal: new Date().toISOString()
+                tanggal: new Date().toISOString(),
+                akun: { idPegawai: authData.userId || 1 } // Fallback ke user ID 1 jika null
             };
+
+            console.log('📤 Adding expense:', expenseData);
 
             const response = await fetch('http://localhost:8080/api/keuangan', {
                 method: 'POST',
@@ -334,9 +411,10 @@ class KasirKeuangan {
             if (response.ok) {
                 this.showSuccess('Pengeluaran berhasil disimpan');
                 document.getElementById('expense-form').reset();
-                await this.loadFinancialData();
+                await this.loadFinancialData(); // Reload data
             } else {
-                throw new Error('Gagal menyimpan pengeluaran');
+                const errorText = await response.text();
+                throw new Error(`Gagal menyimpan: ${response.status} - ${errorText}`);
             }
 
         } catch (error) {
@@ -346,6 +424,7 @@ class KasirKeuangan {
     }
 
     formatCurrency(amount) {
+        if (amount === null || amount === undefined || isNaN(amount)) return 'Rp 0';
         return new Intl.NumberFormat('id-ID', {
             style: 'currency',
             currency: 'IDR',
@@ -354,24 +433,53 @@ class KasirKeuangan {
     }
 
     formatDate(dateString) {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('id-ID', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric'
-        });
+        try {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('id-ID', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric'
+            });
+        } catch (e) {
+            return 'Invalid Date';
+        }
     }
 
     formatDateTime(dateString) {
-        const date = new Date(dateString);
-        return date.toLocaleTimeString('id-ID', {
-            hour: '2-digit',
-            minute: '2-digit'
-        }) + ' • ' + this.formatDate(dateString);
+        try {
+            const date = new Date(dateString);
+            const time = date.toLocaleTimeString('id-ID', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            return `${time} • ${this.formatDate(dateString)}`;
+        } catch (e) {
+            return 'Invalid Date';
+        }
     }
 
     showError(message) {
-        alert('❌ ' + message);
+        // Tampilkan notifikasi error
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 12px 20px;
+            border-radius: 8px;
+            z-index: 10000;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            border: 1px solid #fecaca;
+        `;
+        notification.textContent = '❌ ' + message;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.remove();
+        }, 5000);
     }
 
     showSuccess(message) {
