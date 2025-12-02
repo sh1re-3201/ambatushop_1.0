@@ -196,67 +196,68 @@ async function loadFinancialData() {
 
 // ========== FUNGSI BARU UNTUK INTEGRASI ==========
 
+// FUNGSI BARU yang benar
 function processIntegratedData(keuanganData, transaksiData) {
-    console.log('🔧 Processing integrated data...');
+    console.log('🔧 Processing integrated data dengan LOGIKA BARU...');
 
-    // Pastikan data array
-    keuanganData = Array.isArray(keuanganData) ? keuanganData : [];
-    transaksiData = Array.isArray(transaksiData) ? transaksiData : [];
-
-    // 1. Pisahkan transaksi menjadi:
-    //    a. PENJUALAN (pemasukan): transaksi reguler PAID
-    //    b. STOCK PURCHASE (pengeluaran): transaksi dengan paymentGatewayResponse mengandung "STOCK_PURCHASE"
-
-    // Semua transaksi PAID/LUNAS
-    const allPaidTransactions = transaksiData.filter(t =>
-        t && (t.paymentStatus === 'PAID' || t.paymentStatus === 'LUNAS' || t.paymentStatus === 'SETTLEMENT')
-    );
-
-    // STOCK PURCHASE (PENGELUARAN)
-    const stockPurchases = allPaidTransactions.filter(t =>
-        t.paymentGatewayResponse &&
-        (t.paymentGatewayResponse.includes('STOCK_PURCHASE') ||
-            t.paymentGatewayResponse.includes('stock_purchase'))
-    );
-
-    // PENJUALAN (PEMASUKAN) - transaksi PAID yang BUKAN stock purchase
-    const salesTransactions = allPaidTransactions.filter(t =>
-        !(t.paymentGatewayResponse &&
-            (t.paymentGatewayResponse.includes('STOCK_PURCHASE') ||
-                t.paymentGatewayResponse.includes('stock_purchase')))
-    );
-
-    console.log('📊 Transaction breakdown:', {
-        totalPaid: allPaidTransactions.length,
-        stockPurchases: stockPurchases.length,
-        sales: salesTransactions.length
-    });
-
-    // 2. HITUNG PEMASUKAN HANYA DARI PENJUALAN
-    const totalPemasukan = salesTransactions.reduce((sum, t) => sum + (parseFloat(t.total) || 0), 0);
-
-    // 3. HITUNG PENGELUARAN DARI:
-    //    a. Keuangan manual (PENGELUARAN)
+    // 1. Filter HANYA pengeluaran manual dari keuanganData
     const manualExpenses = keuanganData.filter(k => {
         if (!k) return false;
         const jenis = k.jenis ? k.jenis.toString().toUpperCase() : '';
-        return jenis === 'PENGELUARAN' || jenis.includes('PENGELUARAN');
+        // ✅ HANYA ambil yang PENGELUARAN
+        return jenis === 'PENGELUARAN';
     });
 
+    console.log('📊 Manual expenses found:', manualExpenses.length);
+
+    // 2. Filter transaksi untuk PEMASUKAN dan PENGELUARAN STOCK
+    const allTransaksi = Array.isArray(transaksiData) ? transaksiData : [];
+
+    // PEMASUKAN: Transaksi PAID yang BUKAN stock purchase
+    const incomeTransactions = allTransaksi.filter(t => {
+        if (!t) return false;
+
+        // Status harus PAID
+        if (!(t.paymentStatus === 'PAID' || t.paymentStatus === 'LUNAS')) return false;
+
+        // ✅ BUKAN stock purchase
+        const isStockPurchase = t.paymentGatewayResponse &&
+            (t.paymentGatewayResponse.toString().toUpperCase().includes('STOCK_PURCHASE') ||
+                t.paymentGatewayResponse.toString().toUpperCase().includes('PEMBELIAN'));
+        return !isStockPurchase;
+    });
+
+    // PENGELUARAN STOCK: Transaksi yang stock purchase
+    const stockPurchaseTransactions = allTransaksi.filter(t => {
+        if (!t) return false;
+
+        // Status harus PAID
+        if (!(t.paymentStatus === 'PAID' || t.paymentStatus === 'LUNAS')) return false;
+
+        // ✅ HARUS stock purchase
+        return t.paymentGatewayResponse &&
+            (t.paymentGatewayResponse.toString().toUpperCase().includes('STOCK_PURCHASE') ||
+                t.paymentGatewayResponse.toString().toUpperCase().includes('PEMBELIAN'));
+    });
+
+    console.log('📊 Transaction breakdown:', {
+        totalTransactions: allTransaksi.length,
+        incomeTransactions: incomeTransactions.length,
+        stockPurchases: stockPurchaseTransactions.length
+    });
+
+    // 3. HITUNG TOTAL
+    const totalPemasukan = incomeTransactions.reduce((sum, t) => sum + (parseFloat(t.total) || 0), 0);
+
     const pengeluaranManual = manualExpenses.reduce((sum, k) => sum + (parseFloat(k.nominal) || 0), 0);
-
-    //    b. Stock purchase dari transaksi (SUDAH TERFILTER)
-    const pengeluaranStock = stockPurchases.reduce((sum, t) => sum + (parseFloat(t.total) || 0), 0);
-
+    const pengeluaranStock = stockPurchaseTransactions.reduce((sum, t) => sum + (parseFloat(t.total) || 0), 0);
     const totalPengeluaran = pengeluaranManual + pengeluaranStock;
 
-    // 4. GABUNGKAN SEMUA RECORDS UNTUK DISPLAY
+    // 4. GABUNGKAN RECORDS
     const allRecords = [];
 
-    // Tambahkan PEMASUKAN HANYA DARI PENJUALAN (sales)
-    salesTransactions.forEach(t => {
-        if (!t) return;
-
+    // ✅ PEMASUKAN HANYA DARI PENJUALAN
+    incomeTransactions.forEach(t => {
         allRecords.push({
             id: 'INC-' + (t.idTransaksi || t.id),
             type: 'PEMASUKAN',
@@ -268,16 +269,13 @@ function processIntegratedData(keuanganData, transaksiData) {
             details: {
                 metode: t.metodePembayaran || t.metode_pembayaran || 'TUNAI',
                 kasir: t.namaKasir || t.kasirName || t.akun?.username || 'Kasir',
-                status: t.paymentStatus || 'PAID',
-                isSale: true
+                isStockPurchase: false
             }
         });
     });
 
-    // Tambahkan PENGELUARAN manual dari keuangan
+    // ✅ PENGELUARAN MANUAL (hanya dari keuangan)
     manualExpenses.forEach(k => {
-        if (!k) return;
-
         allRecords.push({
             id: 'EXP-MANUAL-' + (k.idKeuangan || k.id),
             type: 'PENGELUARAN',
@@ -293,17 +291,15 @@ function processIntegratedData(keuanganData, transaksiData) {
         });
     });
 
-    // Tambahkan PENGELUARAN stock purchase dari transaksi
-    stockPurchases.forEach(t => {
-        if (!t) return;
-
+    // ✅ PENGELUARAN STOCK PURCHASE
+    stockPurchaseTransactions.forEach(t => {
         const notes = t.paymentGatewayResponse || '';
-        const keterangan = parseStockPurchaseNotes(notes);
+        const description = parseStockPurchaseNotes(notes);
 
         allRecords.push({
             id: 'EXP-STOCK-' + (t.idTransaksi || t.id),
             type: 'PENGELUARAN',
-            description: keterangan,
+            description: description,
             amount: parseFloat(t.total) || 0,
             tanggal: t.tanggal || new Date().toISOString(),
             category: 'STOK',
@@ -311,22 +307,21 @@ function processIntegratedData(keuanganData, transaksiData) {
             details: {
                 reference: t.referenceNumber || t.id,
                 kasir: t.namaKasir || t.kasirName || t.akun?.username || 'Kasir',
-                notes: notes,
                 isStockPurchase: true
             }
         });
     });
 
-    // Urutkan dari terbaru ke terlama
+    // Urutkan dari terbaru
     allRecords.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
 
     return {
         totalPemasukan,
         totalPengeluaran,
         labaBersih: totalPemasukan - totalPengeluaran,
-        totalTransaksi: transaksiData.length,
-        salesTransactions: salesTransactions.length,
-        stockPurchases: stockPurchases.length,
+        totalTransaksi: allTransaksi.length,
+        salesCount: incomeTransactions.length,
+        stockPurchaseCount: stockPurchaseTransactions.length,
         manualExpensesCount: manualExpenses.length,
         totalRecords: allRecords.length,
         records: allRecords,
@@ -355,12 +350,12 @@ function categorizeExpense(keterangan) {
 
 function parseStockPurchaseNotes(notes) {
     if (!notes) return 'Pembelian Stok';
-    
+
     try {
         // Format: "STOCK_PURCHASE|Product:xxx|Supplier:yyy|Notes:zzz"
         const parts = notes.split('|');
         let description = 'Pembelian Stok';
-        
+
         parts.forEach(part => {
             if (part.includes('Product:')) {
                 const product = part.split(':')[1] || '';
@@ -371,7 +366,7 @@ function parseStockPurchaseNotes(notes) {
                 description += ` (${part.split(':')[1]})`;
             }
         });
-        
+
         return description;
     } catch (e) {
         return 'Pembelian Stok';
@@ -381,21 +376,21 @@ function parseStockPurchaseNotes(notes) {
 // TAMBAHKAN fungsi helper untuk cek stock purchase
 function isStockPurchase(transaksi) {
     if (!transaksi) return false;
-    
+
     // Cek berdasarkan paymentGatewayResponse
     if (transaksi.paymentGatewayResponse) {
         const response = transaksi.paymentGatewayResponse.toString().toUpperCase();
-        return response.includes('STOCK_PURCHASE') || 
-               response.includes('PEMBELIAN') ||
-               response.includes('BELI') ||
-               response.includes('STOK');
+        return response.includes('STOCK_PURCHASE') ||
+            response.includes('PEMBELIAN') ||
+            response.includes('BELI') ||
+            response.includes('STOK');
     }
-    
+
     // Cek berdasarkan metode pembayaran dan total (fallback)
     // Stock purchase biasanya TUNAI dan ada di transaksi khusus
-    return transaksi.metodePembayaran === 'TUNAI' && 
-           transaksi.paymentStatus === 'PAID' &&
-           !transaksi.referenceNumber?.includes('TRX'); // bukan transaksi penjualan reguler
+    return transaksi.metodePembayaran === 'TUNAI' &&
+        transaksi.paymentStatus === 'PAID' &&
+        !transaksi.referenceNumber?.includes('TRX'); // bukan transaksi penjualan reguler
 }
 
 function updateFinancialUI(integratedData) {
@@ -512,7 +507,7 @@ function updateIntegratedExpensesTable(records) {
 
 function updateBreakdownSummary(integratedData) {
     const { breakdown, totalPemasukan, totalPengeluaran, labaBersih } = integratedData;
-    
+
     // Update ringkasan keuangan - FIXED LOGIC
     const summaryHtml = `
         <tr style="border-bottom:1px solid var(--border-color)">
@@ -552,7 +547,7 @@ function updateBreakdownSummary(integratedData) {
             </td>
         </tr>
     `;
-    
+
     const tbody = document.querySelector('.card table tbody');
     if (tbody) {
         tbody.innerHTML = summaryHtml;
@@ -650,6 +645,52 @@ async function fetchKeuanganData() {
         showError('Gagal mengambil data pengeluaran');
         return [];
     }
+}
+
+function updateFinancialSummaryTable(integratedData) {
+    const tbody = document.getElementById('financial-summary-tbody');
+    if (!tbody) return;
+
+    const { breakdown, totalPemasukan, totalPengeluaran, labaBersih } = integratedData;
+
+    tbody.innerHTML = `
+        <tr style="border-bottom:1px solid var(--border-color)">
+            <td style="padding:12px 8px;color:var(--text-primary)">📈 Penjualan Produk</td>
+            <td style="padding:12px 8px;text-align:right;font-weight:600;color:#10b759">
+                ${formatCurrency(breakdown.salesIncome)}
+            </td>
+            <td style="padding:12px 8px;text-align:right;color:#666;font-size:12px">
+                Pemasukan dari transaksi penjualan
+            </td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border-color)">
+            <td style="padding:12px 8px;color:var(--text-primary)">📦 Pembelian Stok</td>
+            <td style="padding:12px 8px;text-align:right;font-weight:600;color:#ff5252">
+                -${formatCurrency(breakdown.stockExpenses)}
+            </td>
+            <td style="padding:12px 8px;text-align:right;color:#666;font-size:12px">
+                Pengeluaran untuk restock produk
+            </td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border-color)">
+            <td style="padding:12px 8px;color:var(--text-primary)">💰 Operasional & Lainnya</td>
+            <td style="padding:12px 8px;text-align:right;font-weight:600;color:#ff5252">
+                -${formatCurrency(breakdown.manualExpenses)}
+            </td>
+            <td style="padding:12px 8px;text-align:right;color:#666;font-size:12px">
+                Pengeluaran operasional manual
+            </td>
+        </tr>
+        <tr style="border-top:2px solid var(--border-color)">
+            <td style="padding:12px 8px;font-weight:700;color:var(--text-primary)">💰 Total Laba Bersih</td>
+            <td style="padding:12px 8px;text-align:right;font-weight:700;color:${labaBersih >= 0 ? '#10b759' : '#ff5252'}">
+                ${formatCurrency(labaBersih)}
+            </td>
+            <td style="padding:12px 8px;text-align:right;color:#666;font-size:12px">
+                ${labaBersih >= 0 ? '✅ Keuntungan' : '⚠️ Kerugian'}
+            </td>
+        </tr>
+    `;
 }
 
 async function fetchTransaksiData() {

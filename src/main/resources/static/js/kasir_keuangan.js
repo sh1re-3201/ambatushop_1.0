@@ -184,6 +184,9 @@ class KasirKeuangan {
         }
     }
 
+
+
+
     async calculateFinancialSummary(transactions) {
         try {
             // Juga ambil data keuangan untuk pengeluaran

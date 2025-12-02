@@ -282,46 +282,26 @@
         </div>
 
         <!-- Tabel Ringkasan -->
+        <!-- Di manajer_keuangan.html, ganti bagian ringkasan -->
         <div class="card" style="margin-top:28px;padding:24px">
           <h3 style="margin:0 0 16px 0;color:var(--text-primary)">Ringkasan Keuangan Terkini</h3>
-          <!--          <a class="action-buttons" href="/api/export/download">Download Laporan</a>-->
-          <!--          <button class="dropdown-item" id="refresh-data-btn">Segarkan Data</button>-->
-          <button id="download-btn" class="action-buttons">Download Laporan</button>
+          <button id="download-btn" class="action-buttons">📥 Download Laporan Excel</button>
+
           <table style="width:100%;border-collapse:collapse">
             <thead>
               <tr style="border-bottom:2px solid var(--border-color)">
                 <th style="text-align:left;padding:12px 8px;color:var(--text-secondary);font-weight:600">Kategori</th>
                 <th style="text-align:right;padding:12px 8px;color:var(--text-secondary);font-weight:600">Jumlah</th>
-                <th style="text-align:right;padding:12px 8px;color:var(--text-secondary);font-weight:600">Perubahan</th>
+                <th style="text-align:right;padding:12px 8px;color:var(--text-secondary);font-weight:600">Keterangan
+                </th>
               </tr>
             </thead>
-            <tbody>
-              <tr style="border-bottom:1px solid var(--border-color)">
-                <td style="padding:12px 8px;color:var(--text-primary)">Penjualan Produk</td>
-                <td style="padding:12px 8px;text-align:right;font-weight:600;color:var(--text-primary)">Rp 12.850.000
-                </td>
-                <td style="padding:12px 8px;text-align:right;color:#10b759">+12.5%</td>
-              </tr>
-              <tr style="border-bottom:1px solid var(--border-color)">
-                <td style="padding:12px 8px;color:var(--text-primary)">Pembelian Stok</td>
-                <td style="padding:12px 8px;text-align:right;font-weight:600;color:var(--text-primary)">Rp 6.200.000
-                </td>
-                <td style="padding:12px 8px;text-align:right;color:#ff5252">+8.2%</td>
-              </tr>
-              <tr style="border-bottom:1px solid var(--border-color)">
-                <td style="padding:12px 8px;color:var(--text-primary)">Operasional</td>
-                <td style="padding:12px 8px;text-align:right;font-weight:600;color:var(--text-primary)">Rp 2.720.000
-                </td>
-                <td style="padding:12px 8px;text-align:right;color:#ff5252">+3.1%</td>
-              </tr>
-              <tr>
-                <td style="padding:12px 8px;font-weight:700;color:var(--text-primary)">Total Laba</td>
-                <td style="padding:12px 8px;text-align:right;font-weight:700;color:#10b759">Rp 6.530.000</td>
-                <td style="padding:12px 8px;text-align:right;color:#10b759;font-weight:600">+18.4%</td>
-              </tr>
+            <tbody id="financial-summary-tbody">
+              <!-- Data akan diisi oleh JavaScript -->
             </tbody>
           </table>
         </div>
+
       </section>
     </main>
   </div>
