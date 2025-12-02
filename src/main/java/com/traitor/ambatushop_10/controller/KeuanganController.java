@@ -1,5 +1,6 @@
 package com.traitor.ambatushop_10.controller;
 
+import com.traitor.ambatushop_10.dto.FinancialSummary;
 import com.traitor.ambatushop_10.model.Keuangan;
 import com.traitor.ambatushop_10.service.KeuanganService;
 import lombok.AllArgsConstructor;
@@ -17,91 +18,82 @@ public class KeuanganController {
 
     private final KeuanganService keuanganService;
 
-    // GET semua pengeluaran manual
-    @GetMapping
-    @PreAuthorize("hasAnyRole('MANAJER', 'ADMIN')")
-    public List<Keuangan> getAllKeuangan() {
-        // Hanya return pengeluaran manual
-        return keuanganService.getAllKeuangan().stream()
+    // ===== ENDPOINT UNTUK SEMUA ROLE (KASIR, MANAJER, ADMIN) =====
+
+    @GetMapping("/summary")
+    @PreAuthorize("hasAnyRole('KASIR', 'MANAJER', 'ADMIN')")
+    public FinancialSummary getFinancialSummary() {
+        List<Keuangan> allKeuangan = keuanganService.getAllKeuangan();
+
+        // Filter dan hitung total
+        double totalPemasukan = allKeuangan.stream()
+                .filter(k -> k.getJenis() == Keuangan.JenisTransaksi.PEMASUKAN)
+                .mapToDouble(Keuangan::getNominal)
+                .sum();
+
+        double totalPengeluaran = allKeuangan.stream()
                 .filter(k -> k.getJenis() == Keuangan.JenisTransaksi.PENGELUARAN)
+                .mapToDouble(Keuangan::getNominal)
+                .sum();
+
+        return new FinancialSummary(totalPemasukan, totalPengeluaran, allKeuangan.size());
+    }
+
+    @GetMapping("/kasir/recent")
+    @PreAuthorize("hasAnyRole('KASIR', 'MANAJER', 'ADMIN')")
+    public List<Keuangan> getRecentKeuangan(@RequestParam(defaultValue = "10") int limit) {
+        List<Keuangan> allKeuangan = keuanganService.getAllKeuangan();
+        // Ambil data terbaru
+        return allKeuangan.stream()
+                .sorted((a, b) -> b.getTanggal().compareTo(a.getTanggal()))
+                .limit(limit)
                 .toList();
     }
 
-    // CREATE pengeluaran manual
-    @PostMapping
-    @PreAuthorize("hasAnyRole('MANAJER', 'ADMIN', 'KASIR')")
-    public ResponseEntity<?> createKeuangan(@RequestBody Keuangan keuangan) {
+    @GetMapping("/kasir/by-type/{jenis}")
+    @PreAuthorize("hasAnyRole('KASIR', 'MANAJER', 'ADMIN')")
+    public List<Keuangan> getKeuanganByType(@PathVariable String jenis) {
+        Keuangan.JenisTransaksi jenisEnum;
         try {
-            // PASTIKAN hanya PENGELUARAN yang bisa dibuat
-            keuangan.setJenis(Keuangan.JenisTransaksi.PENGELUARAN);
-            
-            Keuangan created = keuanganService.createKeuangan(keuangan);
-            return ResponseEntity.ok(created);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("error", "Gagal menyimpan pengeluaran", "message", e.getMessage()));
+            jenisEnum = Keuangan.JenisTransaksi.valueOf(jenis.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Jenis tidak valid: " + jenis);
         }
+
+        return keuanganService.getByJenis(jenisEnum);
     }
 
-    // GET pengeluaran by ID
+    @PostMapping("/kasir/add")
+    @PreAuthorize("hasAnyRole('KASIR', 'MANAJER', 'ADMIN')")
+    public Keuangan createKeuanganForKasir(@RequestBody Keuangan keuangan) {
+        return keuanganService.createKeuanganForKasir(keuangan);
+    }
+
+    // ===== ENDPOINT UNTUK MANAJER & ADMIN SAJA (TETAP ADA) =====
+
+    @GetMapping
+    @PreAuthorize("hasAnyRole('MANAJER', 'ADMIN')")
+    public List<Keuangan> getAllKeuangan() {
+        return keuanganService.getAllKeuangan();
+    }
+
+    @PostMapping
+    @PreAuthorize("hasRole('MANAJER')")
+    public Keuangan createKeuangan(@RequestBody Keuangan keuangan) {
+        return keuanganService.createKeuangan(keuangan);
+    }
+
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('MANAJER', 'ADMIN')")
-    public ResponseEntity<?> getKeuanganById(@PathVariable long id) {
-        try {
-            Keuangan keuangan = keuanganService.getKeuanganById(id);
-            // Cek apakah ini pengeluaran
-            if (keuangan.getJenis() != Keuangan.JenisTransaksi.PENGELUARAN) {
-                return ResponseEntity.notFound().build();
-            }
-            return ResponseEntity.ok(keuangan);
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+    public Keuangan getKeuanganById(@PathVariable long id) {
+        return keuanganService.getKeuanganById(id);
     }
 
-    // DELETE pengeluaran manual
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('MANAJER', 'ADMIN')")
-    public ResponseEntity<?> deleteKeuangan(@PathVariable long id) {
-        try {
-            keuanganService.deleteKeuangan(id);
-            return ResponseEntity.ok("Pengeluaran berhasil dihapus");
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("error", "Gagal menghapus pengeluaran", "message", e.getMessage()));
-        }
+    public String deleteKeuangan(@PathVariable long id) {
+        keuanganService.deleteKeuangan(id);
+        return "Pengeluaran berhasil dihapus";
     }
 
-    /**
-     *  Get integrated financial data (untuk dashboard)
-     */
-    @GetMapping("/summary")
-    @PreAuthorize("hasAnyRole('MANAJER', 'ADMIN', 'KASIR')")
-    public ResponseEntity<Map<String, Object>> getFinancialSummary() {
-        try {
-            Map<String, Object> summary = keuanganService.getFinancialSummary();
-            return ResponseEntity.ok(summary);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("error", "Gagal mengambil summary keuangan", "message", e.getMessage()));
-        }
-    }
-
-    /**
-     *  Get integrated records (pemasukan + pengeluaran)
-     */
-    @GetMapping("/integrated")
-    @PreAuthorize("hasAnyRole('MANAJER', 'ADMIN', 'KASIR')")
-    public ResponseEntity<?> getIntegratedRecords() {
-        try {
-            // Ini akan diimplementasi di frontend dengan menggabungkan data
-            // dari transaksi dan keuangan
-            return ResponseEntity.ok(Map.of(
-                "message", "Use /api/transaksi for income data and /api/keuangan for expense data"
-            ));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("error", "Gagal mengambil data terintegrasi", "message", e.getMessage()));
-        }
-    }
 }

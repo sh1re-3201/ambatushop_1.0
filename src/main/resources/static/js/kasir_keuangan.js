@@ -9,6 +9,8 @@ class KasirKeuangan {
         this.initSidebar();
         this.initEventListeners();
         await this.loadFinancialData();
+
+        this.setupAutoRefresh();
     }
 
     async checkAuth() {
@@ -20,6 +22,29 @@ class KasirKeuangan {
             window.location.href = '/login';
             return;
         }
+    }
+
+    setupAutoRefresh() {
+        // Refresh setiap 10 detik
+        setInterval(async () => {
+            await this.loadFinancialData();
+        }, 10000);
+
+        // Listen untuk storage events (update dari halaman lain)
+        window.addEventListener('storage', (event) => {
+            if (event.key === 'finance_needs_refresh') {
+                console.log('💾 Storage event detected: finance needs refresh');
+                this.loadFinancialData();
+            }
+        });
+
+        // Listen untuk broadcast messages
+        window.addEventListener('message', (event) => {
+            if (event.data.type === 'FINANCE_UPDATE') {
+                console.log('📩 Received finance update broadcast');
+                this.loadFinancialData();
+            }
+        });
     }
 
     initSidebar() {
@@ -124,11 +149,11 @@ class KasirKeuangan {
         detailTabs.forEach(tab => {
             tab.addEventListener('click', () => {
                 const tabId = tab.dataset.tab;
-                
+
                 // Update active tab
                 detailTabs.forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
-                
+
                 // Show corresponding content
                 document.querySelectorAll('.tab-content').forEach(content => {
                     content.classList.remove('active');
@@ -163,72 +188,176 @@ class KasirKeuangan {
 
     async loadFinancialData() {
         try {
-            const period = document.getElementById('period-filter').value;
-            
-            // Load transactions for income calculation
+            console.log('🔄 Kasir loading financial data...');
+
+            // Load summary data
+            await this.loadFinancialSummary();
+
+            // Load recent expenses
+            await this.loadRecentExpenses();
+
+            // Load income details (from transactions)
+            await this.loadIncomeDetails();
+
+        } catch (error) {
+            console.error('Error loading financial data:', error);
+            this.showError('Gagal memuat data keuangan: ' + error.message);
+        }
+    }
+
+    async loadFinancialSummary() {
+        try {
+            // Gunakan endpoint baru yang bisa diakses kasir
+            const summaryResponse = await fetch('http://localhost:8080/api/keuangan/summary', {
+                headers: AuthHelper.getAuthHeaders()
+            });
+
+            if (!summaryResponse.ok) {
+                // Fallback: coba hitung manual
+                await this.calculateSummaryManually();
+                return;
+            }
+
+            const summary = await summaryResponse.json();
+
+            // Update summary cards
+            document.getElementById('total-income').textContent = this.formatCurrency(summary.totalPemasukan);
+            document.getElementById('total-expense').textContent = this.formatCurrency(summary.totalPengeluaran);
+
+            // Untuk transaksi berhasil, ambil dari endpoint transaksi
+            await this.loadTransactionStats();
+
+        } catch (error) {
+            console.error('Error loading summary:', error);
+            await this.calculateSummaryManually();
+        }
+    }
+
+
+
+
+
+    async calculateSummaryManually() {
+        try {
+            // Load recent keuangan untuk kasir
+            const keuanganResponse = await fetch('http://localhost:8080/api/keuangan/kasir/recent?limit=50', {
+                headers: AuthHelper.getAuthHeaders()
+            });
+
+            let totalPemasukan = 0;
+            let totalPengeluaran = 0;
+
+            if (keuanganResponse.ok) {
+                const keuanganData = await keuanganResponse.json();
+
+                keuanganData.forEach(k => {
+                    if (k.jenis === 'PEMASUKAN' || (k.jenis && k.jenis.toString().toUpperCase().includes('PEMASUKAN'))) {
+                        totalPemasukan += k.nominal || 0;
+                    } else if (k.jenis === 'PENGELUARAN' || (k.jenis && k.jenis.toString().toUpperCase().includes('PENGELUARAN'))) {
+                        totalPengeluaran += k.nominal || 0;
+                    }
+                });
+            }
+
+            // Update UI
+            document.getElementById('total-income').textContent = this.formatCurrency(totalPemasukan);
+            document.getElementById('total-expense').textContent = this.formatCurrency(totalPengeluaran);
+
+        } catch (error) {
+            console.error('Error calculating manual summary:', error);
+        }
+    }
+
+    async loadRecentExpenses() {
+        try {
+            // Load recent expenses untuk kasir
+            const response = await fetch('http://localhost:8080/api/keuangan/kasir/by-type/PENGELUARAN', {
+                headers: AuthHelper.getAuthHeaders()
+            });
+
+            if (response.ok) {
+                const expenses = await response.json();
+                this.displayExpenses(expenses);
+            } else {
+                // Fallback: load recent semua data
+                const fallbackResponse = await fetch('http://localhost:8080/api/keuangan/kasir/recent?limit=20', {
+                    headers: AuthHelper.getAuthHeaders()
+                });
+
+                if (fallbackResponse.ok) {
+                    const allData = await fallbackResponse.json();
+                    const expenses = allData.filter(e =>
+                        e.jenis === 'PENGELUARAN' ||
+                        (e.jenis && e.jenis.toString().toUpperCase().includes('PENGELUARAN'))
+                    );
+                    this.displayExpenses(expenses);
+                }
+            }
+
+        } catch (error) {
+            console.error('Error loading recent expenses:', error);
+            this.displayExpenses([]);
+        }
+    }
+
+    async loadIncomeDetails() {
+        try {
+            // Kasir bisa akses endpoint transaksi
             const response = await fetch('http://localhost:8080/api/transaksi', {
                 headers: AuthHelper.getAuthHeaders()
             });
 
             if (response.ok) {
                 const transactions = await response.json();
-                await this.calculateFinancialSummary(transactions);
+
+                // Filter hanya yang PAID
+                const paidTransactions = transactions.filter(t =>
+                    t.paymentStatus === 'PAID' || t.paymentStatus === 'LUNAS'
+                );
+
+                this.displayIncomeDetails(paidTransactions);
+
+                // Update transaction stats
+                const successCount = paidTransactions.length;
+                const totalIncome = paidTransactions.reduce((sum, t) => sum + (t.total || 0), 0);
+                const avgTransaction = successCount > 0 ? totalIncome / successCount : 0;
+
+                document.getElementById('success-transactions').textContent = successCount;
+                document.getElementById('average-transaction').textContent = this.formatCurrency(avgTransaction);
             }
 
-            // Load expenses
-            await this.loadExpenses();
-
         } catch (error) {
-            console.error('Error loading financial data:', error);
-            this.showError('Gagal memuat data keuangan');
+            console.error('Error loading income details:', error);
         }
     }
 
-
-
-
-    async calculateFinancialSummary(transactions) {
+    async loadTransactionStats() {
         try {
-            // Juga ambil data keuangan untuk pengeluaran
-            const keuanganResponse = await fetch('http://localhost:8080/api/keuangan', {
+            const response = await fetch('http://localhost:8080/api/transaksi', {
                 headers: AuthHelper.getAuthHeaders()
             });
-            
-            let totalPengeluaran = 0;
-            if (keuanganResponse.ok) {
-                const keuanganData = await keuanganResponse.json();
-                totalPengeluaran = keuanganData
-                    .filter(k => k.jenis === 'PENGELUARAN' || 
-                               (k.jenis && k.jenis.toString().toUpperCase().includes('PENGELUARAN')))
-                    .reduce((sum, k) => sum + (k.nominal || 0), 0);
+
+            if (response.ok) {
+                const transactions = await response.json();
+
+                // Filter hanya yang PAID
+                const paidTransactions = transactions.filter(t =>
+                    t.paymentStatus === 'PAID' || t.paymentStatus === 'LUNAS'
+                );
+
+                const successCount = paidTransactions.length;
+                const totalIncome = paidTransactions.reduce((sum, t) => sum + (t.total || 0), 0);
+                const avgTransaction = successCount > 0 ? totalIncome / successCount : 0;
+
+                document.getElementById('success-transactions').textContent = successCount;
+                document.getElementById('average-transaction').textContent = this.formatCurrency(avgTransaction);
             }
-            
-            // Filter hanya transaksi yang sudah PAID
-            const paidTransactions = transactions.filter(t => 
-                t.paymentStatus === 'PAID' || t.paymentStatus === 'LUNAS'
-            );
 
-            // Hitung total pemasukan
-            const totalIncome = paidTransactions.reduce((sum, t) => sum + (t.total || 0), 0);
-            
-            // Hitung rata-rata transaksi
-            const avgTransaction = paidTransactions.length > 0 
-                ? totalIncome / paidTransactions.length 
-                : 0;
-
-            // Update UI
-            document.getElementById('total-income').textContent = this.formatCurrency(totalIncome);
-            document.getElementById('total-expense').textContent = this.formatCurrency(totalPengeluaran);
-            document.getElementById('success-transactions').textContent = paidTransactions.length;
-            document.getElementById('average-transaction').textContent = this.formatCurrency(avgTransaction);
-
-            // Tampilkan detail pemasukan
-            this.displayIncomeDetails(paidTransactions);
-            
         } catch (error) {
-            console.error('Error in calculateFinancialSummary:', error);
+            console.error('Error loading transaction stats:', error);
         }
     }
+
 
     async loadExpenses() {
         try {
@@ -247,16 +376,21 @@ class KasirKeuangan {
 
     displayIncomeDetails(transactions) {
         const incomeList = document.getElementById('income-list');
-        
+
         if (!transactions || transactions.length === 0) {
             incomeList.innerHTML = '<div class="empty-state"><p>Belum ada data pemasukan</p></div>';
             return;
         }
 
-        incomeList.innerHTML = transactions.slice(0, 10).map(transaction => {
+        // Ambil hanya 10 transaksi terbaru
+        const recentTransactions = transactions
+            .sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal))
+            .slice(0, 10);
+
+        incomeList.innerHTML = recentTransactions.map(transaction => {
             const metode = transaction.metodePembayaran || transaction.metode_pembayaran || 'TUNAI';
             const kasir = transaction.namaKasir || transaction.kasirName || 'Kasir';
-            
+
             return `
                 <div class="detail-item-card">
                     <div class="detail-item-header">
@@ -278,7 +412,7 @@ class KasirKeuangan {
     displayExpenses(expenses) {
         const expenseList = document.getElementById('expense-list');
         const recentList = document.getElementById('recent-expenses');
-        
+
         if (!expenses || expenses.length === 0) {
             expenseList.innerHTML = '<div class="empty-state"><p>Belum ada data pengeluaran</p></div>';
             recentList.innerHTML = '<div class="empty-state"><p>Belum ada riwayat pengeluaran</p></div>';
@@ -286,14 +420,14 @@ class KasirKeuangan {
         }
 
         // Filter hanya pengeluaran
-        const expenseItems = expenses.filter(e => 
-            e.jenis === 'PENGELUARAN' || 
+        const expenseItems = expenses.filter(e =>
+            e.jenis === 'PENGELUARAN' ||
             (e.jenis && e.jenis.toString().toUpperCase().includes('PENGELUARAN'))
         );
-        
+
         // Total pengeluaran
         const totalExpense = expenseItems.reduce((sum, e) => sum + (e.nominal || 0), 0);
-        
+
         // Update total expense card
         const totalExpenseElement = document.getElementById('total-expense');
         if (totalExpenseElement) {
@@ -305,7 +439,7 @@ class KasirKeuangan {
             const jenis = this.getExpenseTypeText(expense.jenis);
             const kategori = this.getExpenseCategory(expense.keterangan);
             const pegawai = expense.akun?.username || 'System';
-            
+
             return `
                 <div class="detail-item-card">
                     <div class="detail-item-header">
@@ -327,7 +461,7 @@ class KasirKeuangan {
         const recentExpenses = expenseItems.slice(0, 5);
         recentList.innerHTML = recentExpenses.map(expense => {
             const jenis = this.getExpenseTypeText(expense.jenis);
-            
+
             return `
                 <div class="recent-item">
                     <div class="recent-header">
@@ -345,26 +479,26 @@ class KasirKeuangan {
 
     getExpenseTypeText(type) {
         if (!type) return 'Lainnya';
-        
+
         const typeStr = type.toString().toUpperCase();
         if (typeStr.includes('OPERASIONAL')) return 'Operasional';
         if (typeStr.includes('STOK') || typeStr.includes('STOCK')) return 'Pembelian Stok';
         if (typeStr.includes('GAJI') || typeStr.includes('SALARY')) return 'Gaji Karyawan';
         if (typeStr.includes('PENGELUARAN')) return 'Pengeluaran';
-        
+
         return 'Lainnya';
     }
-    
+
     getExpenseCategory(keterangan) {
         if (!keterangan) return 'LAINNYA';
-        
+
         const k = keterangan.toLowerCase();
         if (k.includes('stok') || k.includes('beli') || k.includes('pembelian')) return 'STOK';
         if (k.includes('gaji') || k.includes('upah')) return 'GAJI';
         if (k.includes('listrik') || k.includes('air') || k.includes('pln')) return 'UTILITAS';
         if (k.includes('sewa')) return 'SEWA';
         if (k.includes('operasional')) return 'OPERASIONAL';
-        
+
         return 'LAINNYA';
     }
 
@@ -397,12 +531,13 @@ class KasirKeuangan {
                 nominal: amount,
                 keterangan: description,
                 tanggal: new Date().toISOString(),
-                akun: { idPegawai: authData.userId || 1 } // Fallback ke user ID 1 jika null
+                akun: { idPegawai: authData.userId || 1 }
             };
 
-            console.log('📤 Adding expense:', expenseData);
+            console.log('📤 Kasir adding expense:', expenseData);
 
-            const response = await fetch('http://localhost:8080/api/keuangan', {
+            // Kasir HANYA bisa menambahkan melalui endpoint kasir yang baru
+            const response = await fetch('http://localhost:8080/api/keuangan/kasir/add', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -414,7 +549,18 @@ class KasirKeuangan {
             if (response.ok) {
                 this.showSuccess('Pengeluaran berhasil disimpan');
                 document.getElementById('expense-form').reset();
-                await this.loadFinancialData(); // Reload data
+
+                // Notify semua tab/halaman tentang update
+                localStorage.setItem('finance_needs_refresh', Date.now().toString());
+
+                // Broadcast ke tab lain
+                if (typeof BroadcastChannel !== 'undefined') {
+                    const channel = new BroadcastChannel('finance_updates');
+                    channel.postMessage({ type: 'EXPENSE_ADDED' });
+                }
+
+                // Refresh data
+                await this.loadFinancialData();
             } else {
                 const errorText = await response.text();
                 throw new Error(`Gagal menyimpan: ${response.status} - ${errorText}`);
@@ -479,7 +625,7 @@ class KasirKeuangan {
         `;
         notification.textContent = '❌ ' + message;
         document.body.appendChild(notification);
-        
+
         setTimeout(() => {
             notification.remove();
         }, 5000);
@@ -502,7 +648,7 @@ class KasirKeuangan {
         `;
         notification.textContent = '✅ ' + message;
         document.body.appendChild(notification);
-        
+
         setTimeout(() => {
             notification.remove();
         }, 3000);
