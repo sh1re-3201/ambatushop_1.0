@@ -391,3 +391,175 @@ body.role-kasir .sidebar.closed .menu-item.pill.active .mi-icon {
   background: rgba(255,255,255,0.12) !important;
   box-shadow: 0 6px 14px rgba(0,0,0,0.08) !important;
 }
+
+/* File: css/manajer_keuangan.css - Tambahkan di akhir file */
+
+/* Form Styles */
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-size: 14px;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #10b759;
+}
+
+.btn-primary {
+    padding: 12px 24px;
+    background: #10b759;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+.btn-primary:hover {
+    background: #0d9c4d;
+}
+
+.action-buttons {
+    padding: 8px 16px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-block;
+    margin-bottom: 16px;
+}
+
+.action-buttons:hover {
+    background: #1a6de0;
+}
+
+/* Badge Styles */
+.badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.badge-gaji {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.badge-listrik {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.badge-sewa {
+    background: #f3e8ff;
+    color: #7c3aed;
+}
+
+.badge-stok {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.badge-operasional {
+    background: #dcfce7;
+    color: #166534;
+}
+
+/* Responsive Table */
+@media (max-width: 768px) {
+    .content-main {
+        padding: 16px;
+    }
+    
+    .card {
+        padding: 16px;
+    }
+    
+    table {
+        display: block;
+        overflow-x: auto;
+    }
+    
+    #expense-search,
+    #expense-filter {
+        width: 100%;
+        margin-bottom: 8px;
+    }
+}
+/* Tambah di manajer_keuangan.css */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    z-index: 10000;
+    max-width: 400px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    animation: slideIn 0.3s ease;
+}
+
+.notification.error {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+.notification.success {
+    background: #d1fae5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+}
+
+.badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.badge-gaji { background: #fee2e2; color: #991b1b; }
+.badge-listrik { background: #dbeafe; color: #1e40af; }
+.badge-sewa { background: #f3e8ff; color: #7c3aed; }
+.badge-stok { background: #fef3c7; color: #92400e; }
+.badge-operasional { background: #dcfce7; color: #166534; }
+.badge-lain { background: #f3f4f6; color: #4b5563; }
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}

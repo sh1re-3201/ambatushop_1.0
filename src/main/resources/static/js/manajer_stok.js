@@ -514,28 +514,67 @@ function formatCurrency(amount) {
 function showAddProductModal() {
     const modalHtml = `
         <div class="modal-overlay" id="productModal">
-            <div class="modal-content">
+            <div class="modal-content" style="max-width: 600px;">
                 <div class="modal-header">
                     <h3>Tambah Produk Baru</h3>
                     <button class="modal-close">&times;</button>
                 </div>
                 <form id="productForm" class="modal-form">
-                    <input type="hidden" id="productId">
-                    <div class="form-group">
-                        <label for="productName">Nama Produk *</label>
-                        <input type="text" id="productName" required>
+                    <div class="form-section" style="margin-bottom: 20px;">
+                        <h4 style="margin: 0 0 12px 0; color: var(--text-primary);">Detail Produk</h4>
+                        <div class="form-group">
+                            <label for="productName">Nama Produk *</label>
+                            <input type="text" id="productName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="productPrice">Harga Jual *</label>
+                            <input type="number" id="productPrice" min="0" step="100" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="productStock">Stok Awal *</label>
+                            <input type="number" id="productStock" min="0" required>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="productPrice">Harga *</label>
-                        <input type="number" id="productPrice" min="0" step="100" required>
+                    
+                    <div class="form-section" style="margin-bottom: 20px; padding: 16px; background: #f8f9fa; border-radius: 8px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <h4 style="margin: 0; color: var(--text-primary);">Catat Sebagai Pengeluaran</h4>
+                            <label class="switch">
+                                <input type="checkbox" id="recordAsExpense" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        
+                        <div id="expenseDetails" style="display: block;">
+                            <div class="form-group">
+                                <label for="purchaseCost">Harga Beli (per unit)</label>
+                                <input type="number" id="purchaseCost" min="0" step="100" 
+                                       placeholder="Biaya beli per item">
+                            </div>
+                            <div class="form-group">
+                                <label for="supplierName">Nama Supplier (opsional)</label>
+                                <input type="text" id="supplierName" placeholder="Nama pemasok">
+                            </div>
+                            <div class="form-group">
+                                <label for="purchaseNotes">Catatan (opsional)</label>
+                                <textarea id="purchaseNotes" rows="2" placeholder="Catatan pembelian"></textarea>
+                            </div>
+                            
+                            <div style="padding: 12px; background: #e8f5e8; border-radius: 6px; margin-top: 8px;">
+                                <div style="display: flex; justify-content: space-between; font-size: 14px;">
+                                    <span>Total Pengeluaran:</span>
+                                    <span id="totalExpensePreview" style="font-weight: 600; color: #ef4444;">Rp 0</span>
+                                </div>
+                                <small style="color: #666; font-size: 12px;">
+                                    Akan tercatat di laporan keuangan sebagai Pengeluaran
+                                </small>
+                            </div>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="productStock">Stok Awal *</label>
-                        <input type="number" id="productStock" min="0" required>
-                    </div>
+                    
                     <div class="modal-actions">
                         <button type="button" class="btn-cancel">Batal</button>
-                        <button type="submit" class="btn-submit">Simpan</button>
+                        <button type="submit" class="btn-submit">Simpan Produk</button>
                     </div>
                 </form>
             </div>
@@ -544,6 +583,29 @@ function showAddProductModal() {
 
     document.body.insertAdjacentHTML('beforeend', modalHtml);
     setupProductModalEvents();
+
+    // Event listener untuk toggle
+    const expenseToggle = document.getElementById('recordAsExpense');
+    const expenseDetails = document.getElementById('expenseDetails');
+
+    expenseToggle.addEventListener('change', function () {
+        expenseDetails.style.display = this.checked ? 'block' : 'none';
+    });
+
+    // Real-time calculation
+    const purchaseCostInput = document.getElementById('purchaseCost');
+    const stockInput = document.getElementById('productStock');
+    const totalExpensePreview = document.getElementById('totalExpensePreview');
+
+    function calculateTotalExpense() {
+        const cost = parseFloat(purchaseCostInput.value) || 0;
+        const stock = parseInt(stockInput.value) || 0;
+        const total = cost * stock;
+        totalExpensePreview.textContent = formatCurrency(total);
+    }
+
+    purchaseCostInput.addEventListener('input', calculateTotalExpense);
+    stockInput.addEventListener('input', calculateTotalExpense);
 }
 
 function showEditProductModal(productId) {
@@ -679,34 +741,147 @@ function setupStockModalEvents() {
 
 async function handleProductSubmit() {
     const form = document.getElementById('productForm');
-    const productId = document.getElementById('productId').value;
     const productName = document.getElementById('productName').value;
     const productPrice = parseFloat(document.getElementById('productPrice').value);
     const productStock = parseInt(document.getElementById('productStock').value);
 
+    const recordAsExpense = document.getElementById('recordAsExpense').checked;
+    const purchaseCost = parseFloat(document.getElementById('purchaseCost').value) || 0;
+    const supplierName = document.getElementById('supplierName').value;
+    const purchaseNotes = document.getElementById('purchaseNotes').value;
+
+    // 1. Validasi
+    if (!productName || productPrice <= 0 || productStock <= 0) {
+        showError('Harap isi semua field dengan benar');
+        return;
+    }
+
+    // 2. Simpan produk terlebih dahulu
     const productData = {
         namaProduk: productName,
         harga: productPrice,
         stok: productStock
     };
 
-    let result;
-    if (productId) {
-        // Update existing product
-        result = await updateProduct(productId, productData);
-    } else {
-        // Create new product
-        result = await createProduct(productData);
+    const productResult = await createProduct(productData);
+
+    if (!productResult.success) {
+        showError('Gagal menyimpan produk: ' + productResult.error);
+        return;
     }
 
-    if (result.success) {
-        // Close modal and refresh data
-        document.getElementById('productModal').remove();
-        await loadProductsData();
-        showSuccess(productId ? 'Produk berhasil diupdate' : 'Produk berhasil dibuat');
+    // 3. Jika dicatat sebagai pengeluaran, buat stock purchase
+    if (recordAsExpense && purchaseCost > 0) {
+        try {
+            console.log('💰 Recording stock purchase as expense...');
+
+            const auth = AuthHelper.getAuth();
+            if (!auth) {
+                throw new Error('User tidak terautentikasi');
+            }
+
+            // Dapatkan userId dengan cara yang lebih reliable
+            const userId = await getCurrentUserIdForExpense();
+            console.log('User ID for expense:', userId);
+
+            if (!userId) {
+                throw new Error('Tidak dapat menentukan user ID. Silakan login ulang.');
+            }
+
+            const expenseData = {
+                akunId: userId,
+                productName: productName,
+                totalAmount: purchaseCost * productStock,
+                supplierName: supplierName || null,
+                notes: purchaseNotes || null
+            };
+
+            console.log('📤 Sending stock purchase data:', expenseData);
+
+            const expenseResponse = await fetch('http://localhost:8080/api/transaksi/stock-purchase', {
+                method: 'POST',
+                headers: AuthHelper.getAuthHeaders(),
+                body: JSON.stringify(expenseData)
+            });
+
+            console.log('📥 Response status:', expenseResponse.status);
+
+            const responseText = await expenseResponse.text();
+            console.log('📥 Response text:', responseText);
+
+            let expenseResult;
+            try {
+                expenseResult = responseText ? JSON.parse(responseText) : {};
+            } catch (e) {
+                console.error('Error parsing response:', e);
+                expenseResult = {};
+            }
+
+            if (!expenseResponse.ok) {
+                console.warn('❌ Gagal mencatat pengeluaran:', expenseResult);
+                showSuccess('Produk berhasil ditambahkan, tetapi pencatatan pengeluaran gagal');
+            } else {
+                console.log('✅ Stock purchase recorded successfully:', expenseResult);
+                showSuccess('✅ Produk berhasil ditambahkan dan dicatat sebagai pengeluaran');
+            }
+        } catch (error) {
+            console.error('❌ Error recording expense:', error);
+            showSuccess('Produk berhasil ditambahkan (catatan pengeluaran gagal: ' + error.message + ')');
+        }
     } else {
-        showError(result.error);
+        showSuccess('Produk berhasil ditambahkan');
     }
+
+    // 4. Tutup modal dan refresh
+    document.getElementById('productModal').remove();
+    await loadProductsData();
+}
+
+async function getCurrentUserIdForExpense() {
+    // Coba berbagai cara
+    const authData = AuthHelper.getAuthData();
+    if (authData?.userId) {
+        console.log('Got userId from authData:', authData.userId);
+        return authData.userId;
+    }
+    
+    // Cek localStorage
+    const storedId = localStorage.getItem('userId');
+    if (storedId) {
+        console.log('Got userId from localStorage:', storedId);
+        return parseInt(storedId);
+    }
+    
+    // Fallback: cari dari API berdasarkan username
+    try {
+        const username = localStorage.getItem('username');
+        if (!username) {
+            console.warn('No username in localStorage');
+            return null;
+        }
+        
+        console.log('🔍 Fetching user ID for username:', username);
+        const response = await fetch(`http://localhost:8080/api/admin/akun/search?keyword=${encodeURIComponent(username)}`, {
+            headers: AuthHelper.getAuthHeaders()
+        });
+        
+        if (response.ok) {
+            const users = await response.json();
+            console.log('Users found:', users);
+            const user = users.find(u => u.username === username);
+            if (user && user.idPegawai) {
+                console.log('Found user ID:', user.idPegawai);
+                // Simpan untuk next time
+                localStorage.setItem('userId', user.idPegawai.toString());
+                return user.idPegawai;
+            }
+        }
+    } catch (error) {
+        console.error('Error fetching user ID:', error);
+    }
+    
+    console.warn('❌ No user ID found');
+    return null;
 }
 
 async function handleStockUpdate() {
