@@ -3,8 +3,80 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>AmbatuShop — Keuangan</title>
-  <link rel="stylesheet" href="css/admin_keuangan.css" />
+  <title>AmbatuShop — Keuangan (Admin)</title>
+  <link rel="stylesheet" href="css/manajer_keuangan.css" />
+  <style>
+    /* Custom styles untuk mode read-only */
+    .read-only-badge {
+      padding: 8px 16px;
+      background: rgba(107, 114, 128, 0.1);
+      color: #6b7280;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .read-only-badge svg {
+      width: 16px;
+      height: 16px;
+    }
+    
+    .disabled-form {
+      opacity: 0.6;
+      pointer-events: none;
+      user-select: none;
+    }
+    
+    .read-only-note {
+      background: rgba(59, 130, 246, 0.05);
+      border: 1px solid rgba(59, 130, 246, 0.2);
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      color: #4b5563;
+    }
+    
+    .view-only-action {
+      background: #f3f4f6 !important;
+      color: #6b7280 !important;
+      cursor: not-allowed !important;
+      border-color: #e5e7eb !important;
+    }
+    
+    .action-buttons-group .btn-delete,
+    .action-buttons-group .btn-edit {
+      display: none !important;
+    }
+    
+    #expense-form {
+      position: relative;
+    }
+    
+    .form-disabled-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      z-index: 10;
+      font-weight: 600;
+      color: #6b7280;
+    }
+    
+    [data-theme="dark"] .form-disabled-overlay {
+      background: rgba(0, 0, 0, 0.7);
+      color: #d1d5db;
+    }
+  </style>
 </head>
 <body class="role-admin-manajer">
   <div class="page">
@@ -111,14 +183,20 @@
       <section class="content-main">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
           <h2 style="margin:0;font-size:28px;font-weight:600;color:var(--text-primary)">Manajemen Keuangan</h2>
-          <span style="padding:8px 16px;background:rgba(43,124,255,0.1);color:#2b7cff;border-radius:8px;font-size:14px;font-weight:600">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="display:inline-block;vertical-align:middle;margin-right:4px">
-              <path d="M12 15V12m0-3h.01M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <span class="read-only-badge">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M12 15V12m0-3h.01M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" 
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-            View Only (Read-Only Mode)
+            View Only (Admin Mode)
           </span>
         </div>
         
+        <!-- Note tentang mode read-only -->
+        <div class="read-only-note">
+          <strong>Mode View Only:</strong> Sebagai Admin, Anda dapat melihat semua data keuangan tetapi tidak dapat menambah, mengedit, atau menghapus data. Untuk aksi pengelolaan, silakan akses sebagai Manajer.
+        </div>
+
         <div class="grid">
           <!-- Card Total Pemasukan -->
           <div class="card feature">
@@ -132,7 +210,7 @@
             <div class="card-body">
               <h3>Total Pemasukan</h3>
               <p class="subtitle">Bulan Ini</p>
-              <div class="value" style="font-size:24px;margin-top:8px">Rp 15.450.000</div>
+              <div id="card-income" class="value" style="font-size:24px;margin-top:8px">Memuat...</div>
             </div>
           </div>
 
@@ -148,7 +226,7 @@
             <div class="card-body">
               <h3>Total Pengeluaran</h3>
               <p class="subtitle">Bulan Ini</p>
-              <div class="value" style="font-size:24px;margin-top:8px">Rp 8.920.000</div>
+              <div id="card-expense" class="value" style="font-size:24px;margin-top:8px">Memuat...</div>
             </div>
           </div>
 
@@ -164,7 +242,7 @@
             <div class="card-body">
               <h3>Laba Bersih</h3>
               <p class="subtitle">Bulan Ini</p>
-              <div class="value" style="font-size:24px;margin-top:8px;color:#10b759">Rp 6.530.000</div>
+              <div id="card-profit" class="value" style="font-size:24px;margin-top:8px">Memuat...</div>
             </div>
           </div>
 
@@ -179,50 +257,180 @@
             <div class="card-body">
               <h3>Total Transaksi</h3>
               <p class="subtitle">Bulan Ini</p>
-              <div class="value" style="font-size:24px;margin-top:8px">284 Transaksi</div>
+              <div id="card-transactions" class="value" style="font-size:24px;margin-top:8px">Memuat...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Form Input (Disabled untuk Admin) -->
+        <div class="card" style="margin-top:28px;padding:24px;position:relative">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <h3 style="margin:0;color:var(--text-primary)">Input Pengeluaran Baru</h3>
+            <span style="color:#6b7280;font-size:14px">🔒 Form disabled (Admin View Only)</span>
+          </div>
+
+          <!-- Overlay untuk disable form -->
+          <div class="form-disabled-overlay">
+            <div style="text-align:center">
+              <svg viewBox="0 0 24 24" width="48" height="48" fill="none" style="margin-bottom:12px;opacity:0.6">
+                <path d="M12 15V12m0-3h.01M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" 
+                      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <p>Fitur ini hanya tersedia untuk Manajer</p>
+            </div>
+          </div>
+
+          <form id="expense-form" class="disabled-form">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+              <div class="form-group">
+                <label for="expense-type">Jenis Pengeluaran</label>
+                <select id="expense-type" required disabled
+                  style="width:100%;padding:10px;border:1px solid var(--border-color);border-radius:6px">
+                  <option value="">Pilih jenis...</option>
+                  <option value="GAJI">Gaji Karyawan</option>
+                  <option value="LISTRIK">Listrik & Air</option>
+                  <option value="SEWA">Sewa Tempat</option>
+                  <option value="OPERASIONAL">Operasional Lainnya</option>
+                  <option value="LAINNYA">Lain-lain</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="expense-amount">Jumlah (Rp)</label>
+                <input type="number" id="expense-amount" min="0" step="1000" required disabled
+                  style="width:100%;padding:10px;border:1px solid var(--border-color);border-radius:6px"
+                  placeholder="0">
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom:16px">
+              <label for="expense-description">Keterangan</label>
+              <textarea id="expense-description" rows="3" required disabled
+                style="width:100%;padding:10px;border:1px solid var(--border-color);border-radius:6px"
+                placeholder="Deskripsi pengeluaran..."></textarea>
+            </div>
+
+            <button type="button" class="btn-primary view-only-action"
+              style="padding:12px 24px;background:#9ca3af;color:white;border:none;border-radius:6px;cursor:not-allowed;font-weight:600">
+              🔒 Hanya View (Admin Mode)
+            </button>
+          </form>
+        </div>
+
+        <!-- Tabel Daftar Pengeluaran -->
+        <div class="card" style="margin-top:28px;padding:24px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px">
+            <h3 style="margin:0;color:var(--text-primary)">Daftar Pengeluaran & Pemasukan</h3>
+            <div class="filter-section" style="display:flex;gap:12px;flex-wrap:wrap">
+              <input type="text" id="expense-search" placeholder="Cari pengeluaran/pemasukan..." class="search-input"
+                style="padding:8px 12px;border:1px solid var(--border-color);border-radius:6px;min-width:200px">
+              <select id="expense-filter" class="filter-select"
+                style="padding:8px 12px;border:1px solid var(--border-color);border-radius:6px">
+                <option value="">Semua Jenis</option>
+                <option value="PEMASUKAN">Pemasukan</option>
+                <option value="PENGELUARAN">Pengeluaran</option>
+                <option value="STOK">Stok</option>
+                <option value="GAJI">Gaji</option>
+                <option value="UTILITAS">Utilitas</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Container untuk tabel responsive -->
+          <div class="table-responsive-wrapper">
+            <div class="table-responsive">
+              <table class="expenses-table">
+                <thead>
+                  <tr>
+                    <th class="sticky-column">No</th>
+                    <th>Tanggal</th>
+                    <th>Jenis</th>
+                    <th>Keterangan</th>
+                    <th>Jumlah</th>
+                    <th class="sticky-action">Status</th>
+                    <th class="action-column">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="expenses-tbody">
+                  <!-- Data akan di-load oleh JavaScript -->
+                  <tr class="loading-row">
+                    <td colspan="7" style="text-align:center;padding:40px">
+                      <div class="loading-spinner"></div>
+                      <p style="margin-top:12px;color:var(--text-secondary)">Memuat data keuangan...</p>
+                    </td>
+                  </tr>
+                </tbody>
+                <tfoot id="expenses-footer">
+                  <tr>
+                    <td colspan="4" style="text-align:right;font-weight:600;padding:12px 8px">Total Pengeluaran:</td>
+                    <td id="total-expenses" style="text-align:right;font-weight:700;color:#ff5252;padding:12px 8px">Rp 0
+                    </td>
+                    <td colspan="2"></td>
+                  </tr>
+                  <tr>
+                    <td colspan="4" style="text-align:right;font-weight:600;padding:12px 8px">Total Pemasukan:</td>
+                    <td id="total-income" style="text-align:right;font-weight:700;color:#10b759;padding:12px 8px">Rp 0
+                    </td>
+                    <td colspan="2"></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+
+            <!-- Pagination untuk tabel -->
+            <div class="table-pagination" style="display:none">
+              <div class="pagination-info">
+                Menampilkan <span id="page-start">1</span>-<span id="page-end">10</span> dari <span
+                  id="total-items">0</span> data
+              </div>
+              <div class="pagination-controls">
+                <button class="pagination-btn" id="prev-page" disabled>‹</button>
+                <div class="page-numbers" id="page-numbers"></div>
+                <button class="pagination-btn" id="next-page" disabled>›</button>
+              </div>
+              <div class="page-size">
+                <select id="page-size-select"
+                  style="padding:6px;border-radius:4px;border:1px solid var(--border-color)">
+                  <option value="10">10 baris</option>
+                  <option value="25">25 baris</option>
+                  <option value="50">50 baris</option>
+                  <option value="100">100 baris</option>
+                </select>
+              </div>
             </div>
           </div>
         </div>
 
         <!-- Tabel Ringkasan -->
         <div class="card" style="margin-top:28px;padding:24px">
-          <h3 style="margin:0 0 16px 0">Ringkasan Keuangan Terkini</h3>
+          <h3 style="margin:0 0 16px 0;color:var(--text-primary)">Ringkasan Keuangan Terkini</h3>
+          <button id="download-btn" class="action-buttons">📥 Download Laporan Excel</button>
+
           <table style="width:100%;border-collapse:collapse">
             <thead>
-              <tr style="border-bottom:2px solid #e5e7eb">
-                <th style="text-align:left;padding:12px 8px;color:#666;font-weight:600">Kategori</th>
-                <th style="text-align:right;padding:12px 8px;color:#666;font-weight:600">Jumlah</th>
-                <th style="text-align:right;padding:12px 8px;color:#666;font-weight:600">Perubahan</th>
+              <tr style="border-bottom:2px solid var(--border-color)">
+                <th style="text-align:left;padding:12px 8px;color:var(--text-secondary);font-weight:600">Kategori</th>
+                <th style="text-align:right;padding:12px 8px;color:var(--text-secondary);font-weight:600">Jumlah</th>
+                <th style="text-align:right;padding:12px 8px;color:var(--text-secondary);font-weight:600">Keterangan
+                </th>
               </tr>
             </thead>
-            <tbody>
-              <tr style="border-bottom:1px solid #f3f4f6">
-                <td style="padding:12px 8px">Penjualan Produk</td>
-                <td style="padding:12px 8px;text-align:right;font-weight:600">Rp 12.850.000</td>
-                <td style="padding:12px 8px;text-align:right;color:#10b759">+12.5%</td>
-              </tr>
-              <tr style="border-bottom:1px solid #f3f4f6">
-                <td style="padding:12px 8px">Pembelian Stok</td>
-                <td style="padding:12px 8px;text-align:right;font-weight:600">Rp 6.200.000</td>
-                <td style="padding:12px 8px;text-align:right;color:#ff5252">+8.2%</td>
-              </tr>
-              <tr style="border-bottom:1px solid #f3f4f6">
-                <td style="padding:12px 8px">Operasional</td>
-                <td style="padding:12px 8px;text-align:right;font-weight:600">Rp 2.720.000</td>
-                <td style="padding:12px 8px;text-align:right;color:#ff5252">+3.1%</td>
-              </tr>
+            <tbody id="financial-summary-tbody">
+              <!-- Data akan diisi oleh JavaScript -->
               <tr>
-                <td style="padding:12px 8px;font-weight:700">Total Laba</td>
-                <td style="padding:12px 8px;text-align:right;font-weight:700;color:#10b759">Rp 6.530.000</td>
-                <td style="padding:12px 8px;text-align:right;color:#10b759;font-weight:600">+18.4%</td>
+                <td colspan="3" style="text-align:center;padding:20px;color:var(--text-secondary)">
+                  Memuat ringkasan keuangan...
+                </td>
               </tr>
             </tbody>
           </table>
         </div>
+
       </section>
     </main>
   </div>
 
+  <script src="js/auth.js"></script>
   <script src="js/admin_keuangan.js"></script>
 </body>
 </html>
