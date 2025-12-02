@@ -449,20 +449,22 @@ class KasirTransaksi {
 
             // DAPATKAN USER INFO KASIR YANG SEDANG LOGIN
             const userInfo = await this.getCurrentUserInfo();
-            console.log("Kasir yang membuat transaksi:", userInfo.username);
+            const kasirName = userInfo.username || 'Kasir';
+
+            console.log('Kasir yang membuat transaksi:', kasirName);
 
             // Prepare transaction data
             const transactionData = {
                 metodePembayaran: paymentMethod,
                 total: total,
-                akunId: userInfo.userId || this.getCurrentUserId(), // Gunakan userId dari user info
-                kasirName: userInfo.username, // TAMBAHKAN NAMA KASIR
-                details: this.cart.map((item) => ({
+                akunId: userInfo.userId || this.getCurrentUserId(),
+                kasirName: kasirName, // KIRIM KASIR NAME KE BACKEND
+                details: this.cart.map(item => ({
                     produkId: item.product.idProduk,
                     jumlah: item.quantity,
                     hargaSatuan: item.hargaSatuan,
-                    subtotal: item.hargaSatuan * item.quantity,
-                })),
+                    subtotal: item.hargaSatuan * item.quantity
+                }))
             };
 
             console.log("Creating transaction:", transactionData);

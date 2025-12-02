@@ -66,6 +66,7 @@ public class TransaksiService {
         transaksi.setMetode_pembayaran(metodePembayaran);
         transaksi.setTotal(request.getTotal());
         transaksi.setAkun(akun);
+        transaksi.setKasirName(request.getKasirName());
         transaksi.setPaymentStatus(initialStatus); // ✅ Status berdasarkan metode
         transaksi.setReferenceNumber(generateReferenceNumber());
 
@@ -147,6 +148,20 @@ public class TransaksiService {
         }).toList();
     }
 
+    public void updateOldTransactionsWithKasirName() {
+        List<Transaksi> allTransactions = transaksiRepository.findAll();
+
+        for (Transaksi transaksi : allTransactions) {
+            if (transaksi.getKasirName() == null && transaksi.getAkun() != null) {
+                // Set kasir name dari akun
+                transaksi.setKasirName(transaksi.getAkun().getUsername());
+                transaksiRepository.save(transaksi);
+                System.out.println("Updated transaction " + transaksi.getIdTransaksi() +
+                        " with kasir: " + transaksi.getAkun().getUsername());
+            }
+        }
+    }
+
     private void updateProductStock(List<com.traitor.ambatushop_10.dto.TransaksiDetailRequest> details,
             boolean restore) {
         for (com.traitor.ambatushop_10.dto.TransaksiDetailRequest detail : details) {
@@ -167,6 +182,7 @@ public class TransaksiService {
             produkRepository.save(produk);
         }
     }
+
     private String generateReferenceNumber() {
         String date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         String random = String.format("%03d", new Random().nextInt(1000));

@@ -1,0 +1,19 @@
+databaseChangeLog:
+  - changeSet:
+      id: 9
+      author: mosses
+      changes:
+        - addColumn:
+            tableName: transaksi
+            columns:
+              - column:
+                  name: kasir_name
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: true
+        - createIndex:
+            tableName: transaksi
+            indexName: idx_transaksi_kasir_name
+            columns:
+              - column:
+                  name: kasir_name
