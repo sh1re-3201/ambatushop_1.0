@@ -4,7 +4,9 @@ import com.traitor.ambatushop_10.dto.ErrorResponse;
 import com.traitor.ambatushop_10.dto.StockPurchaseRequest;
 import com.traitor.ambatushop_10.dto.TransaksiRequest;
 import com.traitor.ambatushop_10.dto.TransaksiResponse;
+import com.traitor.ambatushop_10.model.Keuangan;
 import com.traitor.ambatushop_10.model.Transaksi;
+import com.traitor.ambatushop_10.repository.KeuanganRepository;
 import com.traitor.ambatushop_10.service.TransaksiService;
 
 import org.springframework.http.HttpStatus;
@@ -21,9 +23,11 @@ import java.util.Map;
 public class TransaksiController {
 
     private final TransaksiService transaksiService;
+    private final KeuanganRepository keuanganRepository;
 
-    public TransaksiController(TransaksiService transaksiService) {
+    public TransaksiController(TransaksiService transaksiService, KeuanganRepository transaksiRepository) {
         this.transaksiService = transaksiService;
+        this.keuanganRepository = transaksiRepository;
     }
 
     @GetMapping
@@ -108,11 +112,11 @@ public class TransaksiController {
     }
 
     /**
-     * Endpoint untuk pembelian stok (pengeluaran)
+     * Endpoint untuk pembelian stok - KEMBALIKAN TIPE RESPONSE KE Keuangan
      */
     @PostMapping("/stock-purchase")
     @PreAuthorize("hasAnyRole('MANAJER', 'ADMIN')")
-    public ResponseEntity<?> createStockPurchase(@RequestBody StockPurchaseRequest request) { // GANTI TYPE
+    public ResponseEntity<?> createStockPurchase(@RequestBody StockPurchaseRequest request) {
         try {
             // Validasi input
             if (request.getAkunId() == null) {
@@ -133,13 +137,15 @@ public class TransaksiController {
                                 "Field 'totalAmount' harus > 0", "/api/transaksi/stock-purchase"));
             }
 
-            Transaksi transaksi = transaksiService.createStockPurchase(request);
+            // GANTI: Panggil method yang benar - return Keuangan bukan Transaksi
+            Keuangan keuangan = transaksiService.createStockPurchase(request);
 
             // Return response khusus
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "Pembelian stok berhasil dicatat sebagai pengeluaran");
-            response.put("transaksi", new TransaksiResponse(transaksi));
+            response.put("keuangan", keuangan);
+            response.put("type", "PENGELUARAN");
 
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
 

@@ -768,6 +768,7 @@ async function handleAddProductSubmit() {
         stok: productStock
     };
 
+    // 1. Simpan produk terlebih dahulu
     const productResult = await createProduct(productData);
 
     if (!productResult.success) {
@@ -775,7 +776,7 @@ async function handleAddProductSubmit() {
         return;
     }
 
-    // 3. Jika dicatat sebagai pengeluaran, buat stock purchase
+    // 2. Jika dicatat sebagai pengeluaran, buat stock purchase
     if (recordAsExpense && purchaseCost > 0) {
         try {
             console.log('💰 Recording stock purchase as expense...');
@@ -792,12 +793,12 @@ async function handleAddProductSubmit() {
                 productName: productName,
                 totalAmount: purchaseCost * productStock,
                 supplierName: supplierName || null,
-                notes: `STOCK_PURCHASE|Product:${productName}|Supplier:${supplierName || 'Tidak disebutkan'}|Notes:${purchaseNotes || 'Pembelian stok untuk restock'}`
-                // ✅ Pastikan ada flag STOCK_PURCHASE di notes
+                notes: purchaseNotes || null  // ❌ HAPUS "STOCK_PURCHASE" flag, tidak perlu lagi
             };
 
             console.log('📤 Sending stock purchase data:', expenseData);
 
+            // ✅ FIXED: Endpoint mengembalikan Keuangan, bukan Transaksi
             const expenseResponse = await fetch('http://localhost:8080/api/transaksi/stock-purchase', {
                 method: 'POST',
                 headers: AuthHelper.getAuthHeaders(),
@@ -806,22 +807,13 @@ async function handleAddProductSubmit() {
 
             console.log('📥 Response status:', expenseResponse.status);
 
-            const responseText = await expenseResponse.text();
-            console.log('📥 Response text:', responseText);
-
-            let expenseResult;
-            try {
-                expenseResult = responseText ? JSON.parse(responseText) : {};
-            } catch (e) {
-                console.error('Error parsing response:', e);
-                expenseResult = {};
-            }
+            const result = await expenseResponse.json();
 
             if (!expenseResponse.ok) {
-                console.warn('❌ Gagal mencatat pengeluaran:', expenseResult);
+                console.warn('❌ Gagal mencatat pengeluaran:', result);
                 showSuccess('Produk berhasil ditambahkan, tetapi pencatatan pengeluaran gagal');
             } else {
-                console.log('✅ Stock purchase recorded successfully:', expenseResult);
+                console.log('✅ Stock purchase recorded successfully:', result);
                 showSuccess('✅ Produk berhasil ditambahkan dan dicatat sebagai pengeluaran');
             }
 
@@ -837,7 +829,7 @@ async function handleAddProductSubmit() {
         showSuccess('Produk berhasil ditambahkan');
     }
 
-    // 4. Tutup modal dan refresh
+    // 3. Tutup modal dan refresh
     document.getElementById('addProductModal').remove();
     await loadProductsData();
 }

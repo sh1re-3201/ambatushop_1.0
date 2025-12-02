@@ -198,60 +198,42 @@ async function loadFinancialData() {
 
 // FUNGSI BARU yang benar
 function processIntegratedData(keuanganData, transaksiData) {
-    console.log('🔧 Processing integrated data dengan LOGIKA BARU...');
+    console.log('🔧 Processing integrated data dengan LOGIKA YANG BENAR...');
 
-    // 1. Filter HANYA pengeluaran manual dari keuanganData
+    // 1. Filter data dari keuangan (manual pengeluaran)
     const manualExpenses = keuanganData.filter(k => {
         if (!k) return false;
         const jenis = k.jenis ? k.jenis.toString().toUpperCase() : '';
-        // ✅ HANYA ambil yang PENGELUARAN
+        // HANYA ambil yang PENGELUARAN
         return jenis === 'PENGELUARAN';
     });
 
-    console.log('📊 Manual expenses found:', manualExpenses.length);
-
-    // 2. Filter transaksi untuk PEMASUKAN dan PENGELUARAN STOCK
+    // 2. Filter transaksi untuk PEMASUKAN SAJA
     const allTransaksi = Array.isArray(transaksiData) ? transaksiData : [];
 
-    // PEMASUKAN: Transaksi PAID yang BUKAN stock purchase
+    // PEMASUKAN: Hanya transaksi PAID yang BUKAN stock purchase
+    // LOGIC BARU: Stock purchase TIDAK ADA di tabel transaksi lagi
     const incomeTransactions = allTransaksi.filter(t => {
         if (!t) return false;
 
-        // Status harus PAID
-        if (!(t.paymentStatus === 'PAID' || t.paymentStatus === 'LUNAS')) return false;
+        // Status harus PAID/LUNAS
+        const status = t.paymentStatus ? t.paymentStatus.toString().toUpperCase() : '';
+        if (!(status === 'PAID' || status === 'LUNAS')) return false;
 
-        // ✅ BUKAN stock purchase
-        const isStockPurchase = t.paymentGatewayResponse &&
-            (t.paymentGatewayResponse.toString().toUpperCase().includes('STOCK_PURCHASE') ||
-                t.paymentGatewayResponse.toString().toUpperCase().includes('PEMBELIAN'));
-        return !isStockPurchase;
+        // Pastikan bukan transaksi dummy/system
+        return true;
     });
 
-    // PENGELUARAN STOCK: Transaksi yang stock purchase
-    const stockPurchaseTransactions = allTransaksi.filter(t => {
-        if (!t) return false;
-
-        // Status harus PAID
-        if (!(t.paymentStatus === 'PAID' || t.paymentStatus === 'LUNAS')) return false;
-
-        // ✅ HARUS stock purchase
-        return t.paymentGatewayResponse &&
-            (t.paymentGatewayResponse.toString().toUpperCase().includes('STOCK_PURCHASE') ||
-                t.paymentGatewayResponse.toString().toUpperCase().includes('PEMBELIAN'));
-    });
-
-    console.log('📊 Transaction breakdown:', {
-        totalTransactions: allTransaksi.length,
+    console.log('📊 Data breakdown:', {
+        manualExpenses: manualExpenses.length,
         incomeTransactions: incomeTransactions.length,
-        stockPurchases: stockPurchaseTransactions.length
+        totalTransactions: allTransaksi.length
     });
 
     // 3. HITUNG TOTAL
     const totalPemasukan = incomeTransactions.reduce((sum, t) => sum + (parseFloat(t.total) || 0), 0);
-
-    const pengeluaranManual = manualExpenses.reduce((sum, k) => sum + (parseFloat(k.nominal) || 0), 0);
-    const pengeluaranStock = stockPurchaseTransactions.reduce((sum, t) => sum + (parseFloat(t.total) || 0), 0);
-    const totalPengeluaran = pengeluaranManual + pengeluaranStock;
+    const totalPengeluaran = manualExpenses.reduce((sum, k) => sum + (parseFloat(k.nominal) || 0), 0);
+    const labaBersih = totalPemasukan - totalPengeluaran;
 
     // 4. GABUNGKAN RECORDS
     const allRecords = [];
@@ -268,46 +250,32 @@ function processIntegratedData(keuanganData, transaksiData) {
             source: 'TRANSAKSI',
             details: {
                 metode: t.metodePembayaran || t.metode_pembayaran || 'TUNAI',
-                kasir: t.namaKasir || t.kasirName || t.akun?.username || 'Kasir',
-                isStockPurchase: false
+                kasir: t.namaKasir || t.kasirName || t.akun?.username || 'Kasir'
             }
         });
     });
 
-    // ✅ PENGELUARAN MANUAL (hanya dari keuangan)
+    // ✅ PENGELUARAN MANUAL (dari keuangan dan stock purchase)
     manualExpenses.forEach(k => {
+        // Cek apakah ini stock purchase atau pengeluaran biasa
+        const isStockPurchase = k.keterangan &&
+            (k.keterangan.toString().toLowerCase().includes('stok') ||
+                k.keterangan.toString().toLowerCase().includes('pembelian'));
+
+        const category = isStockPurchase ? 'STOK' : categorizeExpense(k.keterangan);
+
         allRecords.push({
-            id: 'EXP-MANUAL-' + (k.idKeuangan || k.id),
+            id: 'EXP-' + (k.idKeuangan || k.id),
             type: 'PENGELUARAN',
             description: k.keterangan || 'Pengeluaran',
             amount: parseFloat(k.nominal) || 0,
             tanggal: k.tanggal || new Date().toISOString(),
-            category: categorizeExpense(k.keterangan),
-            source: 'KEUANGAN_MANUAL',
+            category: category,
+            source: 'KEUANGAN',
             details: {
                 jenis: k.jenis,
-                pegawai: k.akun?.username || 'System'
-            }
-        });
-    });
-
-    // ✅ PENGELUARAN STOCK PURCHASE
-    stockPurchaseTransactions.forEach(t => {
-        const notes = t.paymentGatewayResponse || '';
-        const description = parseStockPurchaseNotes(notes);
-
-        allRecords.push({
-            id: 'EXP-STOCK-' + (t.idTransaksi || t.id),
-            type: 'PENGELUARAN',
-            description: description,
-            amount: parseFloat(t.total) || 0,
-            tanggal: t.tanggal || new Date().toISOString(),
-            category: 'STOK',
-            source: 'STOCK_PURCHASE',
-            details: {
-                reference: t.referenceNumber || t.id,
-                kasir: t.namaKasir || t.kasirName || t.akun?.username || 'Kasir',
-                isStockPurchase: true
+                pegawai: k.akun?.username || 'System',
+                isStockPurchase: isStockPurchase
             }
         });
     });
@@ -318,17 +286,14 @@ function processIntegratedData(keuanganData, transaksiData) {
     return {
         totalPemasukan,
         totalPengeluaran,
-        labaBersih: totalPemasukan - totalPengeluaran,
+        labaBersih,
         totalTransaksi: allTransaksi.length,
         salesCount: incomeTransactions.length,
-        stockPurchaseCount: stockPurchaseTransactions.length,
-        manualExpensesCount: manualExpenses.length,
+        expensesCount: manualExpenses.length,
         totalRecords: allRecords.length,
         records: allRecords,
         breakdown: {
             salesIncome: totalPemasukan,
-            manualExpenses: pengeluaranManual,
-            stockExpenses: pengeluaranStock,
             totalExpenses: totalPengeluaran
         }
     };

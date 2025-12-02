@@ -195,10 +195,11 @@ public class TransaksiService {
     }
 
     /**
-     * CREATE transaksi khusus untuk pembelian stok (pengeluaran)
+     * CREATE stock purchase - HANYA sebagai pengeluaran, BUKAN transaksi
+     * Method ini diubah total logic-nya
      */
-    public Transaksi createStockPurchase(StockPurchaseRequest request) {
-        System.out.println("🛒 Creating stock purchase: " + request);
+    public Keuangan createStockPurchase(StockPurchaseRequest request) {
+        System.out.println("🛒 Creating stock purchase (PENGELUARAN only): " + request);
 
         // Validasi akun
         Akun akun = akunRepository.findById(request.getAkunId())
@@ -207,51 +208,32 @@ public class TransaksiService {
                     return new RuntimeException("Akun tidak ditemukan dengan ID: " + request.getAkunId());
                 });
 
-        System.out.println("✅ Akun ditemukan: " + akun.getUsername() + " (ID: " + akun.getIdPegawai() + ")");
+        System.out.println("✅ Akun ditemukan: " + akun.getUsername());
 
-        // Create transaksi
-        Transaksi transaksi = new Transaksi();
-        transaksi.setMetode_pembayaran(Transaksi.MetodePembayaran.TUNAI);
-        transaksi.setTotal(request.getTotalAmount());
-        transaksi.setAkun(akun);
-        transaksi.setKasirName(akun.getUsername());
-        transaksi.setPaymentStatus(Transaksi.PaymentStatus.PAID);
-        transaksi.setReferenceNumber(generateReferenceNumber());
-
-        String notes = "STOCK_PURCHASE|Product:" + request.getProductName();
-        if (request.getSupplierName() != null && !request.getSupplierName().isEmpty()) {
-            notes += "|Supplier:" + request.getSupplierName();
-        }
-        if (request.getNotes() != null && !request.getNotes().isEmpty()) {
-            notes += "|Notes:" + request.getNotes();
-        }
-        transaksi.setPaymentGatewayResponse(notes);
-
-        Transaksi savedTransaksi = transaksiRepository.save(transaksi);
-        System.out.println("✅ Transaksi disimpan: " + savedTransaksi.getIdTransaksi());
-
-        // OTOMATIS: Create Keuangan entry
+        // HANYA CREATE KEUANGAN ENTRY, BUKAN TRANSAKSI
         Keuangan keuangan = new Keuangan();
         keuangan.setJenis(Keuangan.JenisTransaksi.PENGELUARAN);
 
+        // Buat keterangan yang informative
         String keterangan = "Pembelian stok: " + request.getProductName();
         if (request.getSupplierName() != null && !request.getSupplierName().isEmpty()) {
-            keterangan += " dari " + request.getSupplierName();
+            keterangan += " (Supplier: " + request.getSupplierName() + ")";
         }
         if (request.getNotes() != null && !request.getNotes().isEmpty()) {
-            keterangan += " (" + request.getNotes() + ")";
+            keterangan += " - " + request.getNotes();
         }
-        keuangan.setKeterangan(keterangan);
 
+        keuangan.setKeterangan(keterangan);
         keuangan.setNominal(request.getTotalAmount());
         keuangan.setTanggal(LocalDateTime.now());
         keuangan.setAkun(akun);
 
         Keuangan savedKeuangan = keuanganRepository.save(keuangan);
-        System.out.println("✅ Keuangan disimpan: " + savedKeuangan.getIdKeuangan() +
+
+        System.out.println("✅ Pengeluaran stok dicatat: " + savedKeuangan.getIdKeuangan() +
                 " - " + keterangan + " - Rp" + request.getTotalAmount());
 
-        return savedTransaksi;
+        return savedKeuangan; // Return Keuangan, bukan Transaksi
     }
 
 }
