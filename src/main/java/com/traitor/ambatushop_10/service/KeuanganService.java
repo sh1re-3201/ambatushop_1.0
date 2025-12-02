@@ -7,7 +7,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Service @AllArgsConstructor
+@Service
+@AllArgsConstructor
 public class KeuanganService {
 
     private final KeuanganRepository keuanganRepository;
@@ -18,7 +19,7 @@ public class KeuanganService {
     }
 
     public Keuangan createKeuangan(Keuangan keuangan) {
-        if(keuangan.getKeterangan() == null || keuangan.getKeterangan().trim().isEmpty()) {
+        if (keuangan.getKeterangan() == null || keuangan.getKeterangan().trim().isEmpty()) {
             throw new RuntimeException("Keterangan tidak boleh kosong");
         }
         return keuanganRepository.save(keuangan);
@@ -27,5 +28,20 @@ public class KeuanganService {
     public Keuangan getKeuanganById(long id) {
         return keuanganRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Data keuangan dengan ID: " + id + " tidak ditemukan"));
+    }
+
+    public List<Keuangan> getByJenis(Keuangan.JenisTransaksi jenis) {
+        return keuanganRepository.findByJenis(jenis);
+    }
+
+    public Double getTotalByJenis(Keuangan.JenisTransaksi jenis) {
+        return keuanganRepository.findByJenis(jenis).stream()
+                .mapToDouble(Keuangan::getNominal)
+                .sum();
+    }
+
+    public void deleteKeuangan(long id) {
+        Keuangan keuangan = getKeuanganById(id);
+        keuanganRepository.delete(keuangan);
     }
 }

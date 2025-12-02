@@ -15,6 +15,8 @@ import java.util.List;
 @Repository
 public interface KeuanganRepository extends JpaRepository<Keuangan, Long> {
     List<Keuangan> findByTanggalBetween(LocalDateTime start, LocalDateTime end);
+    List<Keuangan> findByJenis(Keuangan.JenisTransaksi jenis);
+    List<Keuangan> findByAkunIdPegawai(Long idPegawai);
 //    List<Keuangan> findAll();
 }
 

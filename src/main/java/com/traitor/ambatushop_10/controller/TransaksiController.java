@@ -1,6 +1,7 @@
 package com.traitor.ambatushop_10.controller;
 
 import com.traitor.ambatushop_10.dto.ErrorResponse;
+import com.traitor.ambatushop_10.dto.StockPurchaseRequest;
 import com.traitor.ambatushop_10.dto.TransaksiRequest;
 import com.traitor.ambatushop_10.dto.TransaksiResponse;
 import com.traitor.ambatushop_10.model.Transaksi;
@@ -11,7 +12,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/transaksi")
@@ -101,6 +104,53 @@ public class TransaksiController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ErrorResponse(500, "SERVER_ERROR", "Gagal menghapus transaksi",
                             e.getMessage(), "/api/transaksi/" + id));
+        }
+    }
+
+    /**
+     * Endpoint untuk pembelian stok (pengeluaran)
+     */
+    @PostMapping("/stock-purchase")
+    @PreAuthorize("hasAnyRole('MANAJER', 'ADMIN')")
+    public ResponseEntity<?> createStockPurchase(@RequestBody StockPurchaseRequest request) { // GANTI TYPE
+        try {
+            // Validasi input
+            if (request.getAkunId() == null) {
+                return ResponseEntity.badRequest()
+                        .body(new ErrorResponse(400, "VALIDATION_ERROR", "Akun ID tidak boleh kosong",
+                                "Field 'akunId' required", "/api/transaksi/stock-purchase"));
+            }
+
+            if (request.getProductName() == null || request.getProductName().trim().isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body(new ErrorResponse(400, "VALIDATION_ERROR", "Nama produk tidak boleh kosong",
+                                "Field 'productName' required", "/api/transaksi/stock-purchase"));
+            }
+
+            if (request.getTotalAmount() == null || request.getTotalAmount() <= 0) {
+                return ResponseEntity.badRequest()
+                        .body(new ErrorResponse(400, "VALIDATION_ERROR", "Total amount harus lebih dari 0",
+                                "Field 'totalAmount' harus > 0", "/api/transaksi/stock-purchase"));
+            }
+
+            Transaksi transaksi = transaksiService.createStockPurchase(request);
+
+            // Return response khusus
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Pembelian stok berhasil dicatat sebagai pengeluaran");
+            response.put("transaksi", new TransaksiResponse(transaksi));
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest()
+                    .body(new ErrorResponse(400, "VALIDATION_ERROR", "Data pembelian tidak valid",
+                            e.getMessage(), "/api/transaksi/stock-purchase"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponse(500, "SERVER_ERROR", "Gagal mencatat pembelian stok",
+                            e.getMessage(), "/api/transaksi/stock-purchase"));
         }
     }
 

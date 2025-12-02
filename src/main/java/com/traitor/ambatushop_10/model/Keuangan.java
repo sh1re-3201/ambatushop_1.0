@@ -1,9 +1,9 @@
 package com.traitor.ambatushop_10.model;
 
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.Setter;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "keuangan")
@@ -14,23 +14,41 @@ public class Keuangan {
     @Column(name = "id")
     private Long idKeuangan;
 
-    // 0 = Cash, 1 = QRIS
-    @Column(nullable = false)
-    private Boolean jenis;
+    // PERBAIKAN: Tambahkan ENUM
+    @Enumerated(EnumType.STRING)
+    @Column(name = "jenis", nullable = false, length = 20)
+    private JenisTransaksi jenis;
 
     @Column(nullable = false)
     private String keterangan;
 
+    // PERBAIKAN: Ubah dari Long ke Double
     @Column(nullable = false)
-    private Long nominal;
+    private Double nominal;
 
     @Column(nullable = false)
     private LocalDateTime tanggal;
 
-    // Relasi ke model akun
     @ManyToOne
     @JoinColumn(name = "id_pegawai", nullable = false)
-//    @Column(name = "id_pegawai")
     private Akun akun;
 
+    // PERBAIKAN: Tambahkan ENUM di dalam class
+    public enum JenisTransaksi {
+        PEMASUKAN,
+        PENGELUARAN
+    }
+
+    // Constructor kosong (untuk JPA)
+    public Keuangan() {}
+
+    // Constructor dengan parameter
+    public Keuangan(JenisTransaksi jenis, String keterangan, Double nominal, 
+                    LocalDateTime tanggal, Akun akun) {
+        this.jenis = jenis;
+        this.keterangan = keterangan;
+        this.nominal = nominal;
+        this.tanggal = tanggal;
+        this.akun = akun;
+    }
 }

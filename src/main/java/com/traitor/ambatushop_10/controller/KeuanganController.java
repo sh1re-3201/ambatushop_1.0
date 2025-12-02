@@ -32,4 +32,11 @@ public class KeuanganController {
     public Keuangan getKeuanganById(@PathVariable long id) {
         return keuanganService.getKeuanganById(id);
     }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('MANAJER', 'ADMIN')")
+    public String deleteKeuangan(@PathVariable long id) {
+        keuanganService.deleteKeuangan(id);
+        return "Pengeluaran berhasil dihapus";
+    }
 }

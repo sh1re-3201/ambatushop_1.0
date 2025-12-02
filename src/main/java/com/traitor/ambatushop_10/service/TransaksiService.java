@@ -1,11 +1,14 @@
 package com.traitor.ambatushop_10.service;
 
+import com.traitor.ambatushop_10.dto.StockPurchaseRequest;
 import com.traitor.ambatushop_10.dto.TransaksiRequest;
 import com.traitor.ambatushop_10.model.Akun;
+import com.traitor.ambatushop_10.model.Keuangan;
 import com.traitor.ambatushop_10.model.Produk;
 import com.traitor.ambatushop_10.model.Transaksi;
 import com.traitor.ambatushop_10.model.TransaksiDetail;
 import com.traitor.ambatushop_10.repository.AkunRepository;
+import com.traitor.ambatushop_10.repository.KeuanganRepository;
 import com.traitor.ambatushop_10.repository.ProdukRepository;
 import com.traitor.ambatushop_10.repository.TransaksiRepository;
 import org.springframework.stereotype.Service;
@@ -22,27 +25,29 @@ public class TransaksiService {
     private final TransaksiRepository transaksiRepository;
     private final ProdukRepository produkRepository;
     private final AkunRepository akunRepository;
+    private final KeuanganRepository keuanganRepository;
 
     public TransaksiService(TransaksiRepository transaksiRepository,
             ProdukRepository produkRepository,
-            AkunRepository akunRepository) {
+            AkunRepository akunRepository, KeuanganRepository keuanganRepository) {
         this.transaksiRepository = transaksiRepository;
         this.produkRepository = produkRepository;
         this.akunRepository = akunRepository;
+        this.keuanganRepository = keuanganRepository;
     }
 
-    // ✅ GET semua transaksi
+    // GET semua transaksi
     public List<Transaksi> getAllTransaksi() {
         return transaksiRepository.findAll();
     }
 
-    // ✅ GET transaksi by ID
+    // GET transaksi by ID
     public Transaksi getTransaksiById(Long id) {
         return transaksiRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Transaksi tidak ditemukan dengan ID: " + id));
     }
 
-    // ✅ CREATE transaksi dengan DTO
+    // CREATE transaksi dengan DTO
     public Transaksi createTransaksi(TransaksiRequest request) {
         // Validasi akun exists
         Akun akun = akunRepository.findById(request.getAkunId())
@@ -56,7 +61,7 @@ public class TransaksiService {
             throw new RuntimeException("Metode pembayaran tidak valid: " + request.getMetodePembayaran());
         }
 
-        // ✅ PERBAIKAN: Untuk TUNAI langsung PAID, untuk NON_TUNAI tetap PENDING
+        // Untuk TUNAI langsung PAID, untuk NON_TUNAI tetap PENDING
         Transaksi.PaymentStatus initialStatus = (metodePembayaran == Transaksi.MetodePembayaran.TUNAI)
                 ? Transaksi.PaymentStatus.PAID
                 : Transaksi.PaymentStatus.PENDING;
@@ -67,7 +72,7 @@ public class TransaksiService {
         transaksi.setTotal(request.getTotal());
         transaksi.setAkun(akun);
         transaksi.setKasirName(request.getKasirName());
-        transaksi.setPaymentStatus(initialStatus); // ✅ Status berdasarkan metode
+        transaksi.setPaymentStatus(initialStatus); // Status berdasarkan metode
         transaksi.setReferenceNumber(generateReferenceNumber());
 
         // Validasi & proses details
@@ -187,6 +192,66 @@ public class TransaksiService {
         String date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         String random = String.format("%03d", new Random().nextInt(1000));
         return "TRX-" + date + "-" + random;
+    }
+
+    /**
+     * CREATE transaksi khusus untuk pembelian stok (pengeluaran)
+     */
+    public Transaksi createStockPurchase(StockPurchaseRequest request) {
+        System.out.println("🛒 Creating stock purchase: " + request);
+
+        // Validasi akun
+        Akun akun = akunRepository.findById(request.getAkunId())
+                .orElseThrow(() -> {
+                    System.out.println("❌ Akun tidak ditemukan: " + request.getAkunId());
+                    return new RuntimeException("Akun tidak ditemukan dengan ID: " + request.getAkunId());
+                });
+
+        System.out.println("✅ Akun ditemukan: " + akun.getUsername() + " (ID: " + akun.getIdPegawai() + ")");
+
+        // Create transaksi
+        Transaksi transaksi = new Transaksi();
+        transaksi.setMetode_pembayaran(Transaksi.MetodePembayaran.TUNAI);
+        transaksi.setTotal(request.getTotalAmount());
+        transaksi.setAkun(akun);
+        transaksi.setKasirName(akun.getUsername());
+        transaksi.setPaymentStatus(Transaksi.PaymentStatus.PAID);
+        transaksi.setReferenceNumber(generateReferenceNumber());
+
+        String notes = "STOCK_PURCHASE|Product:" + request.getProductName();
+        if (request.getSupplierName() != null && !request.getSupplierName().isEmpty()) {
+            notes += "|Supplier:" + request.getSupplierName();
+        }
+        if (request.getNotes() != null && !request.getNotes().isEmpty()) {
+            notes += "|Notes:" + request.getNotes();
+        }
+        transaksi.setPaymentGatewayResponse(notes);
+
+        Transaksi savedTransaksi = transaksiRepository.save(transaksi);
+        System.out.println("✅ Transaksi disimpan: " + savedTransaksi.getIdTransaksi());
+
+        // OTOMATIS: Create Keuangan entry
+        Keuangan keuangan = new Keuangan();
+        keuangan.setJenis(Keuangan.JenisTransaksi.PENGELUARAN);
+
+        String keterangan = "Pembelian stok: " + request.getProductName();
+        if (request.getSupplierName() != null && !request.getSupplierName().isEmpty()) {
+            keterangan += " dari " + request.getSupplierName();
+        }
+        if (request.getNotes() != null && !request.getNotes().isEmpty()) {
+            keterangan += " (" + request.getNotes() + ")";
+        }
+        keuangan.setKeterangan(keterangan);
+
+        keuangan.setNominal(request.getTotalAmount());
+        keuangan.setTanggal(LocalDateTime.now());
+        keuangan.setAkun(akun);
+
+        Keuangan savedKeuangan = keuanganRepository.save(keuangan);
+        System.out.println("✅ Keuangan disimpan: " + savedKeuangan.getIdKeuangan() +
+                " - " + keterangan + " - Rp" + request.getTotalAmount());
+
+        return savedTransaksi;
     }
 
 }
