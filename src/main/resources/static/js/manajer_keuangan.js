@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // Export button untuk tabel pengeluaran
-    document.getElementById('export-expenses-btn')?.addEventListener('click', function() {
+    document.getElementById('export-expenses-btn')?.addEventListener('click', function () {
         exportExpensesToExcel();
     });
 
@@ -180,7 +180,7 @@ async function loadFinancialData() {
 
         // PROSES DATA TERINTEGRASI
         const integratedData = processIntegratedData(safeKeuanganData, safeTransaksiData);
-        
+
         // Simpan semua records untuk filtering/pagination
         allRecords = integratedData.records || [];
 
@@ -362,14 +362,14 @@ function displayIntegratedRecordsResponsive(integratedData) {
 function renderTableWithPagination() {
     const tbody = document.getElementById('expenses-tbody');
     const pagination = document.querySelector('.table-pagination');
-    
+
     if (!tbody) return;
 
     // Filter records berdasarkan search dan filter
     const filteredRecords = filterRecords(allRecords, currentSearch, currentFilter);
     const totalItems = filteredRecords.length;
     const totalPages = Math.ceil(totalItems / currentPageSize);
-    
+
     // Hitung data untuk halaman saat ini
     const startIndex = (currentPage - 1) * currentPageSize;
     const endIndex = Math.min(startIndex + currentPageSize, totalItems);
@@ -412,7 +412,7 @@ function renderTableWithPagination() {
 
 function createTableRow(record, index) {
     const row = document.createElement('tr');
-    
+
     const isIncome = record.type === 'PEMASUKAN';
     const typeClass = isIncome ? 'badge-success' : 'badge-expense';
     const typeText = isIncome ? 'PEMASUKAN' : 'PENGELUARAN';
@@ -420,12 +420,16 @@ function createTableRow(record, index) {
     const amountSign = isIncome ? '+' : '-';
     const sourceIcon = getSourceIcon(record.source);
     const categoryClass = `badge-${record.category.toLowerCase()}`;
-    
+
     // Hanya tampilkan delete button untuk keuangan manual
     const showDelete = record.source === 'KEUANGAN';
-    const recordId = record.id.replace('EXP-', '');
-    const safeDescription = record.description ? record.description.replace(/'/g, "\\'") : '';
+    const recordId = record.id.replace('EXP-', '').replace('INC-', ''); // Fix untuk pemasukan juga
 
+    // FIX 1: Escape single quotes dengan benar
+    const safeDescription = record.description ?
+        record.description.replace(/'/g, "&#39;").replace(/"/g, "&quot;") : '';
+
+    // FIX 2: Gunakan Event Listener daripada inline onclick
     row.innerHTML = `
         <td class="sticky-column">${index}</td>
         <td>${formatDateTime(record.tanggal)}</td>
@@ -450,14 +454,14 @@ function createTableRow(record, index) {
         </td>
         <td class="action-column">
             <div class="action-buttons-group">
-                <button class="btn-icon btn-view" onclick="viewRecordDetail('${record.id}')" title="Lihat Detail">
+                <button class="btn-icon btn-view" data-record-id="${record.id}" title="Lihat Detail">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="2" fill="none"/>
                         <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" fill="none"/>
                     </svg>
                 </button>
                 ${showDelete ? `
-                    <button class="btn-icon btn-delete" onclick="deleteExpense('${recordId}', '${safeDescription}')" title="Hapus">
+                    <button class="btn-icon btn-delete" data-record-id="${recordId}" data-record-description="${safeDescription}" title="Hapus">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                             <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
@@ -466,20 +470,41 @@ function createTableRow(record, index) {
             </div>
         </td>
     `;
-    
+
+    // FIX 3: Tambahkan event listeners setelah row dibuat
+    const viewBtn = row.querySelector('.btn-view');
+    if (viewBtn) {
+        viewBtn.addEventListener('click', () => viewRecordDetail(record.id));
+    }
+
+    const deleteBtn = row.querySelector('.btn-delete');
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', () => {
+            const description = decodeHTMLEntities(deleteBtn.dataset.recordDescription || '');
+            deleteExpense(recordId, description);
+        });
+    }
+
     return row;
+}
+
+// FIX 4: Tambahkan helper function untuk decode HTML entities
+function decodeHTMLEntities(text) {
+    const textArea = document.createElement('textarea');
+    textArea.innerHTML = text;
+    return textArea.value;
 }
 
 function filterRecords(records, search, filter) {
     if (!records || !Array.isArray(records)) return [];
-    
+
     return records.filter(record => {
         // Filter by search
-        const matchesSearch = !search || 
+        const matchesSearch = !search ||
             record.description.toLowerCase().includes(search.toLowerCase()) ||
             record.category.toLowerCase().includes(search.toLowerCase()) ||
             (record.details?.kasir || '').toLowerCase().includes(search.toLowerCase());
-        
+
         // Filter by type
         let matchesFilter = true;
         if (filter) {
@@ -491,7 +516,7 @@ function filterRecords(records, search, filter) {
                 matchesFilter = record.category === filter;
             }
         }
-        
+
         return matchesSearch && matchesFilter;
     });
 }
@@ -499,25 +524,25 @@ function filterRecords(records, search, filter) {
 function setupPagination(totalPages, currentPage, totalItems, pageSize) {
     const pageStart = (currentPage - 1) * pageSize + 1;
     const pageEnd = Math.min(currentPage * pageSize, totalItems);
-    
+
     // Update pagination info
     document.getElementById('page-start').textContent = pageStart;
     document.getElementById('page-end').textContent = pageEnd;
     document.getElementById('total-items').textContent = totalItems;
-    
+
     // Update page numbers
     const pageNumbers = document.getElementById('page-numbers');
     pageNumbers.innerHTML = '';
-    
+
     // Show limited page numbers
     const maxVisiblePages = 5;
     let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
     let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-    
+
     if (endPage - startPage + 1 < maxVisiblePages) {
         startPage = Math.max(1, endPage - maxVisiblePages + 1);
     }
-    
+
     for (let i = startPage; i <= endPage; i++) {
         const pageBtn = document.createElement('button');
         pageBtn.className = `page-number ${i === currentPage ? 'active' : ''}`;
@@ -528,21 +553,21 @@ function setupPagination(totalPages, currentPage, totalItems, pageSize) {
         };
         pageNumbers.appendChild(pageBtn);
     }
-    
+
     // Update prev/next buttons
     const prevBtn = document.getElementById('prev-page');
     const nextBtn = document.getElementById('next-page');
-    
+
     prevBtn.disabled = currentPage === 1;
     nextBtn.disabled = currentPage === totalPages;
-    
+
     prevBtn.onclick = () => {
         if (currentPage > 1) {
             currentPage--;
             renderTableWithPagination();
         }
     };
-    
+
     nextBtn.onclick = () => {
         if (currentPage < totalPages) {
             currentPage++;
@@ -554,7 +579,7 @@ function setupPagination(totalPages, currentPage, totalItems, pageSize) {
 function setupTableSearchFilter() {
     const searchInput = document.getElementById('expense-search');
     const filterSelect = document.getElementById('expense-filter');
-    
+
     if (searchInput) {
         searchInput.addEventListener('input', debounce((e) => {
             currentSearch = e.target.value;
@@ -562,7 +587,7 @@ function setupTableSearchFilter() {
             renderTableWithPagination();
         }, 300));
     }
-    
+
     if (filterSelect) {
         filterSelect.addEventListener('change', (e) => {
             currentFilter = e.target.value;
@@ -574,7 +599,7 @@ function setupTableSearchFilter() {
 
 function setupPaginationControls() {
     const pageSizeSelect = document.getElementById('page-size-select');
-    
+
     if (pageSizeSelect) {
         pageSizeSelect.addEventListener('change', (e) => {
             currentPageSize = parseInt(e.target.value);
@@ -636,13 +661,13 @@ function updateBreakdownSummary(integratedData) {
 async function exportExpensesToExcel() {
     try {
         showNotification('success', 'Menyiapkan file Excel...');
-        
+
         const response = await fetch('/api/export/download', {
             headers: AuthHelper.getAuthHeaders()
         });
-        
+
         if (!response.ok) throw new Error('Gagal mengekspor data');
-        
+
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -652,7 +677,7 @@ async function exportExpensesToExcel() {
         a.click();
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
-        
+
         showNotification('success', 'File Excel berhasil diunduh');
     } catch (error) {
         console.error('Export error:', error);
@@ -668,54 +693,145 @@ function viewRecordDetail(recordId) {
         showError('Data tidak ditemukan');
         return;
     }
-    
-    const detailHtml = `
-        <div style="padding:16px;max-width:500px">
-            <h3 style="margin:0 0 16px 0;color:var(--text-primary)">Detail ${record.type}</h3>
-            <div style="background:var(--page-bg);padding:16px;border-radius:8px;margin-bottom:16px">
-                <div style="display:flex;justify-content:space-between;margin-bottom:8px">
-                    <span style="color:var(--text-secondary)">ID:</span>
-                    <span style="font-weight:600">${record.id}</span>
-                </div>
-                <div style="display:flex;justify-content:space-between;margin-bottom:8px">
-                    <span style="color:var(--text-secondary)">Tanggal:</span>
-                    <span>${formatDateTime(record.tanggal)}</span>
-                </div>
-                <div style="display:flex;justify-content:space-between;margin-bottom:8px">
-                    <span style="color:var(--text-secondary)">Kategori:</span>
-                    <span class="badge badge-${record.category.toLowerCase()}">${record.category}</span>
-                </div>
-                <div style="display:flex;justify-content:space-between;margin-bottom:8px">
-                    <span style="color:var(--text-secondary)">Jumlah:</span>
-                    <span style="font-weight:600;color:${record.type === 'PEMASUKAN' ? '#10b759' : '#ff5252'}">
-                        ${record.type === 'PEMASUKAN' ? '+' : '-'}${formatCurrency(record.amount)}
-                    </span>
-                </div>
-                <div style="margin-top:12px">
-                    <div style="color:var(--text-secondary);margin-bottom:4px">Deskripsi:</div>
-                    <div style="background:var(--bg);padding:12px;border-radius:6px;border:1px solid var(--border-color)">
-                        ${record.description}
+
+    // Buat modal custom
+    const modal = document.createElement('div');
+    modal.className = 'custom-modal-overlay';
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        padding: 20px;
+    `;
+
+    // Isi modal detail
+    modal.innerHTML = `
+        <div style="
+            background: var(--card);
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        ">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="margin: 0; color: var(--text-primary); font-size: 20px;">
+                    Detail ${record.type} - ${record.category}
+                </h3>
+                <button onclick="this.closest('.custom-modal-overlay').remove()" 
+                        style="
+                            background: none;
+                            border: none;
+                            font-size: 24px;
+                            cursor: pointer;
+                            color: var(--text-secondary);
+                            padding: 4px 8px;
+                        ">
+                    ×
+                </button>
+            </div>
+            
+            <div style="background: var(--page-bg); padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+                <div style="display: grid; gap: 12px;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--text-secondary); font-weight: 500;">ID:</span>
+                        <span style="font-weight: 600;">${record.id}</span>
                     </div>
-                </div>
-                ${record.details ? `
-                    <div style="margin-top:12px">
-                        <div style="color:var(--text-secondary);margin-bottom:4px">Detail Tambahan:</div>
-                        <div style="background:var(--bg);padding:12px;border-radius:6px;border:1px solid var(--border-color);font-size:14px">
-                            ${Object.entries(record.details).map(([key, value]) => `
-                                <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-                                    <span style="color:var(--text-secondary)">${key}:</span>
-                                    <span>${value}</span>
-                                </div>
-                            `).join('')}
+                    
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--text-secondary); font-weight: 500;">Tanggal:</span>
+                        <span>${formatDateTime(record.tanggal)}</span>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--text-secondary); font-weight: 500;">Jenis:</span>
+                        <span class="badge ${record.type === 'PEMASUKAN' ? 'badge-success' : 'badge-expense'}">
+                            ${record.type}
+                        </span>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--text-secondary); font-weight: 500;">Kategori:</span>
+                        <span class="badge badge-${record.category.toLowerCase()}">
+                            ${record.category}
+                        </span>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--text-secondary); font-weight: 500;">Jumlah:</span>
+                        <span style="font-weight: 700; color: ${record.type === 'PEMASUKAN' ? '#10b759' : '#ef4444'}">
+                            ${record.type === 'PEMASUKAN' ? '+' : '-'}${formatCurrency(record.amount)}
+                        </span>
+                    </div>
+                    
+                    <div style="margin-top: 8px;">
+                        <div style="color: var(--text-secondary); font-weight: 500; margin-bottom: 8px;">Deskripsi:</div>
+                        <div style="background: var(--bg); padding: 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+                            ${record.description}
                         </div>
                     </div>
-                ` : ''}
+                    
+                    ${record.details ? `
+                        <div style="margin-top: 12px;">
+                            <div style="color: var(--text-secondary); font-weight: 500; margin-bottom: 8px;">Detail Tambahan:</div>
+                            <div style="background: var(--bg); padding: 12px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 13px;">
+                                ${Object.entries(record.details).map(([key, value]) => `
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                                        <span style="color: var(--text-secondary);">${key}:</span>
+                                        <span style="font-weight: 500;">${value}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+            
+            <div style="display: flex; justify-content: flex-end; gap: 12px;">
+                <button onclick="this.closest('.custom-modal-overlay').remove()" 
+                        style="
+                            padding: 10px 20px;
+                            border: 1px solid var(--border-color);
+                            background: transparent;
+                            border-radius: 8px;
+                            color: var(--text-primary);
+                            cursor: pointer;
+                            font-weight: 500;
+                        ">
+                    Tutup
+                </button>
             </div>
         </div>
     `;
-    
-    // Show in modal or alert
-    alertify.alert(detailHtml).set('title', `Detail ${record.type}`);
+
+    document.body.appendChild(modal);
+
+    // Close modal on ESC key
+    const closeModal = (e) => {
+        if (e.key === 'Escape') {
+            modal.remove();
+            document.removeEventListener('keydown', closeModal);
+        }
+    };
+
+    document.addEventListener('keydown', closeModal);
+
+    // Close modal on overlay click
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.remove();
+            document.removeEventListener('keydown', closeModal);
+        }
+    });
 }
 
 // ========== API FETCH FUNCTIONS ==========
@@ -983,9 +1099,9 @@ function showNotification(type, message) {
     const notification = document.createElement('div');
     notification.className = `notification ${type}`;
     notification.textContent = message;
-    
+
     document.body.appendChild(notification);
-    
+
     setTimeout(() => {
         notification.remove();
     }, 3000);

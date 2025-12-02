@@ -207,30 +207,68 @@ class KasirKeuangan {
 
     async loadFinancialSummary() {
         try {
-            // Gunakan endpoint baru yang bisa diakses kasir
-            const summaryResponse = await fetch('http://localhost:8080/api/keuangan/summary', {
+            // 1. Load transaksi untuk hitung pemasukan
+            const transactionsResponse = await fetch('http://localhost:8080/api/transaksi', {
                 headers: AuthHelper.getAuthHeaders()
             });
 
-            if (!summaryResponse.ok) {
-                // Fallback: coba hitung manual
-                await this.calculateSummaryManually();
-                return;
+            let totalPemasukan = 0;
+            let totalPengeluaran = 0;
+            let successTransactions = 0;
+
+            if (transactionsResponse.ok) {
+                const transactions = await transactionsResponse.json();
+
+                // Filter hanya transaksi PAID yang bukan stock purchase
+                const paidTransactions = transactions.filter(t =>
+                    (t.paymentStatus === 'PAID' || t.paymentStatus === 'LUNAS') &&
+                    !this.isStockPurchase(t)
+                );
+
+                totalPemasukan = paidTransactions.reduce((sum, t) => sum + (t.total || 0), 0);
+                successTransactions = paidTransactions.length;
+
+                // Hitung rata-rata
+                const avgTransaction = successTransactions > 0 ? totalPemasukan / successTransactions : 0;
+                document.getElementById('average-transaction').textContent = this.formatCurrency(avgTransaction);
             }
 
-            const summary = await summaryResponse.json();
+            // 2. Load pengeluaran dari keuangan
+            const keuanganResponse = await fetch('http://localhost:8080/api/keuangan/kasir/by-type/PENGELUARAN', {
+                headers: AuthHelper.getAuthHeaders()
+            });
 
-            // Update summary cards
-            document.getElementById('total-income').textContent = this.formatCurrency(summary.totalPemasukan);
-            document.getElementById('total-expense').textContent = this.formatCurrency(summary.totalPengeluaran);
+            if (keuanganResponse.ok) {
+                const expenses = await keuanganResponse.json();
+                totalPengeluaran = expenses.reduce((sum, e) => sum + (e.nominal || 0), 0);
+            }
 
-            // Untuk transaksi berhasil, ambil dari endpoint transaksi
-            await this.loadTransactionStats();
+            // 3. Update UI
+            document.getElementById('total-income').textContent = this.formatCurrency(totalPemasukan);
+            document.getElementById('total-expense').textContent = this.formatCurrency(totalPengeluaran);
+            document.getElementById('success-transactions').textContent = successTransactions;
 
         } catch (error) {
-            console.error('Error loading summary:', error);
-            await this.calculateSummaryManually();
+            console.error('Error loading financial summary:', error);
+            this.showError('Gagal memuat data keuangan: ' + error.message);
         }
+    }
+
+    // Helper method untuk cek stock purchase
+    isStockPurchase(transaction) {
+        if (!transaction) return false;
+
+        // Cek dari reference number atau metadata
+        const ref = transaction.referenceNumber || '';
+        const method = transaction.metodePembayaran || transaction.metode_pembayaran || '';
+        const status = transaction.paymentStatus || '';
+
+        // Stock purchase biasanya TUNAI, PAID, dan ada indikator pembelian
+        return method === 'TUNAI' &&
+            status === 'PAID' &&
+            (transaction.description?.toLowerCase().includes('beli') ||
+                transaction.notes?.toLowerCase().includes('stok') ||
+                ref.includes('STOCK'));
     }
 
 
