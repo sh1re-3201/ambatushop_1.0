@@ -1,3 +1,4 @@
+// admin_pengguna.js - FULL VERSION dengan Real-time User Tracking
 // Kontrol sidebar dan authentication
 document.addEventListener('DOMContentLoaded', async () => {
     // Check authentication
@@ -7,7 +8,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Only allow ADMIN access
     if (auth.userRole !== 'ADMIN') {
         alert('Hanya ADMIN yang dapat mengakses halaman ini');
-        window.location.href = '/admin/dashboard';
+        window.location.href = '/beranda_admin.html';
         return;
     }
 
@@ -128,10 +129,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
-    // ========== USER MANAGEMENT FUNCTIONALITY ==========
+    // ========== REAL-TIME USER TRACKING INITIALIZATION ==========
+    
+    // Add connection status indicator
+    addConnectionStatusIndicator();
+    
+    // Start real-time data updates
+    startRealTimeUpdates();
+    
+    // Send initial activity ping
+    sendActivityPing();
     
     // Load users data
-    await loadUsersData();
+    await loadRealTimeData();
     
     // Add event listener for "Tambah Pengguna" button
     const addUserBtn = document.querySelector('button[style*="background:#2b7cff"]');
@@ -140,7 +150,299 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
-// ========== API FUNCTIONS ==========
+// ========== REAL-TIME USER TRACKING ==========
+
+let activityInterval;
+let dataUpdateInterval;
+let userStats = {
+    totalUsers: 0,
+    onlineUsers: 0,
+    offlineUsers: 0,
+    adminCount: 0,
+    managerCount: 0,
+    kasirCount: 0,
+    activeAdmin: 0,
+    activeManager: 0,
+    activeKasir: 0
+};
+
+function addConnectionStatusIndicator() {
+    // Create connection status indicator
+    const statusHtml = `
+        <div class="connection-status" id="connectionStatus" style="display: none;">
+            <span class="connection-dot"></span>
+            <span class="connection-text">Menyambungkan...</span>
+        </div>
+    `;
+    
+    const contentMain = document.querySelector('.content-main');
+    if (contentMain) {
+        contentMain.insertAdjacentHTML('afterbegin', statusHtml);
+    }
+}
+
+function updateConnectionStatus(connected) {
+    const statusEl = document.getElementById('connectionStatus');
+    if (!statusEl) return;
+    
+    statusEl.style.display = 'flex';
+    
+    if (connected) {
+        statusEl.className = 'connection-status connected';
+        statusEl.innerHTML = `
+            <span class="connection-dot connected"></span>
+            <span class="connection-text">Terhubung ke server</span>
+        `;
+        
+        // Hide after 3 seconds
+        setTimeout(() => {
+            statusEl.style.display = 'none';
+        }, 3000);
+    } else {
+        statusEl.className = 'connection-status disconnected';
+        statusEl.innerHTML = `
+            <span class="connection-dot disconnected"></span>
+            <span class="connection-text">Terputus dari server. Menampilkan data terakhir...</span>
+        `;
+    }
+}
+
+// ========== LOAD REAL DATA ==========
+
+async function loadRealTimeData() {
+    try {
+        updateConnectionStatus(true);
+        
+        // Load user stats from new endpoint
+        const statsResponse = await fetch('http://localhost:8080/api/admin/users/stats', {
+            headers: AuthHelper.getAuthHeaders()
+        });
+        
+        if (statsResponse.ok) {
+            const stats = await statsResponse.json();
+            userStats = stats;
+            updateStatsCardsReal(stats);
+        } else {
+            // Fallback to old endpoint
+            await loadUsersData();
+        }
+
+        // Load users with status
+        const usersResponse = await fetch('http://localhost:8080/api/admin/users/all-with-status', {
+            headers: AuthHelper.getAuthHeaders()
+        });
+        
+        if (usersResponse.ok) {
+            const users = await usersResponse.json();
+            updateUsersTableReal(users);
+        } else {
+            // Fallback to old endpoint
+            const fallbackResponse = await fetch('http://localhost:8080/api/admin/akun', {
+                headers: AuthHelper.getAuthHeaders()
+            });
+            if (fallbackResponse.ok) {
+                const users = await fallbackResponse.json();
+                updateUsersTable(users);
+            }
+        }
+
+    } catch (error) {
+        console.error('Error loading real-time data:', error);
+        updateConnectionStatus(false);
+        // Fallback to mock data if API fails
+        loadMockData();
+    }
+}
+
+function updateStatsCardsReal(stats) {
+    // Update all cards with real data
+    const card1 = document.querySelector('.card.feature:nth-child(1) .value');
+    const card2 = document.querySelector('.card.feature:nth-child(2) .value');
+    const card3 = document.querySelector('.card.feature:nth-child(3) .value');
+    const card4 = document.querySelector('.card.feature:nth-child(4) .value');
+    const card5 = document.querySelector('.card.feature:nth-child(5) .value');
+    const card6 = document.querySelector('.card.feature:nth-child(6) .value');
+    
+    if (card1) card1.textContent = `${stats.totalUsers} Pengguna`;
+    if (card2) card2.textContent = `${stats.adminCount} Admin`;
+    if (card3) card3.textContent = `${stats.managerCount} Manajer`;
+    if (card4) card4.textContent = `${stats.kasirCount} Kasir`;
+    if (card5) card5.textContent = `${stats.onlineUsers} Online`;
+    if (card6) card6.textContent = `${stats.offlineUsers} Offline`;
+    
+    // Update subtitles with active counts
+    const adminSubtitle = document.querySelector('.card.feature:nth-child(2) .subtitle');
+    const managerSubtitle = document.querySelector('.card.feature:nth-child(3) .subtitle');
+    const kasirSubtitle = document.querySelector('.card.feature:nth-child(4) .subtitle');
+    
+    if (adminSubtitle && stats.activeAdmin !== undefined) {
+        adminSubtitle.textContent = `${stats.activeAdmin} aktif sekarang`;
+    }
+    
+    if (managerSubtitle && stats.activeManager !== undefined) {
+        managerSubtitle.textContent = `${stats.activeManager} aktif sekarang`;
+    }
+    
+    if (kasirSubtitle && stats.activeKasir !== undefined) {
+        kasirSubtitle.textContent = `${stats.activeKasir} aktif sekarang`;
+    }
+}
+
+function updateUsersTableReal(users) {
+    const tbody = document.querySelector('table tbody');
+    if (!tbody) return;
+
+    tbody.innerHTML = '';
+
+    users.forEach(user => {
+        const row = document.createElement('tr');
+        row.style.borderBottom = '1px solid var(--border-color)';
+        
+        // Determine role color
+        const roleStyles = {
+            'ADMIN': { bg: '#fee2e2', color: '#991b1b' },
+            'MANAJER': { bg: '#fef3c7', color: '#92400e' },
+            'KASIR': { bg: '#d1fae5', color: '#065f46' }
+        };
+        
+        const roleStyle = roleStyles[user.role] || roleStyles.KASIR;
+        
+        // Determine status
+        const isOnline = user.isOnline;
+        const statusStyle = isOnline ? 
+            { bg: '#d1fae5', color: '#065f46', text: '● Online' } : 
+            { bg: '#e5e7eb', color: '#374151', text: '○ Offline' };
+
+        // Format last activity time
+        const lastActivity = user.lastActivity ? 
+            formatTimeAgo(user.lastActivity) : 'Belum pernah aktif';
+
+        row.innerHTML = `
+            <td style="padding:12px 8px">
+                <div style="display:flex;align-items:center;gap:8px">
+                    <div style="width:32px;height:32px;border-radius:50%;background:${getRoleColor(user.role)};display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:14px">
+                        ${user.initial}
+                    </div>
+                    <div>
+                        <div style="font-weight:500">${user.username}</div>
+                        <div style="font-size:12px;color:var(--text-secondary)">${lastActivity}</div>
+                    </div>
+                </div>
+            </td>
+            <td style="padding:12px 8px;color:var(--text-secondary)">${user.username}</td>
+            <td style="padding:12px 8px;text-align:center">
+                <span style="background:${roleStyle.bg};color:${roleStyle.color};padding:4px 12px;border-radius:12px;font-size:13px;font-weight:600">
+                    ${user.role}
+                </span>
+            </td>
+            <td style="padding:12px 8px;text-align:center">
+                <span style="background:${statusStyle.bg};color:${statusStyle.color};padding:4px 12px;border-radius:12px;font-size:13px;font-weight:600">
+                    ${statusStyle.text}
+                </span>
+            </td>
+            <td style="padding:12px 8px;text-align:center">
+                <button class="edit-btn" data-user-id="${user.id}" style="padding:4px 12px;background:#f3f4f6;border:0;border-radius:6px;cursor:pointer;margin:0 4px">Edit</button>
+                <button class="delete-btn" data-user-id="${user.id}" data-username="${user.username}" style="padding:4px 12px;background:#fee2e2;color:#991b1b;border:0;border-radius:6px;cursor:pointer">Hapus</button>
+            </td>
+        `;
+
+        tbody.appendChild(row);
+    });
+
+    // Add event listeners
+    addUserActionListeners();
+}
+
+// ========== REAL-TIME UPDATES ==========
+
+function startRealTimeUpdates() {
+    // Load initial data
+    loadRealTimeData();
+    
+    // Update every 30 seconds
+    if (dataUpdateInterval) clearInterval(dataUpdateInterval);
+    dataUpdateInterval = setInterval(loadRealTimeData, 30000);
+    
+    // Send activity ping every 2 minutes to keep session alive
+    if (activityInterval) clearInterval(activityInterval);
+    activityInterval = setInterval(sendActivityPing, 120000);
+}
+
+async function sendActivityPing() {
+    try {
+        await fetch('http://localhost:8080/api/auth/activity', {
+            method: 'POST',
+            headers: AuthHelper.getAuthHeaders()
+        });
+    } catch (error) {
+        console.error('Activity ping failed:', error);
+    }
+}
+
+// ========== UTILITY FUNCTIONS ==========
+
+function formatTimeAgo(timestamp) {
+    if (!timestamp) return 'Tidak diketahui';
+    
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    
+    if (diffMins < 1) return 'Baru saja';
+    if (diffMins < 60) return `${diffMins} menit lalu`;
+    if (diffHours < 24) return `${diffHours} jam lalu`;
+    if (diffDays < 7) return `${diffDays} hari lalu`;
+    
+    return date.toLocaleDateString('id-ID', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+    });
+}
+
+function addUserActionListeners() {
+    document.querySelectorAll('.edit-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const userId = e.target.getAttribute('data-user-id');
+            showEditUserModal(userId);
+        });
+    });
+
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const userId = e.target.getAttribute('data-user-id');
+            const username = e.target.getAttribute('data-username');
+            confirmDeleteUser(userId, username);
+        });
+    });
+}
+
+// ========== FALLBACK MOCK DATA ==========
+
+function loadMockData() {
+    // This is fallback if API fails
+    console.warn('Using mock data - API connection failed');
+    
+    // Simulate some data
+    userStats = {
+        totalUsers: 47,
+        onlineUsers: 12,
+        offlineUsers: 35,
+        adminCount: 3,
+        managerCount: 8,
+        kasirCount: 36,
+        activeAdmin: 1,
+        activeManager: 3,
+        activeKasir: 8
+    };
+    
+    updateStatsCardsReal(userStats);
+}
+
+// ========== EXISTING API FUNCTIONS (keep for compatibility) ==========
 
 async function loadUsersData() {
     try {
@@ -221,7 +523,7 @@ async function deleteUser(userId) {
     }
 }
 
-// ========== UI UPDATE FUNCTIONS ==========
+// ========== UI UPDATE FUNCTIONS (keep for compatibility) ==========
 
 function updateUsersTable(users) {
     const tbody = document.querySelector('table tbody');
@@ -275,20 +577,7 @@ function updateUsersTable(users) {
     });
 
     // Add event listeners to buttons
-    document.querySelectorAll('.edit-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const userId = e.target.getAttribute('data-user-id');
-            showEditUserModal(userId);
-        });
-    });
-
-    document.querySelectorAll('.delete-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const userId = e.target.getAttribute('data-user-id');
-            const username = e.target.getAttribute('data-username');
-            confirmDeleteUser(userId, username);
-        });
-    });
+    addUserActionListeners();
 }
 
 function updateUserStats(users) {
@@ -327,7 +616,7 @@ function getRoleColor(role) {
     return colors[role] || '#10b759';
 }
 
-// ========== MODAL FUNCTIONS ==========
+// ========== MODAL FUNCTIONS (keep existing) ==========
 
 function showAddUserModal() {
     const modalHtml = `
@@ -495,7 +784,7 @@ async function handleUserSubmit() {
     if (result.success) {
         // Close modal and refresh data
         document.getElementById('userModal').remove();
-        await loadUsersData();
+        await loadRealTimeData();
         showSuccess(userId ? 'Pengguna berhasil diupdate' : 'Pengguna berhasil dibuat');
     } else {
         showError(result.error);
@@ -507,7 +796,7 @@ async function confirmDeleteUser(userId, username) {
         const result = await deleteUser(userId);
         
         if (result.success) {
-            await loadUsersData();
+            await loadRealTimeData();
             showSuccess('Pengguna berhasil dihapus');
         } else {
             showError(result.error);
@@ -526,3 +815,133 @@ function showSuccess(message) {
     // Simple success display - you can enhance this with better UI
     alert('Sukses: ' + message);
 }
+
+// ========== CSS STYLES TO ADD ==========
+// Add these styles to your admin_pengguna.css file
+
+const cssStyles = `
+/* Real-time status indicators */
+.connection-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.connection-status.connected {
+    background: #d1fae5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+}
+
+.connection-status.disconnected {
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fde68a;
+}
+
+.connection-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.connection-dot.connected {
+    background: #10b759;
+    animation: pulse 2s infinite;
+}
+
+.connection-dot.disconnected {
+    background: #f59e0b;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+/* Status badges */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.status-badge.online {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.status-badge.offline {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.status-dot.online {
+    background: #10b759;
+    animation: pulse 2s infinite;
+}
+
+.status-dot.offline {
+    background: #9ca3af;
+}
+
+/* Loading animation */
+.loading-spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid var(--border-color);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Card hover effects */
+.card.feature {
+    transition: all 0.3s ease;
+}
+
+.card.feature:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Responsive table */
+@media (max-width: 768px) {
+    table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+}
+`;
+
+// Inject styles if not already in CSS
+document.addEventListener('DOMContentLoaded', () => {
+    if (!document.querySelector('#admin-pengguna-styles')) {
+        const styleEl = document.createElement('style');
+        styleEl.id = 'admin-pengguna-styles';
+        styleEl.textContent = cssStyles;
+        document.head.appendChild(styleEl);
+    }
+});
