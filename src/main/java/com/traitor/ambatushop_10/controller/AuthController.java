@@ -8,6 +8,9 @@ import com.traitor.ambatushop_10.repository.AkunRepository;
 import com.traitor.ambatushop_10.service.JwtService;
 import com.traitor.ambatushop_10.service.ValidationService;
 import jakarta.servlet.http.HttpServletRequest;
+
+import java.time.LocalDateTime;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,6 +22,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import com.traitor.ambatushop_10.service.UserSessionService;
+
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -75,7 +79,7 @@ public class AuthController {
                     akun.getIdPegawai());
 
             // logger.info("JWT Token generated for: {} (ID: {}) with role: {}",
-            //         akun.getUsername(), akun.getIdPegawai(), akun.getRole());
+            // akun.getUsername(), akun.getIdPegawai(), akun.getRole());
 
             return ResponseEntity.ok(
                     new AuthResponse(token, akun.getRole().name(), akun.getUsername(), akun.getIdPegawai(),
@@ -109,22 +113,27 @@ public class AuthController {
     public ResponseEntity<?> logout(HttpServletRequest request) {
         try {
             String token = extractTokenFromRequest(request);
+
             if (token != null && jwtService.isTokenValid(token)) {
                 Long userId = jwtService.extractUserId(token);
 
-                // TRACK USER LOGOUT
-                // Note: We need to get sessionId from somewhere
-                // Could store it in token claims or track differently
-
+                // MARK USER AS OFFLINE di database
                 akunRepository.findById(userId).ifPresent(akun -> {
-                    akun.markAsOffline();
+                    akun.setOnline(false);
+                    akun.setLastActivityAt(LocalDateTime.now());
+                    akun.setSessionId(null);
                     akunRepository.save(akun);
+                    System.out.println("✅ User " + akun.getUsername() + " marked as offline (logout)");
                 });
+
+                // Juga hapus dari session cache di UserSessionService
+                userSessionService.userLoggedOut(userId); 
             }
 
             return ResponseEntity.ok("Logout berhasil");
 
         } catch (Exception e) {
+            System.err.println("❌ Error during logout: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error during logout");
         }

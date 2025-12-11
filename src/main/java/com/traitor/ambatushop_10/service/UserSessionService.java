@@ -24,7 +24,7 @@ public class UserSessionService {
 
     private final AkunRepository akunRepository;
     private final Map<String, UserSession> activeSessions = new ConcurrentHashMap<>();
-    
+
     public UserSessionService(AkunRepository akunRepository) {
         this.akunRepository = akunRepository;
     }
@@ -34,48 +34,73 @@ public class UserSessionService {
         try {
             Akun akun = akunRepository.findById(userId)
                     .orElseThrow(() -> new RuntimeException("User not found"));
-            
+
             String sessionId = UUID.randomUUID().toString();
             String ipAddress = getClientIp(request);
-            
+
             // Update database
             akun.markAsOnline(sessionId, ipAddress);
             akunRepository.save(akun);
-            
+
             // Store in memory cache
             UserSession session = new UserSession(
-                userId,
-                username,
-                akun.getRole().name(),
-                sessionId,
-                ipAddress,
-                LocalDateTime.now()
-            );
+                    userId,
+                    username,
+                    akun.getRole().name(),
+                    sessionId,
+                    ipAddress,
+                    LocalDateTime.now());
             activeSessions.put(sessionId, session);
-            
+
             log.info("User {} logged in. Session: {}, IP: {}", username, sessionId, ipAddress);
-            
+
         } catch (Exception e) {
             log.error("Error tracking user login: {}", e.getMessage(), e);
         }
     }
 
+    // Method baru untuk logout by token (alternatif)
     @Transactional
-    public void userLoggedOut(String sessionId) {
+    public void userLoggedOut(Long userId) {
         try {
-            UserSession session = activeSessions.remove(sessionId);
-            if (session != null) {
-                Akun akun = akunRepository.findById(session.getUserId())
-                        .orElseThrow(() -> new RuntimeException("User not found"));
-                
-                akun.markAsOffline();
-                akunRepository.save(akun);
-                
-                log.info("User {} logged out", session.getUsername());
-            }
+            Akun akun = akunRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            // Update database
+            akun.setOnline(false);
+            akun.setLastActivityAt(LocalDateTime.now());
+            akun.setSessionId(null);
+            akunRepository.save(akun);
+
+            // Remove from memory cache
+            activeSessions.remove(userId);
+
+            log.info("✅ User {} logged out successfully", akun.getUsername());
+
         } catch (Exception e) {
-            log.error("Error tracking user logout: {}", e.getMessage(), e);
+            log.error("❌ Error tracking user logout: {}", e.getMessage(), e);
         }
+    }
+
+     // Method untuk cek dan cleanup session yang expired
+    public void checkAndCleanupExpiredSessions() {
+        LocalDateTime fifteenMinutesAgo = LocalDateTime.now().minusMinutes(15);
+        
+        activeSessions.entrySet().removeIf(entry -> {
+            UserSession session = entry.getValue();
+            
+            if (session.getLastActivity().isBefore(fifteenMinutesAgo)) {
+                // Mark as offline in database
+                akunRepository.findById(session.getUserId()).ifPresent(akun -> {
+                    akun.setOnline(false);
+                    akun.setLastActivityAt(LocalDateTime.now());
+                    akunRepository.save(akun);
+                    log.info("Auto-logout user {} due to inactivity", akun.getUsername());
+                });
+                return true;
+            }
+            return false;
+        });
     }
 
     @Transactional
@@ -83,10 +108,10 @@ public class UserSessionService {
         try {
             Akun akun = akunRepository.findById(userId)
                     .orElseThrow(() -> new RuntimeException("User not found"));
-            
+
             akun.updateActivity();
             akunRepository.save(akun);
-            
+
         } catch (Exception e) {
             log.error("Error updating user activity: {}", e.getMessage(), e);
         }
@@ -100,12 +125,12 @@ public class UserSessionService {
 
     public Map<String, Object> getUserStats() {
         List<Akun> allUsers = akunRepository.findAll();
-        
+
         long totalUsers = allUsers.size();
         long onlineUsers = allUsers.stream()
                 .filter(Akun::isCurrentlyActive)
                 .count();
-        
+
         long adminCount = allUsers.stream()
                 .filter(u -> u.getRole() == Akun.Role.ADMIN)
                 .count();
@@ -115,7 +140,7 @@ public class UserSessionService {
         long kasirCount = allUsers.stream()
                 .filter(u -> u.getRole() == Akun.Role.KASIR)
                 .count();
-        
+
         Map<String, Object> stats = new java.util.HashMap<>();
         stats.put("totalUsers", totalUsers);
         stats.put("onlineUsers", onlineUsers);
@@ -123,7 +148,7 @@ public class UserSessionService {
         stats.put("adminCount", adminCount);
         stats.put("managerCount", managerCount);
         stats.put("kasirCount", kasirCount);
-        
+
         // Add active sessions count by role
         stats.put("activeAdmins", allUsers.stream()
                 .filter(u -> u.getRole() == Akun.Role.ADMIN && u.isCurrentlyActive())
@@ -134,7 +159,7 @@ public class UserSessionService {
         stats.put("activeKasirs", allUsers.stream()
                 .filter(u -> u.getRole() == Akun.Role.KASIR && u.isCurrentlyActive())
                 .count());
-        
+
         return stats;
     }
 
@@ -142,23 +167,22 @@ public class UserSessionService {
     @Transactional
     public void cleanupInactiveUsers() {
         log.info("Cleaning up inactive user sessions...");
-        
+
         LocalDateTime fifteenMinutesAgo = LocalDateTime.now().minusMinutes(15);
-        
+
         List<Akun> inactiveUsers = akunRepository.findAll().stream()
                 .filter(Akun::isOnline)
-                .filter(akun -> akun.getLastActivityAt() != null 
+                .filter(akun -> akun.getLastActivityAt() != null
                         && akun.getLastActivityAt().isBefore(fifteenMinutesAgo))
                 .collect(Collectors.toList());
-        
+
         for (Akun akun : inactiveUsers) {
             akun.markAsOffline();
             akunRepository.save(akun);
-            
+
             // Remove from memory cache
-            activeSessions.values().removeIf(session -> 
-                session.getUserId() == akun.getIdPegawai());
-            
+            activeSessions.values().removeIf(session -> session.getUserId() == akun.getIdPegawai());
+
             log.info("Marked user {} as offline due to inactivity", akun.getUsername());
         }
     }

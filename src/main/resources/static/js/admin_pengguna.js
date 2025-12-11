@@ -214,19 +214,28 @@ function updateConnectionStatus(connected) {
 async function loadRealTimeData() {
     try {
         console.log('🔄 Loading real-time user data...');
-        updateConnectionStatus(true);
-
-        // Load user stats from new endpoint
-        const statsResponse = await fetch('http://localhost:8080/api/admin/users/stats', {
-            headers: AuthHelper.getAuthHeaders()
-        });
-
-        if (statsResponse.ok) {
+        
+        // Show loading state
+        showLoadingState(true);
+        
+        const [statsResponse, usersResponse] = await Promise.all([
+            fetch('http://localhost:8080/api/admin/users/stats', {
+                headers: AuthHelper.getAuthHeaders()
+            }),
+            fetch('http://localhost:8080/api/admin/users/all-with-status', {
+                headers: AuthHelper.getAuthHeaders()
+            })
+        ]);
+        
+        if (statsResponse.ok && usersResponse.ok) {
             const stats = await statsResponse.json();
+            const users = await usersResponse.json();
+            
             console.log('📊 User stats:', stats);
-
+            console.log('👥 Users data:', users);
+            
             // Convert counts from backend to numbers
-            userStats = {
+            const processedStats = {
                 totalUsers: Number(stats.totalUsers) || 0,
                 onlineUsers: Number(stats.onlineUsers) || 0,
                 offlineUsers: Number(stats.offlineUsers) || 0,
@@ -237,37 +246,72 @@ async function loadRealTimeData() {
                 activeManager: Number(stats.activeManagers) || 0,
                 activeKasir: Number(stats.activeKasirs) || 0
             };
-
-            console.log('📈 Processed stats:', userStats);
-            updateStatsCardsReal(userStats);
-        } else {
-            console.warn('⚠️ Stats endpoint failed, falling back to old endpoint');
-            // Fallback to old endpoint
-            await loadUsersDataFallback();
-        }
-
-        // Load users with status
-        const usersResponse = await fetch('http://localhost:8080/api/admin/users/all-with-status', {
-            headers: AuthHelper.getAuthHeaders()
-        });
-
-        if (usersResponse.ok) {
-            const users = await usersResponse.json();
-            console.log('👥 Users with status:', users);
+            
+            console.log('📈 Processed stats:', processedStats);
+            
+            // Update UI
+            updateStatsCardsReal(processedStats);
             updateUsersTableReal(users);
+            updateConnectionStatus(true);
+            
+            // Add visual feedback for updates
+            highlightUpdatedCards();
+            
         } else {
-            console.warn('⚠️ Users endpoint failed, falling back');
-            // Fallback to old endpoint
+            console.warn('⚠️ Some endpoints failed, falling back...');
+            updateConnectionStatus(false);
             await loadUsersDataFallback();
         }
-
+        
     } catch (error) {
         console.error('❌ Error loading real-time data:', error);
         updateConnectionStatus(false);
         // Fallback to mock data if API fails
         loadMockData();
+    } finally {
+        // Hide loading state
+        showLoadingState(false);
     }
 }
+
+function showLoadingState(show) {
+    const cards = document.querySelectorAll('.card.feature');
+    
+    cards.forEach(card => {
+        if (show) {
+            card.classList.add('loading');
+            const valueElement = card.querySelector('.value');
+            if (valueElement) {
+                valueElement.dataset.originalText = valueElement.textContent;
+                valueElement.textContent = 'Loading...';
+            }
+        } else {
+            card.classList.remove('loading');
+            const valueElement = card.querySelector('.value');
+            if (valueElement && valueElement.dataset.originalText) {
+                valueElement.textContent = valueElement.dataset.originalText;
+                delete valueElement.dataset.originalText;
+            }
+        }
+    });
+}
+
+function highlightUpdatedCards() {
+    // Highlight online/offline cards when they change
+    const onlineCard = document.getElementById('onlineUsersCard');
+    const offlineCard = document.getElementById('offlineUsersCard');
+    
+    if (onlineCard) {
+        onlineCard.classList.add('updated');
+        setTimeout(() => onlineCard.classList.remove('updated'), 1000);
+    }
+    
+    if (offlineCard) {
+        offlineCard.classList.add('updated');
+        setTimeout(() => offlineCard.classList.remove('updated'), 1000);
+    }
+}
+
 
 async function loadUsersDataFallback() {
     try {
@@ -536,20 +580,28 @@ function updateUsersTableReal(users) {
 
 function startRealTimeUpdates() {
     console.log('⏰ Starting real-time updates...');
-
+    
     // Load initial data
     loadRealTimeData();
-
-    // Update every 30 seconds
+    
+    // Update lebih sering untuk real-time experience (10 detik)
     if (dataUpdateInterval) clearInterval(dataUpdateInterval);
     dataUpdateInterval = setInterval(() => {
         console.log('🔄 Auto-refreshing user data...');
         loadRealTimeData();
-    }, 30000);
-
-    // Send activity ping every 2 minutes to keep session alive
+    }, 10000); // 10 detik (bukan 30 detik)
+    
+    // Send activity ping setiap 1 menit
     if (activityInterval) clearInterval(activityInterval);
-    activityInterval = setInterval(sendActivityPing, 120000);
+    activityInterval = setInterval(sendActivityPing, 60000);
+    
+    // Setup visibility change detection
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) {
+            console.log('📱 Page became visible, refreshing data...');
+            loadRealTimeData();
+        }
+    });
 }
 
 async function sendActivityPing() {
