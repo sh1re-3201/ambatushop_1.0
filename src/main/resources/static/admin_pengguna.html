@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>AmbatuShop — Manajemen Pengguna</title>
   <link rel="stylesheet" href="css/admin_pengguna.css" />
 </head>
+
 <body class="role-admin-manajer">
   <div class="page">
     <aside class="sidebar" id="sidebar" aria-hidden="false">
@@ -19,8 +21,10 @@
         <a href="beranda_admin.html" class="menu-item pill" data-tab="dashboard" title="Dasbor">
           <span class="mi-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
-              <path d="M3 11.5L12 4l9 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M5 11.5V20a1 1 0 0 0 1 1h3v-6h6v6h3a1 1 0 0 0 1-1v-8.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M3 11.5L12 4l9 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                stroke-linejoin="round" />
+              <path d="M5 11.5V20a1 1 0 0 0 1 1h3v-6h6v6h3a1 1 0 0 0 1-1v-8.5" stroke="currentColor" stroke-width="1.8"
+                stroke-linecap="round" stroke-linejoin="round" />
             </svg>
           </span>
           <span class="mi-text">Dasbor</span>
@@ -29,9 +33,10 @@
         <a href="admin_keuangan.html" class="menu-item pill" data-tab="keuangan" title="Keuangan">
           <span class="mi-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
-              <path d="M12 2v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-              <path d="M5 8h14v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-              <circle cx="12" cy="13" r="2" stroke="currentColor" stroke-width="1.5" fill="none"/>
+              <path d="M12 2v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+              <path d="M5 8h14v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8z" stroke="currentColor" stroke-width="1.8"
+                stroke-linecap="round" stroke-linejoin="round" />
+              <circle cx="12" cy="13" r="2" stroke="currentColor" stroke-width="1.5" fill="none" />
             </svg>
           </span>
           <span class="mi-text">Keuangan</span>
@@ -40,8 +45,10 @@
         <a href="admin_stok.html" class="menu-item pill" data-tab="stok" title="Stok">
           <span class="mi-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
-              <path d="M21 16V8l-9-5-9 5v8l9 5 9-5z" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M12 3v8M3 8l9 5 9-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M21 16V8l-9-5-9 5v8l9 5 9-5z" stroke="currentColor" stroke-width="1.8" fill="none"
+                stroke-linecap="round" stroke-linejoin="round" />
+              <path d="M12 3v8M3 8l9 5 9-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                stroke-linejoin="round" />
             </svg>
           </span>
           <span class="mi-text">Stok</span>
@@ -50,8 +57,8 @@
         <a href="admin_pengguna.html" class="menu-item pill active" data-tab="pengguna" title="Pengguna">
           <span class="mi-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
-              <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" stroke="currentColor" stroke-width="1.8" fill="none"/>
-              <path d="M4 20a8 8 0 0 1 16 0" stroke="currentColor" stroke-width="1.5" fill="none"/>
+              <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" stroke="currentColor" stroke-width="1.8" fill="none" />
+              <path d="M4 20a8 8 0 0 1 16 0" stroke="currentColor" stroke-width="1.5" fill="none" />
             </svg>
           </span>
           <span class="mi-text">Pengguna</span>
@@ -63,43 +70,57 @@
       <header class="topbar">
         <button class="hamburger-open" id="sidebar-open-btn" aria-label="Buka sidebar">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M3 6h18" stroke="#666" stroke-width="2" stroke-linecap="round"/>
-            <path d="M3 12h18" stroke="#666" stroke-width="2" stroke-linecap="round"/>
-            <path d="M3 18h18" stroke="#666" stroke-width="2" stroke-linecap="round"/>
+            <path d="M3 6h18" stroke="#666" stroke-width="2" stroke-linecap="round" />
+            <path d="M3 12h18" stroke="#666" stroke-width="2" stroke-linecap="round" />
+            <path d="M3 18h18" stroke="#666" stroke-width="2" stroke-linecap="round" />
           </svg>
         </button>
         <div class="top-actions">
-          <button class="icon-btn theme-toggle" id="theme-toggle" title="Toggle Dark Mode" aria-label="Toggle Dark Mode">
+          <button class="icon-btn theme-toggle" id="theme-toggle" title="Toggle Dark Mode"
+            aria-label="Toggle Dark Mode">
             <svg class="sun-icon" viewBox="0 0 24 24" width="24" height="24" fill="none">
-              <circle cx="12" cy="12" r="5" stroke="#666" stroke-width="1.5" fill="none"/>
-              <path d="M12 1v3M12 20v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M1 12h3M20 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12" stroke="#666" stroke-width="1.5" stroke-linecap="round"/>
+              <circle cx="12" cy="12" r="5" stroke="#666" stroke-width="1.5" fill="none" />
+              <path
+                d="M12 1v3M12 20v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M1 12h3M20 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"
+                stroke="#666" stroke-width="1.5" stroke-linecap="round" />
             </svg>
             <svg class="moon-icon" viewBox="0 0 24 24" width="24" height="24" fill="none" style="display:none">
-              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="#a3a3a3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="#a3a3a3" stroke-width="1.5"
+                stroke-linecap="round" stroke-linejoin="round" />
             </svg>
           </button>
           <div class="avatar-wrapper">
             <button class="avatar" id="avatar-btn" title="Akun" aria-label="Akun pengguna">
-              <img id="current-avatar" src="https://img.freepik.com/vektor-gratis/ilustracion-personaje-empresario_1308-174669.jpg" alt="Avatar" style="display:none">
+              <img id="current-avatar"
+                src="https://img.freepik.com/vektor-gratis/ilustracion-personaje-empresario_1308-174669.jpg"
+                alt="Avatar" style="display:none">
               <svg id="default-avatar" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="8" r="4" fill="#fff"/>
-                <path d="M5 20c0-3.87 3.13-7 7-7s7 3.13 7 7" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/>
+                <circle cx="12" cy="8" r="4" fill="#fff" />
+                <path d="M5 20c0-3.87 3.13-7 7-7s7 3.13 7 7" stroke="#fff" stroke-width="2" fill="none"
+                  stroke-linecap="round" />
               </svg>
             </button>
             <div class="avatar-dropdown" id="avatar-dropdown">
               <div class="dropdown-header">Pilih Avatar</div>
               <div class="avatar-options">
-                <img src="https://img.freepik.com/vektor-gratis/ilustracion-personaje-empresario_1308-174669.jpg" alt="Avatar 1" class="avatar-option" data-avatar="1">
-                <img src="https://img.freepik.com/free-vector/woman-with-braided-hair-illustration_1308-174675.jpg" alt="Avatar 2" class="avatar-option" data-avatar="2">
-                <img src="https://img.freepik.com/psd-gratis/ilustracion-3d-avatar-o-perfil-humano_23-2150671142.jpg" alt="Avatar 3" class="avatar-option" data-avatar="3">
-                <img src="https://img.freepik.com/free-vector/woman-floral-traditional-costume_1308-176159.jpg" alt="Avatar 4" class="avatar-option" data-avatar="4">
+                <img src="https://img.freepik.com/vektor-gratis/ilustracion-personaje-empresario_1308-174669.jpg"
+                  alt="Avatar 1" class="avatar-option" data-avatar="1">
+                <img src="https://img.freepik.com/free-vector/woman-with-braided-hair-illustration_1308-174675.jpg"
+                  alt="Avatar 2" class="avatar-option" data-avatar="2">
+                <img src="https://img.freepik.com/psd-gratis/ilustracion-3d-avatar-o-perfil-humano_23-2150671142.jpg"
+                  alt="Avatar 3" class="avatar-option" data-avatar="3">
+                <img src="https://img.freepik.com/free-vector/woman-floral-traditional-costume_1308-176159.jpg"
+                  alt="Avatar 4" class="avatar-option" data-avatar="4">
               </div>
               <div class="dropdown-divider"></div>
               <button class="dropdown-item logout-btn" id="logout-btn">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <polyline points="16 17 21 12 16 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <line x1="21" y1="12" x2="9" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" />
+                  <polyline points="16 17 21 12 16 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                  <line x1="21" y1="12" x2="9" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
                 </svg>
                 <span>Logout</span>
               </button>
@@ -110,14 +131,15 @@
 
       <section class="content-main">
         <h2 style="margin:0 0 24px 0;font-size:28px;font-weight:600;color:#1a1a1a">Manajemen Pengguna</h2>
-        
+
         <div class="grid">
           <!-- Card Total Pengguna -->
           <div class="card feature">
             <div class="icon-wrap blue">
               <svg viewBox="0 0 64 64" width="48" height="48" fill="none">
-                <circle cx="32" cy="24" r="8" stroke="#2b7cff" stroke-width="3" fill="none"/>
-                <path d="M16 50c0-8.837 7.163-16 16-16s16 7.163 16 16" stroke="#2b7cff" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <circle cx="32" cy="24" r="8" stroke="#2b7cff" stroke-width="3" fill="none" />
+                <path d="M16 50c0-8.837 7.163-16 16-16s16 7.163 16 16" stroke="#2b7cff" stroke-width="3" fill="none"
+                  stroke-linecap="round" />
               </svg>
             </div>
             <div class="card-body">
@@ -131,9 +153,10 @@
           <div class="card feature">
             <div class="icon-wrap red">
               <svg viewBox="0 0 64 64" width="48" height="48" fill="none">
-                <circle cx="32" cy="24" r="8" stroke="#ff5252" stroke-width="3" fill="none"/>
-                <path d="M16 50c0-8.837 7.163-16 16-16s16 7.163 16 16" stroke="#ff5252" stroke-width="3" fill="none" stroke-linecap="round"/>
-                <path d="M32 16l2 4 4 1-3 3 1 4-4-2-4 2 1-4-3-3 4-1z" fill="#ff5252"/>
+                <circle cx="32" cy="24" r="8" stroke="#ff5252" stroke-width="3" fill="none" />
+                <path d="M16 50c0-8.837 7.163-16 16-16s16 7.163 16 16" stroke="#ff5252" stroke-width="3" fill="none"
+                  stroke-linecap="round" />
+                <path d="M32 16l2 4 4 1-3 3 1 4-4-2-4 2 1-4-3-3 4-1z" fill="#ff5252" />
               </svg>
             </div>
             <div class="card-body">
@@ -147,9 +170,10 @@
           <div class="card feature">
             <div class="icon-wrap orange">
               <svg viewBox="0 0 64 64" width="48" height="48" fill="none">
-                <circle cx="32" cy="24" r="8" stroke="#f6b24a" stroke-width="3" fill="none"/>
-                <path d="M16 50c0-8.837 7.163-16 16-16s16 7.163 16 16" stroke="#f6b24a" stroke-width="3" fill="none" stroke-linecap="round"/>
-                <rect x="26" y="16" width="12" height="4" rx="1" fill="#f6b24a"/>
+                <circle cx="32" cy="24" r="8" stroke="#f6b24a" stroke-width="3" fill="none" />
+                <path d="M16 50c0-8.837 7.163-16 16-16s16 7.163 16 16" stroke="#f6b24a" stroke-width="3" fill="none"
+                  stroke-linecap="round" />
+                <rect x="26" y="16" width="12" height="4" rx="1" fill="#f6b24a" />
               </svg>
             </div>
             <div class="card-body">
@@ -163,8 +187,9 @@
           <div class="card feature">
             <div class="icon-wrap green">
               <svg viewBox="0 0 64 64" width="48" height="48" fill="none">
-                <circle cx="32" cy="24" r="8" stroke="#10b759" stroke-width="3" fill="none"/>
-                <path d="M16 50c0-8.837 7.163-16 16-16s16 7.163 16 16" stroke="#10b759" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <circle cx="32" cy="24" r="8" stroke="#10b759" stroke-width="3" fill="none" />
+                <path d="M16 50c0-8.837 7.163-16 16-16s16 7.163 16 16" stroke="#10b759" stroke-width="3" fill="none"
+                  stroke-linecap="round" />
               </svg>
             </div>
             <div class="card-body">
@@ -177,31 +202,33 @@
 
         <!-- Status Pengguna -->
         <div class="grid" style="margin-top:28px">
-          <div class="card feature">
+          <div class="card feature" id="onlineUsersCard">
             <div class="icon-wrap green">
               <svg viewBox="0 0 64 64" width="48" height="48" fill="none">
-                <circle cx="32" cy="32" r="16" stroke="#10b759" stroke-width="3" fill="none"/>
-                <circle cx="32" cy="32" r="6" fill="#10b759"/>
+                <circle cx="32" cy="32" r="16" stroke="#10b759" stroke-width="3" fill="none" />
+                <circle cx="32" cy="32" r="6" fill="#10b759" />
               </svg>
             </div>
             <div class="card-body">
               <h3>Pengguna Online</h3>
               <p class="subtitle">Sedang Aktif</p>
-              <div class="value" style="font-size:24px;margin-top:8px;color:#10b759">12 Online</div>
+              <div class="value" id="onlineUsersCount" style="font-size:24px;margin-top:8px;color:#10b759">Loading...
+              </div>
             </div>
           </div>
 
-          <div class="card feature">
+          <div class="card feature" id="offlineUsersCard">
             <div class="icon-wrap" style="background:rgba(100,100,100,0.1)">
               <svg viewBox="0 0 64 64" width="48" height="48" fill="none">
-                <circle cx="32" cy="32" r="16" stroke="#666" stroke-width="3" fill="none"/>
-                <circle cx="32" cy="32" r="6" fill="#666"/>
+                <circle cx="32" cy="32" r="16" stroke="#666" stroke-width="3" fill="none" />
+                <circle cx="32" cy="32" r="6" fill="#666" />
               </svg>
             </div>
             <div class="card-body">
               <h3>Pengguna Offline</h3>
               <p class="subtitle">Tidak Aktif</p>
-              <div class="value" style="font-size:24px;margin-top:8px;color:#666">35 Offline</div>
+              <div class="value" id="offlineUsersCount" style="font-size:24px;margin-top:8px;color:#666">Loading...
+              </div>
             </div>
           </div>
         </div>
@@ -210,7 +237,9 @@
         <div class="card" style="margin-top:28px;padding:24px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
             <h3 style="margin:0">Daftar Pengguna</h3>
-            <button style="padding:8px 16px;background:#2b7cff;color:#fff;border:0;border-radius:8px;font-weight:600;cursor:pointer">+ Tambah Pengguna</button>
+            <button
+              style="padding:8px 16px;background:#2b7cff;color:#fff;border:0;border-radius:8px;font-weight:600;cursor:pointer">+
+              Tambah Pengguna</button>
           </div>
           <table style="width:100%;border-collapse:collapse">
             <thead>
@@ -226,76 +255,116 @@
               <tr style="border-bottom:1px solid #f3f4f6">
                 <td style="padding:12px 8px">
                   <div style="display:flex;align-items:center;gap:8px">
-                    <div style="width:32px;height:32px;border-radius:50%;background:#ff5252;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:14px">A</div>
+                    <div
+                      style="width:32px;height:32px;border-radius:50%;background:#ff5252;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:14px">
+                      A</div>
                     <span>Admin Utama</span>
                   </div>
                 </td>
                 <td style="padding:12px 8px;color:#666">admin</td>
-                <td style="padding:12px 8px;text-align:center"><span style="background:#fee2e2;color:#991b1b;padding:4px 12px;border-radius:12px;font-size:13px;font-weight:600">ADMIN</span></td>
-                <td style="padding:12px 8px;text-align:center"><span style="background:#d1fae5;color:#065f46;padding:4px 12px;border-radius:12px;font-size:13px;font-weight:600">● Online</span></td>
+                <td style="padding:12px 8px;text-align:center"><span
+                    style="background:#fee2e2;color:#991b1b;padding:4px 12px;border-radius:12px;font-size:13px;font-weight:600">ADMIN</span>
+                </td>
+                <td style="padding:12px 8px;text-align:center"><span
+                    style="background:#d1fae5;color:#065f46;padding:4px 12px;border-radius:12px;font-size:13px;font-weight:600">●
+                    Online</span></td>
                 <td style="padding:12px 8px;text-align:center">
-                  <button style="padding:4px 12px;background:#f3f4f6;border:0;border-radius:6px;cursor:pointer;margin:0 4px">Edit</button>
-                  <button style="padding:4px 12px;background:#fee2e2;color:#991b1b;border:0;border-radius:6px;cursor:pointer">Hapus</button>
+                  <button
+                    style="padding:4px 12px;background:#f3f4f6;border:0;border-radius:6px;cursor:pointer;margin:0 4px">Edit</button>
+                  <button
+                    style="padding:4px 12px;background:#fee2e2;color:#991b1b;border:0;border-radius:6px;cursor:pointer">Hapus</button>
                 </td>
               </tr>
               <tr style="border-bottom:1px solid #f3f4f6">
                 <td style="padding:12px 8px">
                   <div style="display:flex;align-items:center;gap:8px">
-                    <div style="width:32px;height:32px;border-radius:50%;background:#f6b24a;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:14px">M</div>
+                    <div
+                      style="width:32px;height:32px;border-radius:50%;background:#f6b24a;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:14px">
+                      M</div>
                     <span>Budi Santoso</span>
                   </div>
                 </td>
                 <td style="padding:12px 8px;color:#666">budi.manager</td>
-                <td style="padding:12px 8px;text-align:center"><span style="background:#fef3c7;color:#92400e;padding:4px 12px;border-radius:12px;font-size:13px;font-weight:600">MANAJER</span></td>
-                <td style="padding:12px 8px;text-align:center"><span style="background:#d1fae5;color:#065f46;padding:4px 12px;border-radius:12px;font-size:13px;font-weight:600">● Online</span></td>
+                <td style="padding:12px 8px;text-align:center"><span
+                    style="background:#fef3c7;color:#92400e;padding:4px 12px;border-radius:12px;font-size:13px;font-weight:600">MANAJER</span>
+                </td>
+                <td style="padding:12px 8px;text-align:center"><span
+                    style="background:#d1fae5;color:#065f46;padding:4px 12px;border-radius:12px;font-size:13px;font-weight:600">●
+                    Online</span></td>
                 <td style="padding:12px 8px;text-align:center">
-                  <button style="padding:4px 12px;background:#f3f4f6;border:0;border-radius:6px;cursor:pointer;margin:0 4px">Edit</button>
-                  <button style="padding:4px 12px;background:#fee2e2;color:#991b1b;border:0;border-radius:6px;cursor:pointer">Hapus</button>
+                  <button
+                    style="padding:4px 12px;background:#f3f4f6;border:0;border-radius:6px;cursor:pointer;margin:0 4px">Edit</button>
+                  <button
+                    style="padding:4px 12px;background:#fee2e2;color:#991b1b;border:0;border-radius:6px;cursor:pointer">Hapus</button>
                 </td>
               </tr>
               <tr style="border-bottom:1px solid #f3f4f6">
                 <td style="padding:12px 8px">
                   <div style="display:flex;align-items:center;gap:8px">
-                    <div style="width:32px;height:32px;border-radius:50%;background:#10b759;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:14px">S</div>
+                    <div
+                      style="width:32px;height:32px;border-radius:50%;background:#10b759;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:14px">
+                      S</div>
                     <span>Siti Nurhaliza</span>
                   </div>
                 </td>
                 <td style="padding:12px 8px;color:#666">siti.kasir</td>
-                <td style="padding:12px 8px;text-align:center"><span style="background:#d1fae5;color:#065f46;padding:4px 12px;border-radius:12px;font-size:13px;font-weight:600">KASIR</span></td>
-                <td style="padding:12px 8px;text-align:center"><span style="background:#e5e7eb;color:#374151;padding:4px 12px;border-radius:12px;font-size:13px;font-weight:600">○ Offline</span></td>
+                <td style="padding:12px 8px;text-align:center"><span
+                    style="background:#d1fae5;color:#065f46;padding:4px 12px;border-radius:12px;font-size:13px;font-weight:600">KASIR</span>
+                </td>
+                <td style="padding:12px 8px;text-align:center"><span
+                    style="background:#e5e7eb;color:#374151;padding:4px 12px;border-radius:12px;font-size:13px;font-weight:600">○
+                    Offline</span></td>
                 <td style="padding:12px 8px;text-align:center">
-                  <button style="padding:4px 12px;background:#f3f4f6;border:0;border-radius:6px;cursor:pointer;margin:0 4px">Edit</button>
-                  <button style="padding:4px 12px;background:#fee2e2;color:#991b1b;border:0;border-radius:6px;cursor:pointer">Hapus</button>
+                  <button
+                    style="padding:4px 12px;background:#f3f4f6;border:0;border-radius:6px;cursor:pointer;margin:0 4px">Edit</button>
+                  <button
+                    style="padding:4px 12px;background:#fee2e2;color:#991b1b;border:0;border-radius:6px;cursor:pointer">Hapus</button>
                 </td>
               </tr>
               <tr style="border-bottom:1px solid #f3f4f6">
                 <td style="padding:12px 8px">
                   <div style="display:flex;align-items:center;gap:8px">
-                    <div style="width:32px;height:32px;border-radius:50%;background:#10b759;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:14px">D</div>
+                    <div
+                      style="width:32px;height:32px;border-radius:50%;background:#10b759;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:14px">
+                      D</div>
                     <span>Dika Pratama</span>
                   </div>
                 </td>
                 <td style="padding:12px 8px;color:#666">dika.kasir</td>
-                <td style="padding:12px 8px;text-align:center"><span style="background:#d1fae5;color:#065f46;padding:4px 12px;border-radius:12px;font-size:13px;font-weight:600">KASIR</span></td>
-                <td style="padding:12px 8px;text-align:center"><span style="background:#d1fae5;color:#065f46;padding:4px 12px;border-radius:12px;font-size:13px;font-weight:600">● Online</span></td>
+                <td style="padding:12px 8px;text-align:center"><span
+                    style="background:#d1fae5;color:#065f46;padding:4px 12px;border-radius:12px;font-size:13px;font-weight:600">KASIR</span>
+                </td>
+                <td style="padding:12px 8px;text-align:center"><span
+                    style="background:#d1fae5;color:#065f46;padding:4px 12px;border-radius:12px;font-size:13px;font-weight:600">●
+                    Online</span></td>
                 <td style="padding:12px 8px;text-align:center">
-                  <button style="padding:4px 12px;background:#f3f4f6;border:0;border-radius:6px;cursor:pointer;margin:0 4px">Edit</button>
-                  <button style="padding:4px 12px;background:#fee2e2;color:#991b1b;border:0;border-radius:6px;cursor:pointer">Hapus</button>
+                  <button
+                    style="padding:4px 12px;background:#f3f4f6;border:0;border-radius:6px;cursor:pointer;margin:0 4px">Edit</button>
+                  <button
+                    style="padding:4px 12px;background:#fee2e2;color:#991b1b;border:0;border-radius:6px;cursor:pointer">Hapus</button>
                 </td>
               </tr>
               <tr>
                 <td style="padding:12px 8px">
                   <div style="display:flex;align-items:center;gap:8px">
-                    <div style="width:32px;height:32px;border-radius:50%;background:#10b759;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:14px">R</div>
+                    <div
+                      style="width:32px;height:32px;border-radius:50%;background:#10b759;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:14px">
+                      R</div>
                     <span>Rina Wati</span>
                   </div>
                 </td>
                 <td style="padding:12px 8px;color:#666">rina.kasir</td>
-                <td style="padding:12px 8px;text-align:center"><span style="background:#d1fae5;color:#065f46;padding:4px 12px;border-radius:12px;font-size:13px;font-weight:600">KASIR</span></td>
-                <td style="padding:12px 8px;text-align:center"><span style="background:#e5e7eb;color:#374151;padding:4px 12px;border-radius:12px;font-size:13px;font-weight:600">○ Offline</span></td>
+                <td style="padding:12px 8px;text-align:center"><span
+                    style="background:#d1fae5;color:#065f46;padding:4px 12px;border-radius:12px;font-size:13px;font-weight:600">KASIR</span>
+                </td>
+                <td style="padding:12px 8px;text-align:center"><span
+                    style="background:#e5e7eb;color:#374151;padding:4px 12px;border-radius:12px;font-size:13px;font-weight:600">○
+                    Offline</span></td>
                 <td style="padding:12px 8px;text-align:center">
-                  <button style="padding:4px 12px;background:#f3f4f6;border:0;border-radius:6px;cursor:pointer;margin:0 4px">Edit</button>
-                  <button style="padding:4px 12px;background:#fee2e2;color:#991b1b;border:0;border-radius:6px;cursor:pointer">Hapus</button>
+                  <button
+                    style="padding:4px 12px;background:#f3f4f6;border:0;border-radius:6px;cursor:pointer;margin:0 4px">Edit</button>
+                  <button
+                    style="padding:4px 12px;background:#fee2e2;color:#991b1b;border:0;border-radius:6px;cursor:pointer">Hapus</button>
                 </td>
               </tr>
             </tbody>
@@ -308,4 +377,5 @@
   <script src="js/admin_pengguna.js"></script>
   <script src="js/auth.js"></script>
 </body>
+
 </html>
