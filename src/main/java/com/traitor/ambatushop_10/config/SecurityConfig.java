@@ -93,13 +93,16 @@ public class SecurityConfig {
                         // FIX: Allow Midtrans webhook without authentication
                         .requestMatchers("/api/payment/webhook").permitAll()
 
-                        // Barcode endpoints 
+                        // Barcode endpoints
                         .requestMatchers(HttpMethod.GET, "/api/barcode/produk/*/image").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/barcode/check/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/barcode/decode").permitAll()
 
                         // API auth
-                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/auth/test").permitAll()
+                        // .requestMatchers(HttpMethod.POST, "/api/auth/register").permitAll()
+                        // .requestMatchers("/api/auth/**").permitAll()
                         // .requestMatchers("/api/barcode/produk/*/image").permitAll()
 
                         .requestMatchers(HttpMethod.GET, "/api/export/download").permitAll()
@@ -128,7 +131,7 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
-    
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
@@ -136,7 +139,7 @@ public class SecurityConfig {
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
-        
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;

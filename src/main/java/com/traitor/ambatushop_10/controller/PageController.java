@@ -9,13 +9,19 @@ public class PageController {
     // Root path redirect to login
     @GetMapping("/")
     public String root() {
-        return "forward:/login.html";
+        return "redirect:/login.html"; 
     }
 
     // Login page
     @GetMapping("/login")
     public String login() {
-        return "forward:/login.html";
+        return "forward:/login.html"; 
+    }
+
+    // Register page
+    @GetMapping("/register")
+    public String register() {
+        return "forward:/register.html"; 
     }
 
     // Admin Pages
