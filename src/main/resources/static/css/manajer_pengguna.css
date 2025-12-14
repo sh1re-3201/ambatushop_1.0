@@ -392,57 +392,251 @@ body.role-kasir .sidebar.closed .menu-item.pill.active .mi-icon {
   box-shadow: 0 6px 14px rgba(0,0,0,0.08) !important;
 }
 
-/* File: css/manajer_pengguna.css */
-/* Include semua style dari admin_pengguna.css atau import */
-
-/* Additional styles for read-only mode */
-.read-only-badge {
-    padding: 6px 12px;
-    background: rgba(100, 100, 100, 0.1);
-    color: var(--text-secondary);
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 500;
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
 }
 
-.view-only-indicator {
-    padding: 8px 16px;
-    background: rgba(43, 124, 255, 0.1);
-    color: #2b7cff;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    display: inline-flex;
+.modal-content {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 24px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
     align-items: center;
+    margin-bottom: 20px;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 20px;
+    color: var(--text-primary);
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-close:hover {
+    color: var(--text-primary);
+}
+
+.modal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
     gap: 6px;
 }
 
-/* Ensure table styles work with dark mode */
-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-th {
-    text-align: left;
-    padding: 12px 8px;
-    color: var(--text-secondary);
+.form-group label {
     font-weight: 600;
-    border-bottom: 2px solid var(--border-color);
+    color: var(--text-primary);
+    font-size: 14px;
 }
 
-td {
-    padding: 12px 8px;
-    border-bottom: 1px solid var(--border-color);
+.form-group input,
+.form-group select {
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-size: 14px;
 }
 
-/* Responsive table */
-@media (max-width: 768px) {
-    table {
-        font-size: 14px;
-    }
-    
-    th, td {
-        padding: 8px 4px;
-    }
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #2b7cff;
+}
+
+.form-group small {
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+.btn-cancel {
+    padding: 10px 20px;
+    background: var(--border-color);
+    color: var(--text-primary);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.btn-submit {
+    padding: 10px 20px;
+    background: #2b7cff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.btn-cancel:hover {
+    background: var(--muted);
+}
+
+.btn-submit:hover {
+    background: #1a6de0;
+}
+
+/* Real-time status indicators */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.status-badge.online {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.status-badge.offline {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.status-dot.online {
+    background: #10b759;
+    animation: pulse 2s infinite;
+}
+
+.status-dot.offline {
+    background: #9ca3af;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+/* Time ago styling */
+.time-ago {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+/* Loading states */
+.card.loading {
+    position: relative;
+    min-height: 120px;
+}
+
+.card.loading::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--card);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.loading-spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid var(--border-color);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Connection status */
+.connection-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    font-size: 14px;
+}
+
+.connection-status.connected {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.connection-status.disconnected {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.connection-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.connection-dot.connected {
+    background: #10b759;
+    animation: pulse 2s infinite;
+}
+
+.connection-dot.disconnected {
+    background: #f59e0b;
 }
