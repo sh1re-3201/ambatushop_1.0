@@ -99,10 +99,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/barcode/decode").permitAll()
 
                         // API auth
-                        .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/auth/test").permitAll()
                         // .requestMatchers(HttpMethod.POST, "/api/auth/register").permitAll()
-                        // .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll()
                         // .requestMatchers("/api/barcode/produk/*/image").permitAll()
 
                         .requestMatchers(HttpMethod.GET, "/api/export/download").permitAll()
