@@ -1,15 +1,19 @@
 package com.traitor.ambatushop_10.controller;
 
 import com.traitor.ambatushop_10.dto.AuthResponse;
-import com.traitor.ambatushop_10.dto.LoginRequest;
 import com.traitor.ambatushop_10.dto.ErrorResponse;
+import com.traitor.ambatushop_10.dto.LoginRequest;
+import com.traitor.ambatushop_10.dto.RegisterRequest;
+import com.traitor.ambatushop_10.dto.RegisterResponse;
 import com.traitor.ambatushop_10.model.Akun;
 import com.traitor.ambatushop_10.repository.AkunRepository;
 import com.traitor.ambatushop_10.service.JwtService;
 import com.traitor.ambatushop_10.service.ValidationService;
+import com.traitor.ambatushop_10.service.UserSessionService;
 import jakarta.servlet.http.HttpServletRequest;
 
-import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +25,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-import com.traitor.ambatushop_10.service.UserSessionService;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -32,7 +35,7 @@ public class AuthController {
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
     private final ValidationService validationService;
-    private final UserSessionService userSessionService; // NEW
+    private final UserSessionService userSessionService;
 
     public AuthController(AuthenticationManager authenticationManager,
             AkunRepository akunRepository,
@@ -48,6 +51,7 @@ public class AuthController {
         this.userSessionService = userSessionService;
     }
 
+    // ========== EXISTING LOGIN METHOD ==========
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpServletRequest httpRequest) {
         try {
@@ -55,13 +59,13 @@ public class AuthController {
             String username = validationService.sanitizeInput(request.username());
             String password = validationService.sanitizeInput(request.password());
 
-            // logger.info("Login attempt for username: {}", username);
+            System.out.println("Login attempt for username: " + username);
 
             // Authenticate user
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(username, password));
 
-            // logger.info("Authentication successful for: {}", username);
+            System.out.println("Authentication successful for: " + username);
 
             // Find user details
             Akun akun = akunRepository.findByUsername(username)
@@ -78,7 +82,7 @@ public class AuthController {
                     akun.getRole().name(),
                     akun.getIdPegawai());
 
-            // logger.info("JWT Token generated for: {} (ID: {}) with role: {}",
+            // System.out.println("JWT Token generated for: {} (ID: {}) with role: {}",
             // akun.getUsername(), akun.getIdPegawai(), akun.getRole());
 
             return ResponseEntity.ok(
@@ -86,21 +90,21 @@ public class AuthController {
                             "Login berhasil"));
 
         } catch (BadCredentialsException e) {
-            // logger.error("Bad credentials for user: {}", request.username());
+            System.err.println("Bad credentials for user: " + request.username());
             ErrorResponse error = new ErrorResponse(
                     401, "UNAUTHORIZED", "Username atau password salah",
                     "Pastikan username dan password benar", "/api/auth/login");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
 
         } catch (AuthenticationException e) {
-            // logger.error("Authentication failed for user: {}", request.username(), e);
+            System.err.println("Authentication failed for user: " + request.username());
             ErrorResponse error = new ErrorResponse(
                     401, "AUTH_FAILED", "Autentikasi gagal",
                     e.getMessage(), "/api/auth/login");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
 
         } catch (Exception e) {
-            // logger.error("UNEXPECTED ERROR during login: ", e);
+            System.err.println("UNEXPECTED ERROR during login: " + e.getMessage());
             ErrorResponse error = new ErrorResponse(
                     500, "INTERNAL_ERROR", "Terjadi kesalahan sistem",
                     e.getMessage(), "/api/auth/login");
@@ -108,6 +112,7 @@ public class AuthController {
         }
     }
 
+    // ========== EXISTING OTHER METHODS ==========
     @PostMapping("/logout")
     @PreAuthorize("hasAnyRole('KASIR', 'MANAJER', 'ADMIN')")
     public ResponseEntity<?> logout(HttpServletRequest request) {
@@ -120,14 +125,14 @@ public class AuthController {
                 // MARK USER AS OFFLINE di database
                 akunRepository.findById(userId).ifPresent(akun -> {
                     akun.setOnline(false);
-                    akun.setLastActivityAt(LocalDateTime.now());
+                    akun.setLastActivityAt(java.time.LocalDateTime.now());
                     akun.setSessionId(null);
                     akunRepository.save(akun);
                     System.out.println("✅ User " + akun.getUsername() + " marked as offline (logout)");
                 });
 
                 // Juga hapus dari session cache di UserSessionService
-                userSessionService.userLoggedOut(userId); 
+                userSessionService.userLoggedOut(userId);
             }
 
             return ResponseEntity.ok("Logout berhasil");
@@ -139,15 +144,6 @@ public class AuthController {
         }
     }
 
-    private String extractTokenFromRequest(HttpServletRequest request) {
-        String bearerToken = request.getHeader("Authorization");
-        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
-        }
-        return null;
-    }
-
-    // NEW: Activity ping endpoint
     @PostMapping("/activity")
     @PreAuthorize("hasAnyRole('KASIR', 'MANAJER', 'ADMIN')")
     public ResponseEntity<?> updateActivity(HttpServletRequest request) {
@@ -168,5 +164,14 @@ public class AuthController {
     @GetMapping("/test")
     public String test() {
         return "Auth controller is working! Time: " + java.time.LocalDateTime.now();
+    }
+
+    // ========== HELPER METHODS ==========
+    private String extractTokenFromRequest(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+        return null;
     }
 }

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - AmbatuShop</title>
     <link rel="stylesheet" href="css/login.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <div class="login-container">
@@ -24,43 +25,65 @@
                 </svg>
             </div>
             <h1 class="brand-name">ambatushop</h1>
+            <p class="brand-subtitle">Point of Sale System</p>
         </div>
 
         <!-- Login Form -->
         <form id="loginForm" class="login-form">
             <input 
                 type="text" 
-                id="userId" 
-                name="userId"
+                id="username" 
+                name="username"
                 class="input-field" 
                 placeholder="Username"
                 required
                 autocomplete="username">
             
-            <input 
-                type="password" 
-                id="password" 
-                name="password"
-                class="input-field" 
-                placeholder="Password"
-                required
-                autocomplete="current-password">
+            <div class="password-container">
+                <input 
+                    type="password" 
+                    id="password" 
+                    name="password"
+                    class="input-field password-input" 
+                    placeholder="Password"
+                    required
+                    autocomplete="current-password">
+                <button type="button" id="togglePassword" class="password-toggle">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </div>
             
             <button type="submit" class="login-button">
-                LOGIN
+                <span class="button-text">LOGIN</span>
+                <div class="button-loader" style="display: none;">
+                    <div class="spinner"></div>
+                </div>
             </button>
+            
+            <!-- Success Message -->
+            <div id="successMessage" class="success-message" role="alert"></div>
             
             <!-- Error Message -->
             <div id="errorMessage" class="error-message" role="alert"></div>
         </form>
 
+        <!-- Divider -->
+        <div class="divider">
+            <span>ATAU</span>
+        </div>
+
         <!-- Register Link -->
         <div class="register-link">
-            <!--a href="register.html">Don't have an account? Register here</a-->
+            <p>Belum punya akun? <a href="/register.html">Daftar di sini</a></p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>&copy; 2025 AmbatuShop. All rights reserved.</p>
         </div>
     </div>
 
-    <script src="js/login.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/login.js"></script>
 </body>
 </html>
