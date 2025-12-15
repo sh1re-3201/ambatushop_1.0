@@ -1,177 +1,215 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>AmbatuShop — Beranda (Kasir)</title>
-  <!-- pakai style yang sama dengan admin agar konsisten -->
-  <link rel="stylesheet" href="css/beranda_admin.css" />
+    <meta charset="utf-8"/>
+    <meta content="width=device-width,initial-scale=1" name="viewport"/>
+    <title>AmbatuShop — Beranda (Kasir)</title>
+    <!-- pakai style yang sama dengan admin agar konsisten -->
+    <link href="css/beranda_admin.css" rel="stylesheet"/>
 </head>
 <body class="role-kasir">
-  <div class="page">
-    <aside class="sidebar" id="sidebar" aria-hidden="false" role="complementary">
-      <!-- hamburger di dalam sidebar (muncul saat collapsed) -->
-      <button class="hamburger" id="sidebar-toggle" aria-label="Toggle sidebar" title="Toggle sidebar">
-        <svg width="18" height="14" viewBox="0 0 24 18" fill="none" aria-hidden="true">
-          <path d="M3 2h18" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
-          <path d="M3 9h18" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
-          <path d="M3 16h18" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
-        </svg>
-      </button>
-
-      <button class="close-circle" id="sidebar-close" aria-label="Tutup sidebar">×</button>
-
-      <div class="brand">
-        <h1>AmbatuShop</h1>
-      </div>
-
-      <!-- Menu: hanya Dasbor, Transaksi, Keuangan untuk Kasir -->
-      <nav class="menu" role="navigation" aria-label="Menu utama">
-        <button class="menu-item pill" data-tab="dashboard" title="Dasbor">
-          <span class="mi-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="none"><path d="M3 11.5L12 4l9 7.5" stroke="#111" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 11.5V20a1 1 0 0 0 1 1h3v-6h6v6h3a1 1 0 0 0 1-1v-8.5" stroke="#111" stroke-width="1.6"/></svg>
-          </span>
-          <span class="mi-text">Dasbor</span>
+<div class="page">
+    <aside aria-hidden="false" class="sidebar" id="sidebar" role="complementary">
+        <!-- hamburger di dalam sidebar (muncul saat collapsed) -->
+        <button aria-label="Toggle sidebar" class="hamburger" id="sidebar-toggle" title="Toggle sidebar">
+            <svg aria-hidden="true" fill="none" height="14" viewBox="0 0 24 18" width="18">
+                <path d="M3 2h18" stroke="#fff" stroke-linecap="round" stroke-width="1.8"/>
+                <path d="M3 9h18" stroke="#fff" stroke-linecap="round" stroke-width="1.8"/>
+                <path d="M3 16h18" stroke="#fff" stroke-linecap="round" stroke-width="1.8"/>
+            </svg>
         </button>
 
-        <button class="menu-item pill active" data-tab="transaksi" title="Transaksi">
-          <span class="mi-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="none"><path d="M6 6h15l-1.5 9h-11z" stroke="#2b7cff" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="10" cy="20" r="1" fill="#2b7cff"/><circle cx="18" cy="20" r="1" fill="#2b7cff"/></svg>
-          </span>
-          <span class="mi-text">Transaksi</span>
-        </button>
+        <button aria-label="Tutup sidebar" class="close-circle" id="sidebar-close">×</button>
 
-        <button class="menu-item pill" data-tab="keuangan" title="Keuangan">
-          <span class="mi-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="none"><path d="M12 1v4" stroke="#10b759" stroke-width="1.6" stroke-linecap="round"/><path d="M5 8h14v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8z" stroke="#10b759" stroke-width="1.6" fill="none"/></svg>
+        <div class="brand">
+            <h1>AmbatuShop</h1>
+        </div>
+
+        <!-- Menu: hanya Dasbor, Transaksi, Keuangan untuk Kasir -->
+        <nav aria-label="Menu utama" class="menu" role="navigation">
+            <button class="menu-item pill" data-tab="dashboard" title="Dasbor">
+          <span aria-hidden="true" class="mi-icon">
+            <svg fill="none" height="22" viewBox="0 0 24 24" width="22"><path d="M3 11.5L12 4l9 7.5" stroke="#111"
+                                                                              stroke-linecap="round" stroke-linejoin="round"
+                                                                              stroke-width="1.6"/><path
+                    d="M5 11.5V20a1 1 0 0 0 1 1h3v-6h6v6h3a1 1 0 0 0 1-1v-8.5" stroke="#111" stroke-width="1.6"/></svg>
           </span>
-          <span class="mi-text">Keuangan</span>
-        </button>
-      </nav>
+                <span class="mi-text">Dasbor</span>
+            </button>
+
+            <button class="menu-item pill active" data-tab="transaksi" title="Transaksi">
+          <span aria-hidden="true" class="mi-icon">
+            <svg fill="none" height="22" viewBox="0 0 24 24" width="22"><path d="M6 6h15l-1.5 9h-11z" fill="none"
+                                                                              stroke="#2b7cff" stroke-linecap="round"
+                                                                              stroke-linejoin="round"
+                                                                              stroke-width="1.6"/><circle cx="10"
+                                                                                                               cy="20"
+                                                                                                               fill="#2b7cff"
+                                                                                                               r="1"/><circle
+                    cx="18" cy="20" fill="#2b7cff" r="1"/></svg>
+          </span>
+                <span class="mi-text">Transaksi</span>
+            </button>
+
+            <button class="menu-item pill" data-tab="keuangan" title="Keuangan">
+          <span aria-hidden="true" class="mi-icon">
+            <svg fill="none" height="22" viewBox="0 0 24 24" width="22"><path d="M12 1v4" stroke="#10b759"
+                                                                              stroke-linecap="round"
+                                                                              stroke-width="1.6"/><path
+                    d="M5 8h14v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8z" fill="none" stroke="#10b759"
+                    stroke-width="1.6"/></svg>
+          </span>
+                <span class="mi-text">Keuangan</span>
+            </button>
+        </nav>
     </aside>
 
     <main class="content" role="main">
-      <header class="topbar">
-        <div class="top-actions">
-          <button class="icon-btn" title="Pengaturan" aria-label="Pengaturan">
-  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
-    <path d="M19.14 12.94c.04-.31.06-.63.06-.94s-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.11-.2-.35-.28-.56-.22l-2.39.96a7.02 7.02 0 0 0-1.6-.94L14.5 2.5a.48.48 0 0 0-.48-.5h-3.95c-.24 0-.45.15-.48.39L9.9 5.07c-.57.2-1.11.48-1.6.83L5.91 4.94c-.21-.09-.45 0-.56.22L3.43 8.48c-.11.2-.06.46.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94L3.55 15.6c-.18.14-.23.41-.12.61l1.92 3.32c.11.2.35.28.56.22l2.39-.96c.49.35 1.03.63 1.6.83l.7 2.57c.03.24.24.39.48.39h3.95c.24 0 .45-.15.48-.39l.7-2.57c.57-.2 1.11-.48 1.6-.83l2.39.96c.21.09.45 0 .56-.22l1.92-3.32c.11-.2.06-.46-.12-.61l-2.03-1.58zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5S10.07 8.5 12 8.5s3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"
-          stroke="#666" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
-  </svg>
-</button>
+        <header class="topbar">
+            <div class="top-actions">
+                <button aria-label="Pengaturan" class="icon-btn" title="Pengaturan">
+                    <svg aria-hidden="true" fill="none" height="22" viewBox="0 0 24 24" width="22">
+                        <path d="M19.14 12.94c.04-.31.06-.63.06-.94s-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.11-.2-.35-.28-.56-.22l-2.39.96a7.02 7.02 0 0 0-1.6-.94L14.5 2.5a.48.48 0 0 0-.48-.5h-3.95c-.24 0-.45.15-.48.39L9.9 5.07c-.57.2-1.11.48-1.6.83L5.91 4.94c-.21-.09-.45 0-.56.22L3.43 8.48c-.11.2-.06.46.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94L3.55 15.6c-.18.14-.23.41-.12.61l1.92 3.32c.11.2.35.28.56.22l2.39-.96c.49.35 1.03.63 1.6.83l.7 2.57c.03.24.24.39.48.39h3.95c.24 0 .45-.15.48-.39l.7-2.57c.57-.2 1.11-.48 1.6-.83l2.39.96c.21.09.45 0 .56-.22l1.92-3.32c.11-.2.06-.46-.12-.61l-2.03-1.58zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5S10.07 8.5 12 8.5s3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"
+                              stroke="#666" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2"/>
+                    </svg>
+                </button>
 
-          <div class="avatar" title="Akun">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.2" stroke="#fff" stroke-width="1.2" fill="#ff4d4d"/><path d="M5 20a7 7 0 0 1 14 0" stroke="#fff" stroke-width="1.2"/></svg>
-          </div>
-        </div>
-      </header>
-
-      <section class="grid" id="main-grid">
-        <!-- Transaksi card -->
-        <div class="card feature" id="card-transaksi">
-          <div class="icon-wrap blue">
-            <svg viewBox="0 0 24 24" aria-hidden>
-              <path d="M6 6h15l-1.5 9h-11z" stroke="#2b7cff" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-              <circle cx="10" cy="20" r="1" fill="#2b7cff"/>
-              <circle cx="18" cy="20" r="1" fill="#2b7cff"/>
-            </svg>
-          </div>
-          <div class="card-body">
-            <h3>Transaksi</h3>
-            <p class="muted">Penjualan Terbaru</p>
-            <div class="mini-grid">
-              <div class="mini-col"><div class="small-meta">#0034</div><div class="small-meta">....</div></div>
-              <div class="mini-col"><div class="small-meta">Rp43.000</div><div class="small-meta">....</div></div>
-              <div class="mini-col"><div class="small-meta">Qris</div><div class="small-meta">....</div></div>
+                <div class="avatar" title="Akun">
+                    <svg fill="none" height="22" viewBox="0 0 24 24" width="22">
+                        <circle cx="12" cy="8" fill="#ff4d4d" r="3.2" stroke="#fff" stroke-width="1.2"/>
+                        <path d="M5 20a7 7 0 0 1 14 0" stroke="#fff" stroke-width="1.2"/>
+                    </svg>
+                </div>
             </div>
-          </div>
-        </div>
+        </header>
 
-        <!-- Keuangan card -->
-        <div class="card feature" id="card-keuangan">
-          <div class="icon-wrap green money">
-            <svg viewBox="0 0 24 24" aria-hidden>
-              <path d="M12 1v4" stroke="#0aa14a" stroke-width="1.6" stroke-linecap="round"/>
-              <path d="M5 8h14v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8z" stroke="#0aa14a" stroke-width="1.6" fill="none"/></svg>
-          </div>
-          <div class="card-body">
-            <h3>Keuangan</h3>
-            <p class="muted">Pendapatan</p>
-            <div class="finance-row">
-              <div><div class="muted">Pemasukan</div><div class="large">Rp 2.865.000</div></div>
-              <div><div class="muted">Pengeluaran</div><div class="large">Rp 2.130.000</div></div>
+        <section class="grid" id="main-grid">
+            <!-- Transaksi card -->
+            <div class="card feature" id="card-transaksi">
+                <div class="icon-wrap blue">
+                    <svg aria-hidden viewBox="0 0 24 24">
+                        <path d="M6 6h15l-1.5 9h-11z" fill="none" stroke="#2b7cff" stroke-linecap="round"
+                              stroke-linejoin="round" stroke-width="1.6"/>
+                        <circle cx="10" cy="20" fill="#2b7cff" r="1"/>
+                        <circle cx="18" cy="20" fill="#2b7cff" r="1"/>
+                    </svg>
+                </div>
+                <div class="card-body">
+                    <h3>Transaksi</h3>
+                    <p class="muted">Penjualan Terbaru</p>
+                    <div class="mini-grid">
+                        <div class="mini-col">
+                            <div class="small-meta">#0034</div>
+                            <div class="small-meta">....</div>
+                        </div>
+                        <div class="mini-col">
+                            <div class="small-meta">Rp43.000</div>
+                            <div class="small-meta">....</div>
+                        </div>
+                        <div class="mini-col">
+                            <div class="small-meta">Qris</div>
+                            <div class="small-meta">....</div>
+                        </div>
+                    </div>
+                </div>
             </div>
-          </div>
-        </div>
-      </section>
+
+            <!-- Keuangan card -->
+            <div class="card feature" id="card-keuangan">
+                <div class="icon-wrap green money">
+                    <svg aria-hidden viewBox="0 0 24 24">
+                        <path d="M12 1v4" stroke="#0aa14a" stroke-linecap="round" stroke-width="1.6"/>
+                        <path d="M5 8h14v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8z" fill="none" stroke="#0aa14a"
+                              stroke-width="1.6"/>
+                    </svg>
+                </div>
+                <div class="card-body">
+                    <h3>Keuangan</h3>
+                    <p class="muted">Pendapatan</p>
+                    <div class="finance-row">
+                        <div>
+                            <div class="muted">Pemasukan</div>
+                            <div class="large">Rp 2.865.000</div>
+                        </div>
+                        <div>
+                            <div class="muted">Pengeluaran</div>
+                            <div class="large">Rp 2.130.000</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
     </main>
-  </div>
+</div>
 
-  <script>
+<script>
     // Inline JS khusus halaman kasir (toggle sidebar + menu highlight)
-    (function(){
-      const sidebar = document.getElementById('sidebar');
-      const closeBtn = document.getElementById('sidebar-close');
-      const toggleBtn = document.getElementById('sidebar-toggle');
-      const menuButtons = document.querySelectorAll('.menu-item.pill');
+    (function () {
+        const sidebar = document.getElementById('sidebar');
+        const closeBtn = document.getElementById('sidebar-close');
+        const toggleBtn = document.getElementById('sidebar-toggle');
+        const menuButtons = document.querySelectorAll('.menu-item.pill');
 
-      if (!sidebar) return;
-      sidebar.classList.remove('closed');
-      sidebar.setAttribute('aria-hidden','false');
+        if (!sidebar) return;
+        sidebar.classList.remove('closed');
+        sidebar.setAttribute('aria-hidden', 'false');
 
-      // close X -> collapse
-      closeBtn?.addEventListener('click', (e)=>{
-        e.stopPropagation();
-        sidebar.classList.add('closed');
-        sidebar.setAttribute('aria-hidden','true');
-      });
-
-      // hamburger -> toggle
-      toggleBtn?.addEventListener('click', (e)=>{
-        e.stopPropagation();
-        const closed = sidebar.classList.toggle('closed');
-        sidebar.setAttribute('aria-hidden', closed ? 'true' : 'false');
-        if (!closed) {
-          document.querySelector('.menu-item.pill')?.focus();
-        }
-      });
-
-      toggleBtn?.addEventListener('keydown', (e)=>{
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleBtn.click(); }
-      });
-
-      // menu activation + visual highlight
-      menuButtons.forEach(btn=>{
-        btn.addEventListener('click', ()=>{
-          menuButtons.forEach(b=>b.classList.remove('active'));
-          btn.classList.add('active');
-
-          // highlight card present
-          document.querySelectorAll('.card.feature').forEach(c=>{
-            c.style.transform = 'none';
-            c.style.boxShadow = '0 12px 30px rgba(27,31,35,0.04)';
-          });
-
-          const target = btn.getAttribute('data-tab');
-          const cardMap = {
-            'transaksi': '#card-transaksi',
-            'keuangan': '#card-keuangan',
-            'dashboard': null
-          };
-          const selector = cardMap[target];
-          if (selector){
-            const el = document.querySelector(selector);
-            if (el){
-              el.style.transform = 'translateY(-6px)';
-              el.style.boxShadow = '0 18px 40px rgba(27,31,35,0.08)';
-            }
-          }
+        // close X -> collapse
+        closeBtn?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            sidebar.classList.add('closed');
+            sidebar.setAttribute('aria-hidden', 'true');
         });
-      });
 
-      // set initial active (transaksi)
-      document.querySelector('.menu-item.pill[data-tab="transaksi"]')?.classList.add('active');
+        // hamburger -> toggle
+        toggleBtn?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const closed = sidebar.classList.toggle('closed');
+            sidebar.setAttribute('aria-hidden', closed ? 'true' : 'false');
+            if (!closed) {
+                document.querySelector('.menu-item.pill')?.focus();
+            }
+        });
+
+        toggleBtn?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                toggleBtn.click();
+            }
+        });
+
+        // menu activation + visual highlight
+        menuButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                menuButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                // highlight card present
+                document.querySelectorAll('.card.feature').forEach(c => {
+                    c.style.transform = 'none';
+                    c.style.boxShadow = '0 12px 30px rgba(27,31,35,0.04)';
+                });
+
+                const target = btn.getAttribute('data-tab');
+                const cardMap = {
+                    'transaksi': '#card-transaksi',
+                    'keuangan': '#card-keuangan',
+                    'dashboard': null
+                };
+                const selector = cardMap[target];
+                if (selector) {
+                    const el = document.querySelector(selector);
+                    if (el) {
+                        el.style.transform = 'translateY(-6px)';
+                        el.style.boxShadow = '0 18px 40px rgba(27,31,35,0.08)';
+                    }
+                }
+            });
+        });
+
+        // set initial active (transaksi)
+        document.querySelector('.menu-item.pill[data-tab="transaksi"]')?.classList.add('active');
     })();
-  </script>
+</script>
 </body>
 </html>

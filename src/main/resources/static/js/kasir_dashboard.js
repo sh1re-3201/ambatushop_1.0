@@ -87,31 +87,31 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // Avatar selection
-    avatarOptions.forEach(option => {
-        option.addEventListener('click', () => {
-            const avatarSrc = option.src;
-            currentAvatar.src = avatarSrc;
-            currentAvatar.style.display = 'block';
-            defaultAvatar.style.display = 'none';
-            avatarOptions.forEach(opt => opt.classList.remove('selected'));
-            option.classList.add('selected');
-            localStorage.setItem('selectedAvatar', avatarSrc);
-            avatarDropdown.classList.remove('show');
-        });
-    });
+    // avatarOptions.forEach(option => {
+    //     option.addEventListener('click', () => {
+    //         const avatarSrc = option.src;
+    //         currentAvatar.src = avatarSrc;
+    //         currentAvatar.style.display = 'block';
+    //         defaultAvatar.style.display = 'none';
+    //         avatarOptions.forEach(opt => opt.classList.remove('selected'));
+    //         option.classList.add('selected');
+    //         localStorage.setItem('selectedAvatar', avatarSrc);
+    //         avatarDropdown.classList.remove('show');
+    //     });
+    // });
 
     // Load saved avatar
-    const savedAvatar = localStorage.getItem('selectedAvatar');
-    if (savedAvatar) {
-        currentAvatar.src = savedAvatar;
-        currentAvatar.style.display = 'block';
-        defaultAvatar.style.display = 'none';
-        avatarOptions.forEach(option => {
-            if (option.src === savedAvatar) {
-                option.classList.add('selected');
-            }
-        });
-    }
+    // const savedAvatar = localStorage.getItem('selectedAvatar');
+    // if (savedAvatar) {
+    //     currentAvatar.src = savedAvatar;
+    //     currentAvatar.style.display = 'block';
+    //     defaultAvatar.style.display = 'none';
+    //     avatarOptions.forEach(option => {
+    //         if (option.src === savedAvatar) {
+    //             option.classList.add('selected');
+    //         }
+    //     });
+    // }
 
     // Logout functionality using AuthHelper
     logoutBtn?.addEventListener('click', () => {
