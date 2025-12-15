@@ -37,21 +37,21 @@
                 required>
             
             <input 
-                type="text" 
-                id="username" 
-                name="username"
-                class="input-field" 
-                placeholder="Username"
-                required>
-            
-            <input 
                 type="email" 
                 id="email" 
                 name="email"
                 class="input-field" 
                 placeholder="Email"
                 required>
-            
+
+            <label for="role">Pilih Role:</label>
+            <select id="role" name="role" class="input-field" required>
+                <option value="" disabled selected>Pilih Role User Baru</option>
+                <option value="Kasir">Kasir</option>
+                <option value="Kasir">Manajer</option>
+                <option value="Kasir">Admin</option>
+            </select>
+
             <input 
                 type="password" 
                 id="password" 
@@ -68,14 +68,6 @@
                 placeholder="Confirm Password"
                 required>
             
-            <input 
-                type="tel" 
-                id="nomorTelepon" 
-                name="nomorTelepon"
-                class="input-field" 
-                placeholder="Phone Number"
-                required>
-            
             <button type="submit" class="login-button">
                 REGISTER
             </button>
@@ -83,11 +75,6 @@
             <!-- Error Message -->
             <div id="errorMessage" class="error-message" role="alert"></div>
         </form>
-
-        <!-- Login Link -->
-        <div class="register-link">
-            <a href="login.html">Already have an account? Login here</a>
-        </div>
     </div>
 
     <script src="js/register.js"></script>
