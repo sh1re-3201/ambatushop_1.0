@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
     themeToggle?.addEventListener('click', () => {
         const currentTheme = document.documentElement.getAttribute('data-theme');
         const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-        
+
         document.documentElement.setAttribute('data-theme', newTheme);
         localStorage.setItem('theme', newTheme);
         updateThemeIcon(newTheme);
@@ -161,7 +161,7 @@ async function loadDashboardData(role) {
             fetch('http://localhost:8080/api/produk', {
                 headers: AuthHelper.getAuthHeaders()
             }),
-            fetch('http://localhost:8080/api/admin/akun', {
+            fetch('http://localhost:8080/api/manajer/users/all-with-status', {
                 headers: AuthHelper.getAuthHeaders()
             }),
             fetch('http://localhost:8080/api/keuangan', {
@@ -190,12 +190,25 @@ async function loadDashboardData(role) {
             console.error('❌ Failed to load products:', productsResponse.status);
         }
 
-        // Process users response
+        // Process users response (REAL DATA dengan status)
         if (usersResponse.ok) {
             users = await usersResponse.json();
-            console.log('✅ Users loaded:', users.length);
+            console.log('✅ Users with status loaded:', users.length);
         } else {
             console.error('❌ Failed to load users:', usersResponse.status);
+            // Jika endpoint manajer gagal, coba endpoint admin
+            const adminUsersResponse = await fetch('http://localhost:8080/api/admin/akun', {
+                headers: AuthHelper.getAuthHeaders()
+            });
+            if (adminUsersResponse.ok) {
+                const adminUsers = await adminUsersResponse.json();
+                users = adminUsers.map(user => ({
+                    ...user,
+                    isOnline: false, // Default offline karena tidak ada data status
+                    initial: user.username.charAt(0).toUpperCase()
+                }));
+                console.log('⚠️ Using admin users data (no online status):', users.length);
+            }
         }
 
         // Process keuangan response
@@ -222,7 +235,7 @@ async function loadDashboardData(role) {
 function updateFinanceCard(transactions, keuanganData) {
     const pemasukanElement = document.querySelector('#card-keuangan .finance-row div:first-child .value');
     const pengeluaranElement = document.querySelector('#card-keuangan .finance-row div:last-child .value');
-    
+
     if (!pemasukanElement || !pengeluaranElement) return;
 
     // Hitung pemasukan dari transaksi yang PAID
@@ -238,10 +251,10 @@ function updateFinanceCard(transactions, keuanganData) {
     // Update UI
     pemasukanElement.textContent = `Rp ${formatCurrency(totalPemasukan)}`;
     pengeluaranElement.textContent = `Rp ${formatCurrency(totalPengeluaran)}`;
-    
-    console.log('💰 Finance card updated:', { 
-        pemasukan: totalPemasukan, 
-        pengeluaran: totalPengeluaran 
+
+    console.log('💰 Finance card updated:', {
+        pemasukan: totalPemasukan,
+        pengeluaran: totalPengeluaran
     });
 }
 
@@ -275,50 +288,70 @@ function updateStockCard(products) {
             </div>
         </div>
     `;
-    
-    console.log('📦 Stock card updated:', { 
-        totalProducts, 
-        totalStock, 
-        lowStockProducts, 
-        outOfStockProducts 
+
+    console.log('📦 Stock card updated:', {
+        totalProducts,
+        totalStock,
+        lowStockProducts,
+        outOfStockProducts
     });
 }
 
-function updateUsersCard(users) {
-    const onlineElement = document.querySelector('#card-pengguna .users-row div:first-child .value');
-    const offlineElement = document.querySelector('#card-pengguna .users-row div:last-child .value');
-    const subtitleElement = document.querySelector('#card-pengguna .subtitle');
-    
-    if (!onlineElement || !offlineElement || !subtitleElement) return;
+async function updateUsersCard() {
+    try {
+        console.log('👥 Loading users data with online status...');
 
-    const totalUsers = users.length;
-    
-    // Hitung jumlah user per role
-    const roleCounts = {
-        ADMIN: users.filter(user => user.role === 'ADMIN').length,
-        MANAJER: users.filter(user => user.role === 'MANAJER').length,
-        KASIR: users.filter(user => user.role === 'KASIR').length
-    };
+        // Ambil data users dengan status online dari API manajer
+        const response = await fetch('http://localhost:8080/api/manajer/users/all-with-status', {
+            headers: AuthHelper.getAuthHeaders()
+        });
 
-    // Untuk demo, anggap 1-2 user online (random), sisanya offline
-    const onlineUsers = Math.min(Math.floor(Math.random() * 3) + 1, totalUsers);
-    const offlineUsers = Math.max(0, totalUsers - onlineUsers);
+        if (!response.ok) {
+            throw new Error(`Failed to fetch users: ${response.status}`);
+        }
 
-    // Update UI
-    onlineElement.textContent = onlineUsers;
-    offlineElement.textContent = offlineUsers;
-    subtitleElement.textContent = `Total: ${totalUsers} Pengguna`;
+        const users = await response.json();
+        console.log('✅ Users with status loaded:', users.length);
 
-    // Tambahkan detail role di card (opsional)
-    const cardBody = document.querySelector('#card-pengguna .card-body');
-    if (cardBody && !cardBody.querySelector('.role-breakdown')) {
+        const onlineElement = document.querySelector('#card-pengguna .users-row div:first-child .value');
+        const offlineElement = document.querySelector('#card-pengguna .users-row div:last-child .value');
+        const subtitleElement = document.querySelector('#card-pengguna .subtitle');
+
+        if (!onlineElement || !offlineElement || !subtitleElement) return;
+
+        // Hitung online/offline dari data yang real
+        const totalUsers = users.length;
+        const onlineUsers = users.filter(user => user.isOnline === true || user.isOnline === 'true').length;
+        const offlineUsers = totalUsers - onlineUsers;
+
+        // Update UI
+        onlineElement.textContent = onlineUsers;
+        offlineElement.textContent = offlineUsers;
+        subtitleElement.textContent = `Total: ${totalUsers} Pengguna`;
+
+        // Hitung jumlah per role
+        const roleCounts = {
+            ADMIN: users.filter(user => user.role === 'ADMIN').length,
+            MANAJER: users.filter(user => user.role === 'MANAJER').length,
+            KASIR: users.filter(user => user.role === 'KASIR').length
+        };
+
+        // Tambahkan detail role di card
+        const cardBody = document.querySelector('#card-pengguna .card-body');
+
+        // Hapus existing role breakdown jika ada
+        const existingBreakdown = cardBody.querySelector('.role-breakdown');
+        if (existingBreakdown) {
+            existingBreakdown.remove();
+        }
+
         const roleBreakdown = document.createElement('div');
         roleBreakdown.className = 'role-breakdown';
         roleBreakdown.style.cssText = `
-            margin-top: 8px;
-            padding-top: 8px;
+            margin-top: 12px;
+            padding-top: 12px;
             border-top: 1px solid var(--border-color);
-            font-size: 11px;
+            font-size: 12px;
             color: var(--text-secondary);
         `;
         roleBreakdown.innerHTML = `
@@ -329,14 +362,82 @@ function updateUsersCard(users) {
             </div>
         `;
         cardBody.appendChild(roleBreakdown);
+
+        console.log('👥 Users card updated with real data:', {
+            totalUsers,
+            onlineUsers,
+            offlineUsers,
+            roleCounts
+        });
+
+        // Juga update user list jika ada di dashboard
+        updateUserList(users);
+
+    } catch (error) {
+        console.error('❌ Error loading users data:', error);
+        // Fallback ke data random jika API gagal
+        fallbackUpdateUsersCard();
     }
-    
-    console.log('👥 Users card updated:', { 
-        totalUsers, 
-        onlineUsers, 
-        offlineUsers,
-        roleCounts
-    });
+}
+
+// Function untuk fallback jika API gagal
+function fallbackUpdateUsersCard() {
+    const onlineElement = document.querySelector('#card-pengguna .users-row div:first-child .value');
+    const offlineElement = document.querySelector('#card-pengguna .users-row div:last-child .value');
+    const subtitleElement = document.querySelector('#card-pengguna .subtitle');
+
+    if (!onlineElement || !offlineElement || !subtitleElement) return;
+
+    // Fallback ke angka dummy
+    const onlineUsers = 2;
+    const offlineUsers = 3;
+    const totalUsers = 5;
+
+    onlineElement.textContent = onlineUsers;
+    offlineElement.textContent = offlineUsers;
+    subtitleElement.textContent = `Total: ${totalUsers} Pengguna`;
+
+    console.log('⚠️ Using fallback users data');
+}
+
+// Function untuk update user list di dashboard (jika ada)
+function updateUserList(users) {
+    const userListContainer = document.getElementById('user-list-container');
+    if (!userListContainer) return;
+
+    // Filter users yang sedang online
+    const onlineUsers = users.filter(user => user.isOnline === true || user.isOnline === 'true');
+
+    if (onlineUsers.length > 0) {
+        userListContainer.innerHTML = `
+            <div style="margin-top: 16px;">
+                <h4 style="margin-bottom: 8px; font-size: 14px; color: var(--text-secondary);">
+                    🟢 Sedang Online (${onlineUsers.length})
+                </h4>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    ${onlineUsers.map(user => `
+                        <div style="display: flex; align-items: center; gap: 8px; padding: 8px; background: var(--card-bg); border-radius: 6px;">
+                            <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                                display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 14px;">
+                                ${user.initial || user.username.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; font-size: 14px;">${user.username}</div>
+                                <div style="font-size: 12px; color: var(--text-secondary);">${user.role}</div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    } else {
+        userListContainer.innerHTML = `
+            <div style="margin-top: 16px; text-align: center; padding: 16px; color: var(--text-secondary);">
+                <div>👤 Tidak ada user yang sedang online</div>
+                <div style="font-size: 12px; margin-top: 4px;">User akan muncul ketika login</div>
+            </div>
+        `;
+    }
 }
 
 // ========== UTILITY FUNCTIONS ==========
@@ -363,7 +464,7 @@ function showError(message) {
     `;
     errorDiv.textContent = 'Error: ' + message;
     document.body.appendChild(errorDiv);
-    
+
     setTimeout(() => {
         errorDiv.remove();
     }, 5000);
