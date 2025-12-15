@@ -93,19 +93,35 @@ class AuthHelper {
         }
     }
 
-    static logout() {
-        // Clear semua auth data
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('userRole');
-        localStorage.removeItem('username');
-        localStorage.removeItem('loginTime');
+    static async logout() {
+        try {
+            // Send logout request to server
+            const response = await fetch('http://localhost:8080/api/auth/logout', {
+                method: 'POST',
+                headers: this.getAuthHeaders()
+            });
 
-        sessionStorage.clear();
-
-        console.log('✅ Logout successful - all auth data cleared');
-
-        // Redirect ke login
-        this.redirectToLogin();
+            if (!response.ok) {
+                console.warn('Logout API failed, but continuing with client cleanup');
+            }
+        } catch (error) {
+            console.error('Error calling logout API:', error);
+            // Continue with client cleanup even if API fails
+        } finally {
+            // Clear semua auth data di client
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('userRole');
+            localStorage.removeItem('username');
+            localStorage.removeItem('userId');
+            localStorage.removeItem('loginTime');
+            
+            sessionStorage.clear();
+            
+            console.log('✅ Logout successful - all auth data cleared');
+            
+            // Redirect ke login
+            this.redirectToLogin();
+        }
     }
 
     static getCurrentUser() {

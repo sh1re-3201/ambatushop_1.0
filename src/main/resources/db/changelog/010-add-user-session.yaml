@@ -1,0 +1,34 @@
+databaseChangeLog:
+  - changeSet:
+      id: 10
+      author: Mosses
+      changes:
+        - addColumn:
+            tableName: akun
+            columns:
+              - column:
+                  name: is_online
+                  type: BOOLEAN
+                  constraints:
+                    nullable: false
+                    default: false
+              - column:
+                  name: last_login_at
+                  type: DATETIME
+                  constraints:
+                    nullable: true
+              - column:
+                  name: last_activity_at
+                  type: DATETIME
+                  constraints:
+                    nullable: true
+              - column:
+                  name: session_id
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: ip_address
+                  type: VARCHAR(45)
+                  constraints:
+                    nullable: true

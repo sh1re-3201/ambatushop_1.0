@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>AmbatuShop — Data Pengguna Manajer</title>
+  <title>AmbatuShop — Manajemen Pengguna (Manajer)</title>
   <link rel="stylesheet" href="css/manajer_pengguna.css" />
 </head>
 <body class="role-admin-manajer">
@@ -110,15 +110,15 @@
 
       <section class="content-main">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
-          <h2 style="margin:0;font-size:28px;font-weight:600;color:var(--text-primary)">Data Pengguna</h2>
+          <h2 style="margin:0;font-size:28px;font-weight:600;color:#1a1a1a">Manajemen Pengguna</h2>
           <span style="padding:8px 16px;background:rgba(43,124,255,0.1);color:#2b7cff;border-radius:8px;font-size:14px;font-weight:600">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="display:inline-block;vertical-align:middle;margin-right:4px">
               <path d="M12 15V12m0-3h.01M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-            View Only (Read-Only Mode)
+            View Only (Manajer Mode)
           </span>
         </div>
-        
+
         <div class="grid">
           <!-- Card Total Pengguna -->
           <div class="card feature">
@@ -131,7 +131,7 @@
             <div class="card-body">
               <h3>Total Pengguna</h3>
               <p class="subtitle">Semua Role</p>
-              <div class="value" style="font-size:24px;margin-top:8px">47 Pengguna</div>
+              <div class="value" id="totalUsersValue" style="font-size:24px;margin-top:8px">Loading...</div>
             </div>
           </div>
 
@@ -146,8 +146,8 @@
             </div>
             <div class="card-body">
               <h3>Admin</h3>
-              <p class="subtitle">Full Access</p>
-              <div class="value" style="font-size:24px;margin-top:8px">3 Admin</div>
+              <p class="subtitle" id="adminSubtitle">Loading...</p>
+              <div class="value" id="adminCountValue" style="font-size:24px;margin-top:8px">Loading...</div>
             </div>
           </div>
 
@@ -162,8 +162,8 @@
             </div>
             <div class="card-body">
               <h3>Manajer</h3>
-              <p class="subtitle">Supervisor</p>
-              <div class="value" style="font-size:24px;margin-top:8px">8 Manajer</div>
+              <p class="subtitle" id="managerSubtitle">Loading...</p>
+              <div class="value" id="managerCountValue" style="font-size:24px;margin-top:8px">Loading...</div>
             </div>
           </div>
 
@@ -177,15 +177,15 @@
             </div>
             <div class="card-body">
               <h3>Kasir</h3>
-              <p class="subtitle">Operasional</p>
-              <div class="value" style="font-size:24px;margin-top:8px">36 Kasir</div>
+              <p class="subtitle" id="kasirSubtitle">Loading...</p>
+              <div class="value" id="kasirCountValue" style="font-size:24px;margin-top:8px">Loading...</div>
             </div>
           </div>
         </div>
 
         <!-- Status Pengguna -->
         <div class="grid" style="margin-top:28px">
-          <div class="card feature">
+          <div class="card feature" id="onlineUsersCard">
             <div class="icon-wrap green">
               <svg viewBox="0 0 64 64" width="48" height="48" fill="none">
                 <circle cx="32" cy="32" r="16" stroke="#10b759" stroke-width="3" fill="none"/>
@@ -195,11 +195,11 @@
             <div class="card-body">
               <h3>Pengguna Online</h3>
               <p class="subtitle">Sedang Aktif</p>
-              <div class="value" style="font-size:24px;margin-top:8px;color:#10b759">12 Online</div>
+              <div class="value" id="onlineUsersCount" style="font-size:24px;margin-top:8px;color:#10b759">Loading...</div>
             </div>
           </div>
 
-          <div class="card feature">
+          <div class="card feature" id="offlineUsersCard">
             <div class="icon-wrap" style="background:rgba(100,100,100,0.1)">
               <svg viewBox="0 0 64 64" width="48" height="48" fill="none">
                 <circle cx="32" cy="32" r="16" stroke="#666" stroke-width="3" fill="none"/>
@@ -209,81 +209,39 @@
             <div class="card-body">
               <h3>Pengguna Offline</h3>
               <p class="subtitle">Tidak Aktif</p>
-              <div class="value" style="font-size:24px;margin-top:8px;color:#666">35 Offline</div>
+              <div class="value" id="offlineUsersCount" style="font-size:24px;margin-top:8px;color:#666">Loading...</div>
             </div>
           </div>
         </div>
 
-        <!-- Tabel Daftar Pengguna - READ ONLY -->
+        <!-- Tabel Daftar Pengguna -->
         <div class="card" style="margin-top:28px;padding:24px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-            <h3 style="margin:0;color:var(--text-primary)">Daftar Pengguna</h3>
-            <span style="padding:6px 12px;background:rgba(100,100,100,0.1);color:var(--text-secondary);border-radius:6px;font-size:13px">Manajer tidak memiliki akses edit</span>
+            <h3 style="margin:0">Daftar Pengguna</h3>
+            <span style="padding:8px 16px;background:rgba(100,100,100,0.1);color:#666;border-radius:8px;font-size:14px;font-weight:600">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="display:inline-block;vertical-align:middle;margin-right:4px">
+                <path d="M12 15V12m0-3h.01M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              View Only - No Edit Access
+            </span>
           </div>
           <table style="width:100%;border-collapse:collapse">
             <thead>
-              <tr style="border-bottom:2px solid var(--border-color)">
-                <th style="text-align:left;padding:12px 8px;color:var(--text-secondary);font-weight:600">Nama</th>
-                <th style="text-align:left;padding:12px 8px;color:var(--text-secondary);font-weight:600">Username</th>
-                <th style="text-align:center;padding:12px 8px;color:var(--text-secondary);font-weight:600">Role</th>
-                <th style="text-align:center;padding:12px 8px;color:var(--text-secondary);font-weight:600">Status</th>
+              <tr style="border-bottom:2px solid #e5e7eb">
+                <th style="text-align:left;padding:12px 8px;color:#666;font-weight:600">Nama</th>
+                <th style="text-align:left;padding:12px 8px;color:#666;font-weight:600">Username</th>
+                <th style="text-align:center;padding:12px 8px;color:#666;font-weight:600">Role</th>
+                <th style="text-align:center;padding:12px 8px;color:#666;font-weight:600">Status</th>
+                <th style="text-align:center;padding:12px 8px;color:#666;font-weight:600">Aktivitas Terakhir</th>
               </tr>
             </thead>
-            <tbody>
-              <tr style="border-bottom:1px solid var(--border-color)">
-                <td style="padding:12px 8px">
-                  <div style="display:flex;align-items:center;gap:8px">
-                    <div style="width:32px;height:32px;border-radius:50%;background:#ff5252;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:14px">A</div>
-                    <span style="color:var(--text-primary)">Admin Utama</span>
-                  </div>
-                </td>
-                <td style="padding:12px 8px;color:var(--text-secondary)">admin</td>
-                <td style="padding:12px 8px;text-align:center"><span style="background:#fee2e2;color:#991b1b;padding:4px 12px;border-radius:12px;font-size:13px;font-weight:600">ADMIN</span></td>
-                <td style="padding:12px 8px;text-align:center"><span style="background:#d1fae5;color:#065f46;padding:4px 12px;border-radius:12px;font-size:13px;font-weight:600">● Online</span></td>
-              </tr>
-              <tr style="border-bottom:1px solid var(--border-color)">
-                <td style="padding:12px 8px">
-                  <div style="display:flex;align-items:center;gap:8px">
-                    <div style="width:32px;height:32px;border-radius:50%;background:#f6b24a;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:14px">M</div>
-                    <span style="color:var(--text-primary)">Budi Santoso</span>
-                  </div>
-                </td>
-                <td style="padding:12px 8px;color:var(--text-secondary)">budi.manager</td>
-                <td style="padding:12px 8px;text-align:center"><span style="background:#fef3c7;color:#92400e;padding:4px 12px;border-radius:12px;font-size:13px;font-weight:600">MANAJER</span></td>
-                <td style="padding:12px 8px;text-align:center"><span style="background:#d1fae5;color:#065f46;padding:4px 12px;border-radius:12px;font-size:13px;font-weight:600">● Online</span></td>
-              </tr>
-              <tr style="border-bottom:1px solid var(--border-color)">
-                <td style="padding:12px 8px">
-                  <div style="display:flex;align-items:center;gap:8px">
-                    <div style="width:32px;height:32px;border-radius:50%;background:#10b759;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:14px">S</div>
-                    <span style="color:var(--text-primary)">Siti Nurhaliza</span>
-                  </div>
-                </td>
-                <td style="padding:12px 8px;color:var(--text-secondary)">siti.kasir</td>
-                <td style="padding:12px 8px;text-align:center"><span style="background:#d1fae5;color:#065f46;padding:4px 12px;border-radius:12px;font-size:13px;font-weight:600">KASIR</span></td>
-                <td style="padding:12px 8px;text-align:center"><span style="background:#e5e7eb;color:#374151;padding:4px 12px;border-radius:12px;font-size:13px;font-weight:600">○ Offline</span></td>
-              </tr>
-              <tr style="border-bottom:1px solid var(--border-color)">
-                <td style="padding:12px 8px">
-                  <div style="display:flex;align-items:center;gap:8px">
-                    <div style="width:32px;height:32px;border-radius:50%;background:#10b759;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:14px">D</div>
-                    <span style="color:var(--text-primary)">Dika Pratama</span>
-                  </div>
-                </td>
-                <td style="padding:12px 8px;color:var(--text-secondary)">dika.kasir</td>
-                <td style="padding:12px 8px;text-align:center"><span style="background:#d1fae5;color:#065f46;padding:4px 12px;border-radius:12px;font-size:13px;font-weight:600">KASIR</span></td>
-                <td style="padding:12px 8px;text-align:center"><span style="background:#d1fae5;color:#065f46;padding:4px 12px;border-radius:12px;font-size:13px;font-weight:600">● Online</span></td>
-              </tr>
+            <tbody id="usersTableBody">
+              <!-- Data akan diisi oleh JavaScript -->
               <tr>
-                <td style="padding:12px 8px">
-                  <div style="display:flex;align-items:center;gap:8px">
-                    <div style="width:32px;height:32px;border-radius:50%;background:#10b759;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:14px">R</div>
-                    <span style="color:var(--text-primary)">Rina Wati</span>
-                  </div>
+                <td colspan="5" style="text-align:center;padding:40px;color:#666">
+                  <div style="margin-bottom:8px">Memuat data pengguna...</div>
+                  <div class="loading-spinner" style="margin:0 auto"></div>
                 </td>
-                <td style="padding:12px 8px;color:var(--text-secondary)">rina.kasir</td>
-                <td style="padding:12px 8px;text-align:center"><span style="background:#d1fae5;color:#065f46;padding:4px 12px;border-radius:12px;font-size:13px;font-weight:600">KASIR</span></td>
-                <td style="padding:12px 8px;text-align:center"><span style="background:#e5e7eb;color:#374151;padding:4px 12px;border-radius:12px;font-size:13px;font-weight:600">○ Offline</span></td>
               </tr>
             </tbody>
           </table>
