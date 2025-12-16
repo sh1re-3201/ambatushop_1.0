@@ -332,30 +332,10 @@ function updateProductsTable(products) {
                     ${product.stok <= 10 ? '<span style="color:#f59e0b;font-size:12px">⚠️</span>' : ''}
                 </div>
             </td>
-            <td style="padding:12px 8px;text-align:center;" class="barcode-cell">
-                ${product.barcode ? `
-                    <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
-                        <div class="barcode-preview" 
-                             onclick="adminBarcodeManager.showBarcodeModal(${JSON.stringify(product).replace(/"/g, '&quot;')})"
-                             title="Klik untuk lihat barcode lengkap">
-                            <div style="font-size:10px;color:#666;margin-bottom:2px">${product.barcode.substring(0, 8)}...</div>
-                            <div style="display:flex;gap:1px;justify-content:center">
-                                ${'█'.repeat(6)}
-                            </div>
-                        </div>
-                        <button class="view-barcode-btn" 
-                                onclick="adminBarcodeManager.showBarcodeModal(${JSON.stringify(product).replace(/"/g, '&quot;')})"
-                                style="padding:2px 8px;background:rgba(43,124,255,0.1);color:#2b7cff;border:1px solid rgba(43,124,255,0.3);border-radius:4px;cursor:pointer;font-size:10px">
-                            Lihat
-                        </button>
-                    </div>
-                ` : `
-                    <span style="color:var(--text-secondary);font-size:12px;font-style:italic">
-                        Belum ada barcode
-                    </span>
-                `}
+            <!-- HAPUS SELURUH KOLOM BARCODE -->
+            <td style="padding:12px 8px;text-align:center;color:var(--text-secondary)">
+                ${generateSKU(product.idProduk)}
             </td>
-            <td style="padding:12px 8px;text-align:center;color:var(--text-secondary)">${generateSKU(product.idProduk)}</td>
             <td style="padding:12px 8px;text-align:center;font-weight:600;color:${getStockColor(product.stok)}">
                 ${product.stok}
             </td>
@@ -432,277 +412,277 @@ function showEmptyState() {
 
 // ========== BARCODE MANAGEMENT (READ-ONLY) ==========
 
-class AdminBarcodeManager {
-    constructor() {
-        this.initBarcodeFeatures();
-    }
+// class AdminBarcodeManager {
+//     constructor() {
+//         this.initBarcodeFeatures();
+//     }
 
-    initBarcodeFeatures() {
-        console.log('🔄 Initializing admin barcode features (read-only)...');
-    }
+//     initBarcodeFeatures() {
+//         console.log('🔄 Initializing admin barcode features (read-only)...');
+//     }
 
-    // Show barcode modal dengan REAL barcode image (read-only)
-    async showBarcodeModal(product) {
-        try {
-            console.log('🔄 Loading barcode for product:', product);
+//     // Show barcode modal dengan REAL barcode image (read-only)
+//     async showBarcodeModal(product) {
+//         try {
+//             console.log('🔄 Loading barcode for product:', product);
 
-            const modalHtml = `
-            <div class="modal-overlay" id="barcodeModal">
-                <div class="modal-content" style="max-width: 500px;">
-                    <div class="modal-header">
-                        <h3>Barcode - ${product.namaProduk}</h3>
-                        <button class="modal-close">&times;</button>
-                    </div>
-                    <div class="modal-body" style="text-align: center;">
-                        <div class="barcode-display" id="barcode-display-container">
-                            <div class="loading-barcode">
-                                <div style="padding: 40px;">
-                                    <div style="color: #666; margin-bottom: 10px;">⏳</div>
-                                    <div style="color: #999; font-size: 14px;">Memuat barcode...</div>
-                                </div>
-                            </div>
-                        </div>
+//             const modalHtml = `
+//             <div class="modal-overlay" id="barcodeModal">
+//                 <div class="modal-content" style="max-width: 500px;">
+//                     <div class="modal-header">
+//                         <h3>Barcode - ${product.namaProduk}</h3>
+//                         <button class="modal-close">&times;</button>
+//                     </div>
+//                     <div class="modal-body" style="text-align: center;">
+//                         <div class="barcode-display" id="barcode-display-container">
+//                             <div class="loading-barcode">
+//                                 <div style="padding: 40px;">
+//                                     <div style="color: #666; margin-bottom: 10px;">⏳</div>
+//                                     <div style="color: #999; font-size: 14px;">Memuat barcode...</div>
+//                                 </div>
+//                             </div>
+//                         </div>
                         
-                        <div class="product-info" style="margin-top: 20px; padding: 16px; background: #f8f9fa; border-radius: 8px;">
-                            <div style="font-weight: 600; color: #333;">${product.namaProduk}</div>
-                            <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 14px;">
-                                <span>Harga: ${this.formatCurrency(product.harga)}</span>
-                                <span>Stok: ${product.stok}</span>
-                            </div>
-                            ${product.barcode ? `
-                                <div style="margin-top: 8px; font-family: 'Courier New', monospace; font-size: 12px; color: #666;">
-                                    Barcode: ${product.barcode}
-                                </div>
-                            ` : ''}
-                        </div>
+//                         <div class="product-info" style="margin-top: 20px; padding: 16px; background: #f8f9fa; border-radius: 8px;">
+//                             <div style="font-weight: 600; color: #333;">${product.namaProduk}</div>
+//                             <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 14px;">
+//                                 <span>Harga: ${this.formatCurrency(product.harga)}</span>
+//                                 <span>Stok: ${product.stok}</span>
+//                             </div>
+//                             ${product.barcode ? `
+//                                 <div style="margin-top: 8px; font-family: 'Courier New', monospace; font-size: 12px; color: #666;">
+//                                     Barcode: ${product.barcode}
+//                                 </div>
+//                             ` : ''}
+//                         </div>
                         
-                        <div class="barcode-actions" style="margin-top: 20px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-                            ${product.barcodeImagePath ? `
-                                <button class="btn-primary" onclick="adminBarcodeManager.downloadBarcode(${product.idProduk})">
-                                    📥 Download PNG
-                                </button>
-                                <button class="btn-copy-barcode" onclick="adminBarcodeManager.copyBarcodeText('${product.barcode}')">
-                                    📋 Copy Barcode
-                                </button>
-                            ` : `
-                                <span style="color:var(--text-secondary);font-size:14px;">
-                                    Barcode belum digenerate oleh Manajer
-                                </span>
-                            `}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
+//                         <div class="barcode-actions" style="margin-top: 20px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+//                             ${product.barcodeImagePath ? `
+//                                 <button class="btn-primary" onclick="adminBarcodeManager.downloadBarcode(${product.idProduk})">
+//                                     📥 Download PNG
+//                                 </button>
+//                                 <button class="btn-copy-barcode" onclick="adminBarcodeManager.copyBarcodeText('${product.barcode}')">
+//                                     📋 Copy Barcode
+//                                 </button>
+//                             ` : `
+//                                 <span style="color:var(--text-secondary);font-size:14px;">
+//                                     Barcode belum digenerate oleh Manajer
+//                                 </span>
+//                             `}
+//                         </div>
+//                     </div>
+//                 </div>
+//             </div>
+//         `;
 
-            document.body.insertAdjacentHTML('beforeend', modalHtml);
-            this.setupBarcodeModalEvents();
+//             document.body.insertAdjacentHTML('beforeend', modalHtml);
+//             this.setupBarcodeModalEvents();
 
-            // Load barcode image setelah modal ditampilkan
-            await this.loadBarcodeImage(product);
+//             // Load barcode image setelah modal ditampilkan
+//             await this.loadBarcodeImage(product);
 
-        } catch (error) {
-            console.error('Error showing barcode modal:', error);
-            this.showError('Gagal memuat barcode: ' + error.message);
-        }
-    }
+//         } catch (error) {
+//             console.error('Error showing barcode modal:', error);
+//             this.showError('Gagal memuat barcode: ' + error.message);
+//         }
+//     }
 
-    // Method untuk load barcode image
-    async loadBarcodeImage(product) {
-        const container = document.getElementById('barcode-display-container');
-        if (!container) return;
+//     // Method untuk load barcode image
+//     async loadBarcodeImage(product) {
+//         const container = document.getElementById('barcode-display-container');
+//         if (!container) return;
 
-        try {
-            console.log('🔄 Loading barcode image for product:', product);
+//         try {
+//             console.log('🔄 Loading barcode image for product:', product);
 
-            if (!product.barcodeImagePath) {
-                console.log('❌ No barcode image path for product:', product.idProduk);
-                container.innerHTML = this.getBarcodePlaceholderHTML();
-                return;
-            }
+//             if (!product.barcodeImagePath) {
+//                 console.log('❌ No barcode image path for product:', product.idProduk);
+//                 container.innerHTML = this.getBarcodePlaceholderHTML();
+//                 return;
+//             }
 
-            const imageUrl = `http://localhost:8080/api/barcode/produk/${product.idProduk}/image?t=${new Date().getTime()}`;
-            console.log('🔗 Loading image with auth header:', imageUrl);
+//             const imageUrl = `http://localhost:8080/api/barcode/produk/${product.idProduk}/image?t=${new Date().getTime()}`;
+//             console.log('🔗 Loading image with auth header:', imageUrl);
 
-            const response = await fetch(imageUrl, {
-                headers: AuthHelper.getAuthHeaders()
-            });
+//             const response = await fetch(imageUrl, {
+//                 headers: AuthHelper.getAuthHeaders()
+//             });
 
-            console.log('📡 Image response status:', response.status);
+//             console.log('📡 Image response status:', response.status);
 
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
+//             if (!response.ok) {
+//                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+//             }
 
-            const blob = await response.blob();
+//             const blob = await response.blob();
 
-            if (blob.size === 0) {
-                throw new Error('Barcode image is empty');
-            }
+//             if (blob.size === 0) {
+//                 throw new Error('Barcode image is empty');
+//             }
 
-            const blobUrl = URL.createObjectURL(blob);
+//             const blobUrl = URL.createObjectURL(blob);
 
-            container.innerHTML = `
-            <div class="barcode-image-container">
-                <img src="${blobUrl}" 
-                     alt="Barcode ${product.barcode}" 
-                     class="barcode-image"
-                     onload="console.log(' Barcode image loaded successfully'); URL.revokeObjectURL(this.src)"
-                     onerror="(function() { 
-                         URL.revokeObjectURL(this.src);
-                         adminBarcodeManager.handleImageError('Image load failed'); 
-                     }).call(this)">
-                <div class="barcode-text">${product.barcode}</div>
-            </div>
-        `;
+//             container.innerHTML = `
+//             <div class="barcode-image-container">
+//                 <img src="${blobUrl}" 
+//                      alt="Barcode ${product.barcode}" 
+//                      class="barcode-image"
+//                      onload="console.log(' Barcode image loaded successfully'); URL.revokeObjectURL(this.src)"
+//                      onerror="(function() { 
+//                          URL.revokeObjectURL(this.src);
+//                          adminBarcodeManager.handleImageError('Image load failed'); 
+//                      }).call(this)">
+//                 <div class="barcode-text">${product.barcode}</div>
+//             </div>
+//         `;
 
-            console.log('Barcode image loaded successfully');
+//             console.log('Barcode image loaded successfully');
 
-        } catch (error) {
-            console.error('Error loading barcode image:', error);
-            this.handleImageError(error.message);
-        }
-    }
+//         } catch (error) {
+//             console.error('Error loading barcode image:', error);
+//             this.handleImageError(error.message);
+//         }
+//     }
 
-    getBarcodePlaceholderHTML() {
-        return `
-        <div class="barcode-placeholder">
-            <div style="font-size: 48px; margin-bottom: 16px;">📷</div>
-            <div style="color: #666; margin-bottom: 8px;">Barcode image belum tersedia</div>
-            <div style="font-size: 12px; color: #999;">Barcode akan digenerate oleh Manajer</div>
-        </div>
-    `;
-    }
+//     getBarcodePlaceholderHTML() {
+//         return `
+//         <div class="barcode-placeholder">
+//             <div style="font-size: 48px; margin-bottom: 16px;">📷</div>
+//             <div style="color: #666; margin-bottom: 8px;">Barcode image belum tersedia</div>
+//             <div style="font-size: 12px; color: #999;">Barcode akan digenerate oleh Manajer</div>
+//         </div>
+//     `;
+//     }
 
-    handleImageError(errorMessage = '') {
-        const container = document.getElementById('barcode-display-container');
-        if (!container) return;
+//     handleImageError(errorMessage = '') {
+//         const container = document.getElementById('barcode-display-container');
+//         if (!container) return;
 
-        container.innerHTML = `
-        <div class="barcode-error">
-            <div style="font-size: 48px; margin-bottom: 16px;">❌</div>
-            <div style="color: #ef4444; margin-bottom: 8px;">Gagal memuat barcode image</div>
-            <div style="font-size: 12px; color: #999; margin-bottom: 8px;">
-                ${errorMessage || 'Barcode image mungkin belum digenerate atau terjadi error'}
-            </div>
-        </div>
-    `;
-    }
+//         container.innerHTML = `
+//         <div class="barcode-error">
+//             <div style="font-size: 48px; margin-bottom: 16px;">❌</div>
+//             <div style="color: #ef4444; margin-bottom: 8px;">Gagal memuat barcode image</div>
+//             <div style="font-size: 12px; color: #999; margin-bottom: 8px;">
+//                 ${errorMessage || 'Barcode image mungkin belum digenerate atau terjadi error'}
+//             </div>
+//         </div>
+//     `;
+//     }
 
-    formatCurrency(amount) {
-        if (!amount && amount !== 0) return 'Rp 0';
-        return new Intl.NumberFormat('id-ID', {
-            style: 'currency',
-            currency: 'IDR',
-            minimumFractionDigits: 0
-        }).format(amount);
-    }
+//     formatCurrency(amount) {
+//         if (!amount && amount !== 0) return 'Rp 0';
+//         return new Intl.NumberFormat('id-ID', {
+//             style: 'currency',
+//             currency: 'IDR',
+//             minimumFractionDigits: 0
+//         }).format(amount);
+//     }
 
-    setupBarcodeModalEvents() {
-        const modal = document.getElementById('barcodeModal');
-        const closeBtn = modal.querySelector('.modal-close');
+//     setupBarcodeModalEvents() {
+//         const modal = document.getElementById('barcodeModal');
+//         const closeBtn = modal.querySelector('.modal-close');
 
-        closeBtn.addEventListener('click', () => {
-            modal.remove();
-        });
+//         closeBtn.addEventListener('click', () => {
+//             modal.remove();
+//         });
 
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) modal.remove();
-        });
-    }
+//         modal.addEventListener('click', (e) => {
+//             if (e.target === modal) modal.remove();
+//         });
+//     }
 
-    // Download barcode image
-    async downloadBarcode(productId) {
-        try {
-            console.log('📥 Downloading barcode for product:', productId);
+//     // Download barcode image
+//     async downloadBarcode(productId) {
+//         try {
+//             console.log('📥 Downloading barcode for product:', productId);
 
-            const response = await fetch(`http://localhost:8080/api/barcode/produk/${productId}/image`, {
-                headers: AuthHelper.getAuthHeaders()
-            });
+//             const response = await fetch(`http://localhost:8080/api/barcode/produk/${productId}/image`, {
+//                 headers: AuthHelper.getAuthHeaders()
+//             });
 
-            if (response.ok) {
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `barcode-${productId}-${Date.now()}.png`;
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                document.body.removeChild(a);
+//             if (response.ok) {
+//                 const blob = await response.blob();
+//                 const url = window.URL.createObjectURL(blob);
+//                 const a = document.createElement('a');
+//                 a.href = url;
+//                 a.download = `barcode-${productId}-${Date.now()}.png`;
+//                 document.body.appendChild(a);
+//                 a.click();
+//                 window.URL.revokeObjectURL(url);
+//                 document.body.removeChild(a);
                 
-                this.showSuccess('Barcode berhasil didownload!');
-            } else {
-                throw new Error(`HTTP ${response.status}: Gagal download barcode`);
-            }
-        } catch (error) {
-            console.error('Download error:', error);
-            this.showError('Download error: ' + error.message);
-        }
-    }
+//                 this.showSuccess('Barcode berhasil didownload!');
+//             } else {
+//                 throw new Error(`HTTP ${response.status}: Gagal download barcode`);
+//             }
+//         } catch (error) {
+//             console.error('Download error:', error);
+//             this.showError('Download error: ' + error.message);
+//         }
+//     }
 
-    // Copy barcode text ke clipboard
-    async copyBarcodeText(barcodeText) {
-        try {
-            await navigator.clipboard.writeText(barcodeText);
-            this.showSuccess('Barcode berhasil disalin ke clipboard!');
-        } catch (error) {
-            // Fallback untuk browser lama
-            const textArea = document.createElement('textarea');
-            textArea.value = barcodeText;
-            document.body.appendChild(textArea);
-            textArea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textArea);
-            this.showSuccess('Barcode berhasil disalin!');
-        }
-    }
+//     // Copy barcode text ke clipboard
+//     async copyBarcodeText(barcodeText) {
+//         try {
+//             await navigator.clipboard.writeText(barcodeText);
+//             this.showSuccess('Barcode berhasil disalin ke clipboard!');
+//         } catch (error) {
+//             // Fallback untuk browser lama
+//             const textArea = document.createElement('textarea');
+//             textArea.value = barcodeText;
+//             document.body.appendChild(textArea);
+//             textArea.select();
+//             document.execCommand('copy');
+//             document.body.removeChild(textArea);
+//             this.showSuccess('Barcode berhasil disalin!');
+//         }
+//     }
 
-    // Utility functions
-    showSuccess(message) {
-        this.showFeedback(message, 'success');
-    }
+//     // Utility functions
+//     showSuccess(message) {
+//         this.showFeedback(message, 'success');
+//     }
 
-    showError(message) {
-        this.showFeedback(message, 'error');
-    }
+//     showError(message) {
+//         this.showFeedback(message, 'error');
+//     }
 
-    showFeedback(message, type) {
-        const existingFeedback = document.querySelector('.barcode-feedback');
-        if (existingFeedback) {
-            existingFeedback.remove();
-        }
+//     showFeedback(message, type) {
+//         const existingFeedback = document.querySelector('.barcode-feedback');
+//         if (existingFeedback) {
+//             existingFeedback.remove();
+//         }
 
-        const feedback = document.createElement('div');
-        feedback.className = 'barcode-feedback';
-        feedback.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 12px 20px;
-            background: ${type === 'success' ? '#10b759' : '#ef4444'};
-            color: white;
-            border-radius: 8px;
-            font-weight: 600;
-            z-index: 10000;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            animation: slideIn 0.3s ease;
-        `;
-        feedback.textContent = message;
+//         const feedback = document.createElement('div');
+//         feedback.className = 'barcode-feedback';
+//         feedback.style.cssText = `
+//             position: fixed;
+//             top: 20px;
+//             right: 20px;
+//             padding: 12px 20px;
+//             background: ${type === 'success' ? '#10b759' : '#ef4444'};
+//             color: white;
+//             border-radius: 8px;
+//             font-weight: 600;
+//             z-index: 10000;
+//             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+//             animation: slideIn 0.3s ease;
+//         `;
+//         feedback.textContent = message;
 
-        document.body.appendChild(feedback);
+//         document.body.appendChild(feedback);
 
-        setTimeout(() => {
-            feedback.style.animation = 'slideOut 0.3s ease';
-            setTimeout(() => {
-                feedback.remove();
-            }, 300);
-        }, 3000);
-    }
-}
+//         setTimeout(() => {
+//             feedback.style.animation = 'slideOut 0.3s ease';
+//             setTimeout(() => {
+//                 feedback.remove();
+//             }, 300);
+//         }, 3000);
+//     }
+// }
 
-// Initialize admin barcode manager
-const adminBarcodeManager = new AdminBarcodeManager();
+// // Initialize admin barcode manager
+// const adminBarcodeManager = new AdminBarcodeManager();
 
 // ========== UTILITY FUNCTIONS ==========
 
@@ -726,6 +706,21 @@ function showError(message) {
     setTimeout(() => {
         errorDiv.remove();
     }, 5000);
+}
+
+function showEmptyState() {
+    const tbody = document.getElementById('products-tbody');
+    if (!tbody) return;
+
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="5" style="padding:60px;text-align:center;color:var(--text-secondary)">
+                <div style="font-size:48px;margin-bottom:16px;">📦</div>
+                <div style="font-size:16px;margin-bottom:8px;font-weight:600">Tidak ada produk</div>
+                <div style="font-size:14px;margin-bottom:20px;">Belum ada produk yang ditambahkan</div>
+            </td>
+        </tr>
+    `;
 }
 
 // Auto-refresh data every 30 seconds

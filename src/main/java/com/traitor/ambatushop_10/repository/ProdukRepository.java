@@ -17,7 +17,7 @@ import java.util.Optional;
 public interface ProdukRepository extends JpaRepository<Produk, Long> {
     List<Produk> findByNamaProdukContainingIgnoreCase(String keyword);
 
-    boolean existsByBarcode(String barcode);
+    // boolean existsByBarcode(String barcode);
 
-    Optional<Produk> findByBarcode(String barcode);
+    // Optional<Produk> findByBarcode(String barcode);
 }

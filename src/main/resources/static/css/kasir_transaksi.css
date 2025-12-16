@@ -495,6 +495,30 @@ html, body {
 }
 
 /* Cart Section */
+
+/* Better scrollbars */
+.cart-items::-webkit-scrollbar,
+.transactions-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.cart-items::-webkit-scrollbar-track,
+.transactions-list::-webkit-scrollbar-track {
+    background: var(--page-bg);
+    border-radius: 3px;
+}
+
+.cart-items::-webkit-scrollbar-thumb,
+.transactions-list::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+}
+
+.cart-items::-webkit-scrollbar-thumb:hover,
+.transactions-list::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
+}
+
 .cart-section {
   flex: 1;
   display: flex;
@@ -1134,6 +1158,11 @@ html, body {
         width: 100%;
         text-align: center;
     }
+    
+    .modal-content {
+        width: 95%;
+        margin: 10px;
+    }
 }
 
 /* Animation for new transactions */
@@ -1582,6 +1611,37 @@ html, body {
     box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
     pointer-events: none;
     animation: pulse 2s infinite;
+}
+
+/* Loading spinner animation */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.spinner {
+    animation: spin 1s linear infinite;
+}
+
+/* Highlight untuk transaksi baru */
+@keyframes highlightNew {
+    0% { background: rgba(16, 183, 89, 0.1); }
+    100% { background: var(--card); }
+}
+
+.transaction-history-item.new {
+    animation: highlightNew 2s ease;
+}
+
+/* Styling untuk cart item stock warning */
+.cart-item-stock.low-stock {
+    color: var(--warning);
+    font-weight: 600;
+}
+
+.cart-item-stock.out-of-stock {
+    color: var(--error);
+    font-weight: 600;
 }
 
 @keyframes pulse {
