@@ -1,4 +1,6 @@
-// Kasir Transaksi JavaScript - Fixed Version
+/**
+ * Kasir Transaksi JavaScript - Fixed Version with Proper Stock Management
+ */
 class KasirTransaksi {
     constructor() {
         this.cart = [];
@@ -17,7 +19,10 @@ class KasirTransaksi {
         await this.loadProducts();
         await this.loadTransactionHistory();
 
-        this.cameraScanner = new CameraBarcodeScanner(this);
+        // Initialize camera scanner jika ada
+        if (typeof CameraBarcodeScanner !== 'undefined') {
+            this.cameraScanner = new CameraBarcodeScanner(this);
+        }
     }
 
     async checkAuth() {
@@ -26,7 +31,7 @@ class KasirTransaksi {
 
         if (auth.userRole !== "KASIR") {
             alert("Hanya Kasir yang dapat mengakses halaman ini");
-            window.location.href = "/login";
+            window.location.href = "/login.html";
             return;
         }
     }
@@ -83,17 +88,17 @@ class KasirTransaksi {
         });
 
         // Avatar Dropdown functionality
-        avatarBtn?.addEventListener("click", (e) => {
-            e.stopPropagation();
-            avatarDropdown?.classList.toggle("show");
-        });
+        if (avatarBtn) {
+            avatarBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                if (avatarDropdown) {
+                    avatarDropdown.classList.toggle("show");
+                }
+            });
+        }
 
         document.addEventListener("click", (e) => {
-            if (
-                avatarDropdown &&
-                !avatarDropdown.contains(e.target) &&
-                !avatarBtn.contains(e.target)
-            ) {
+            if (avatarDropdown && !avatarDropdown.contains(e.target) && avatarBtn && !avatarBtn.contains(e.target)) {
                 avatarDropdown.classList.remove("show");
             }
         });
@@ -102,22 +107,30 @@ class KasirTransaksi {
         avatarOptions.forEach((option) => {
             option.addEventListener("click", () => {
                 const avatarSrc = option.src;
-                currentAvatar.src = avatarSrc;
-                currentAvatar.style.display = "block";
-                defaultAvatar.style.display = "none";
+                if (currentAvatar) {
+                    currentAvatar.src = avatarSrc;
+                    currentAvatar.style.display = "block";
+                }
+                if (defaultAvatar) {
+                    defaultAvatar.style.display = "none";
+                }
                 avatarOptions.forEach((opt) => opt.classList.remove("selected"));
                 option.classList.add("selected");
                 localStorage.setItem("selectedAvatar", avatarSrc);
-                avatarDropdown.classList.remove("show");
+                if (avatarDropdown) {
+                    avatarDropdown.classList.remove("show");
+                }
             });
         });
 
         // Load saved avatar
         const savedAvatar = localStorage.getItem("selectedAvatar");
-        if (savedAvatar) {
+        if (savedAvatar && currentAvatar) {
             currentAvatar.src = savedAvatar;
             currentAvatar.style.display = "block";
-            defaultAvatar.style.display = "none";
+            if (defaultAvatar) {
+                defaultAvatar.style.display = "none";
+            }
             avatarOptions.forEach((option) => {
                 if (option.src === savedAvatar) {
                     option.classList.add("selected");
@@ -126,11 +139,13 @@ class KasirTransaksi {
         }
 
         // Logout functionality using AuthHelper
-        logoutBtn?.addEventListener("click", () => {
-            if (confirm("Apakah Anda yakin ingin logout?")) {
-                AuthHelper.logout();
-            }
-        });
+        if (logoutBtn) {
+            logoutBtn.addEventListener("click", () => {
+                if (confirm("Apakah Anda yakin ingin logout?")) {
+                    AuthHelper.logout();
+                }
+            });
+        }
     }
 
     updateThemeIcon(theme) {
@@ -138,51 +153,66 @@ class KasirTransaksi {
         const moonIcon = document.querySelector(".moon-icon");
 
         if (theme === "dark") {
-            sunIcon.style.display = "none";
-            moonIcon.style.display = "block";
+            if (sunIcon) sunIcon.style.display = "none";
+            if (moonIcon) moonIcon.style.display = "block";
         } else {
-            sunIcon.style.display = "block";
-            moonIcon.style.display = "none";
+            if (sunIcon) sunIcon.style.display = "block";
+            if (moonIcon) moonIcon.style.display = "none";
         }
     }
 
     initEventListeners() {
         // Product search
         const searchInput = document.getElementById("product-search");
-        searchInput.addEventListener("input", this.handleSearch.bind(this));
+        if (searchInput) {
+            searchInput.addEventListener("input", this.handleSearch.bind(this));
+        }
 
         // Payment method change
-        const paymentMethods = document.querySelectorAll(
-            'input[name="payment-method"]'
-        );
+        const paymentMethods = document.querySelectorAll('input[name="payment-method"]');
         paymentMethods.forEach((method) => {
-            method.addEventListener(
-                "change",
-                this.handlePaymentMethodChange.bind(this)
-            );
+            method.addEventListener("change", this.handlePaymentMethodChange.bind(this));
         });
 
         // Cash amount input
         const cashInput = document.getElementById("cash-amount");
-        cashInput.addEventListener("input", this.handleCashInput.bind(this));
+        if (cashInput) {
+            cashInput.addEventListener("input", this.handleCashInput.bind(this));
+        }
 
         // Complete transaction
         const completeBtn = document.getElementById("complete-transaction");
-        completeBtn.addEventListener("click", this.completeTransaction.bind(this));
+        if (completeBtn) {
+            completeBtn.addEventListener("click", this.completeTransaction.bind(this));
+        }
 
         // Reset transaction
         const resetBtn = document.getElementById("reset-transaksi");
-        resetBtn.addEventListener("click", this.resetTransaction.bind(this));
+        if (resetBtn) {
+            resetBtn.addEventListener("click", this.resetTransaction.bind(this));
+        }
 
         // Date filter
         const dateFilter = document.getElementById("date-filter");
-        dateFilter.addEventListener(
-            "change",
-            this.loadTransactionHistory.bind(this)
-        );
+        if (dateFilter) {
+            dateFilter.addEventListener("change", this.loadTransactionHistory.bind(this));
+        }
 
         // Modal controls
         this.setupModalEventListeners();
+
+        // Camera scanner controls jika ada
+        const uploadImageBtn = document.getElementById("upload-image-btn");
+        if (uploadImageBtn) {
+            uploadImageBtn.addEventListener("click", () => {
+                document.getElementById("barcode-image-input")?.click();
+            });
+        }
+
+        const barcodeImageInput = document.getElementById("barcode-image-input");
+        if (barcodeImageInput) {
+            barcodeImageInput.addEventListener("change", (e) => this.handleBarcodeImageUpload(e));
+        }
     }
 
     setupModalEventListeners() {
@@ -191,26 +221,66 @@ class KasirTransaksi {
         const cancelCashPayment = document.getElementById("cancel-cash-payment");
         const confirmCashPayment = document.getElementById("confirm-cash-payment");
 
-        closeCashModal?.addEventListener("click", () => this.closeCashModal());
-        cancelCashPayment?.addEventListener("click", () => this.closeCashModal());
-        confirmCashPayment?.addEventListener("click", () =>
-            this.confirmCashPayment()
-        );
+        if (closeCashModal) {
+            closeCashModal.addEventListener("click", () => this.closeCashModal());
+        }
+        
+        if (cancelCashPayment) {
+            cancelCashPayment.addEventListener("click", () => this.closeCashModal());
+        }
+        
+        if (confirmCashPayment) {
+            confirmCashPayment.addEventListener("click", () => this.confirmCashPayment());
+        }
 
         // QRIS status modal
         const closeStatusModal = document.getElementById("close-status-modal");
-        const closeQrisStatusModal = document.getElementById(
-            "close-qris-status-modal"
-        );
+        const closeQrisStatusModal = document.getElementById("close-qris-status-modal");
         const retryPayment = document.getElementById("retry-payment");
 
-        closeStatusModal?.addEventListener("click", () =>
-            this.closeQRISStatusModal()
-        );
-        closeQrisStatusModal?.addEventListener("click", () =>
-            this.closeQRISStatusModal()
-        );
-        retryPayment?.addEventListener("click", () => this.retryQRISPayment());
+        if (closeStatusModal) {
+            closeStatusModal.addEventListener("click", () => this.closeQRISStatusModal());
+        }
+        
+        if (closeQrisStatusModal) {
+            closeQrisStatusModal.addEventListener("click", () => this.closeQRISStatusModal());
+        }
+        
+        if (retryPayment) {
+            retryPayment.addEventListener("click", () => this.retryQRISPayment());
+        }
+    }
+
+    async handleBarcodeImageUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append("image", file);
+
+        try {
+            const response = await fetch("http://localhost:8080/api/barcode/decode", {
+                method: "POST",
+                headers: {
+                    "Authorization": AuthHelper.getAuthHeaders().Authorization || ""
+                },
+                body: formData
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success && data.produk) {
+                    this.addToCart(data.produk.idProduk);
+                } else {
+                    this.showError("Barcode tidak terdeteksi atau produk tidak ditemukan");
+                }
+            } else {
+                this.showError("Gagal memproses gambar barcode");
+            }
+        } catch (error) {
+            console.error("Error uploading barcode image:", error);
+            this.showError("Gagal mengupload gambar");
+        }
     }
 
     // ========== PRODUCT MANAGEMENT ==========
@@ -223,7 +293,7 @@ class KasirTransaksi {
 
             if (response.ok) {
                 this.products = await response.json();
-                console.log("Products loaded:", this.products.length);
+                console.log("✅ Products loaded:", this.products.length);
             } else {
                 throw new Error("Gagal memuat data produk");
             }
@@ -236,6 +306,8 @@ class KasirTransaksi {
     handleSearch(e) {
         const query = e.target.value.toLowerCase().trim();
         const resultsContainer = document.getElementById("search-results");
+
+        if (!resultsContainer) return;
 
         if (query.length < 2) {
             resultsContainer.classList.remove("show");
@@ -252,14 +324,12 @@ class KasirTransaksi {
 
     displaySearchResults(products, container) {
         if (products.length === 0) {
-            container.innerHTML =
-                '<div class="search-result-item">Produk tidak ditemukan</div>';
+            container.innerHTML = '<div class="search-result-item">Produk tidak ditemukan</div>';
         } else {
             container.innerHTML = products
                 .map(
                     (product) => `
-                <div class="search-result-item" data-product-id="${product.idProduk
-                        }">
+                <div class="search-result-item" data-product-id="${product.idProduk}">
                     <div class="product-name">${product.namaProduk}</div>
                     <div class="product-details">
                         <span>${this.formatCurrency(product.harga)}</span>
@@ -279,7 +349,8 @@ class KasirTransaksi {
                 const productId = parseInt(item.dataset.productId);
                 this.addToCart(productId);
                 container.classList.remove("show");
-                document.getElementById("product-search").value = "";
+                const searchInput = document.getElementById("product-search");
+                if (searchInput) searchInput.value = "";
             });
         });
     }
@@ -347,13 +418,15 @@ class KasirTransaksi {
         const container = document.getElementById("cart-items");
         const completeBtn = document.getElementById("complete-transaction");
 
+        if (!container) return;
+
         if (this.cart.length === 0) {
             container.innerHTML = `
                 <div class="empty-cart">
                     <p>Belum ada produk ditambahkan</p>
                 </div>
             `;
-            completeBtn.disabled = true;
+            if (completeBtn) completeBtn.disabled = true;
             return;
         }
 
@@ -363,20 +436,18 @@ class KasirTransaksi {
             <div class="cart-item">
                 <div class="cart-item-info">
                     <div class="cart-item-name">${item.product.namaProduk}</div>
-                    <div class="cart-item-price">${this.formatCurrency(
-                    item.hargaSatuan
-                )}</div>
+                    <div class="cart-item-price">${this.formatCurrency(item.hargaSatuan)}</div>
+                    <div class="cart-item-stock" style="font-size: 11px; color: var(--text-secondary);">
+                        Stok tersedia: ${item.product.stok}
+                    </div>
                 </div>
                 <div class="cart-item-controls">
                     <div class="quantity-controls">
-                        <button class="quantity-btn" onclick="kasirTransaksi.updateQuantity(${item.product.idProduk
-                    }, -1)">-</button>
+                        <button class="quantity-btn" onclick="kasirTransaksi.updateQuantity(${item.product.idProduk}, -1)">-</button>
                         <span class="quantity-display">${item.quantity}</span>
-                        <button class="quantity-btn" onclick="kasirTransaksi.updateQuantity(${item.product.idProduk
-                    }, 1)">+</button>
+                        <button class="quantity-btn" onclick="kasirTransaksi.updateQuantity(${item.product.idProduk}, 1)">+</button>
                     </div>
-                    <button class="remove-btn" onclick="kasirTransaksi.removeFromCart(${item.product.idProduk
-                    })">
+                    <button class="remove-btn" onclick="kasirTransaksi.removeFromCart(${item.product.idProduk})">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                             <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
@@ -387,7 +458,7 @@ class KasirTransaksi {
             )
             .join("");
 
-        completeBtn.disabled = false;
+        if (completeBtn) completeBtn.disabled = false;
     }
 
     // ========== PAYMENT HANDLING ==========
@@ -398,27 +469,32 @@ class KasirTransaksi {
         const qrisPayment = document.getElementById("qris-payment");
 
         if (method === "TUNAI") {
-            cashInput.style.display = "block";
-            qrisPayment.style.display = "none";
+            if (cashInput) cashInput.style.display = "block";
+            if (qrisPayment) qrisPayment.style.display = "none";
             this.handleCashInput(); // Recalculate change
         } else {
-            cashInput.style.display = "none";
-            qrisPayment.style.display = "block";
+            if (cashInput) cashInput.style.display = "none";
+            if (qrisPayment) qrisPayment.style.display = "block";
         }
     }
 
     handleCashInput() {
-        const cashAmount =
-            parseFloat(document.getElementById("cash-amount").value) || 0;
+        const cashInput = document.getElementById("cash-amount");
+        if (!cashInput) return;
+
+        const cashAmount = parseFloat(cashInput.value) || 0;
         const total = this.calculateTotal();
         const change = cashAmount - total;
 
-        document.getElementById("cash-change").textContent = this.formatCurrency(
-            Math.max(0, change)
-        );
+        const cashChangeElement = document.getElementById("cash-change");
+        if (cashChangeElement) {
+            cashChangeElement.textContent = this.formatCurrency(Math.max(0, change));
+        }
 
         const completeBtn = document.getElementById("complete-transaction");
-        completeBtn.disabled = change < 0;
+        if (completeBtn) {
+            completeBtn.disabled = change < 0;
+        }
     }
 
     // ========== TRANSACTION MANAGEMENT ==========
@@ -429,15 +505,18 @@ class KasirTransaksi {
             return;
         }
 
-        const paymentMethod = document.querySelector(
-            'input[name="payment-method"]:checked'
-        ).value;
+        const paymentMethod = document.querySelector('input[name="payment-method"]:checked');
+        if (!paymentMethod) {
+            this.showError("Pilih metode pembayaran terlebih dahulu");
+            return;
+        }
+
+        const method = paymentMethod.value;
         const total = this.calculateTotal();
 
         // Validasi untuk tunai
-        if (paymentMethod === "TUNAI") {
-            const cashAmount =
-                parseFloat(document.getElementById("cash-amount").value) || 0;
+        if (method === "TUNAI") {
+            const cashAmount = parseFloat(document.getElementById("cash-amount")?.value) || 0;
             if (cashAmount < total) {
                 this.showError("Jumlah uang tidak mencukupi");
                 return;
@@ -447,7 +526,7 @@ class KasirTransaksi {
         try {
             this.setLoadingState(true);
 
-            // DAPATKAN USER INFO KASIR YANG SEDANG LOGIN
+            // DAPATKAN USER INFO KASIR
             const userInfo = await this.getCurrentUserInfo();
             const kasirName = userInfo.username || 'Kasir';
 
@@ -455,10 +534,10 @@ class KasirTransaksi {
 
             // Prepare transaction data
             const transactionData = {
-                metodePembayaran: paymentMethod,
+                metodePembayaran: method,
                 total: total,
                 akunId: userInfo.userId || this.getCurrentUserId(),
-                kasirName: kasirName, // KIRIM KASIR NAME KE BACKEND
+                kasirName: kasirName,
                 details: this.cart.map(item => ({
                     produkId: item.product.idProduk,
                     jumlah: item.quantity,
@@ -469,7 +548,7 @@ class KasirTransaksi {
 
             console.log("Creating transaction:", transactionData);
 
-            // Create transaction
+            // Create transaction - STOK BELUM DIKURANGI
             const response = await fetch("http://localhost:8080/api/transaksi", {
                 method: "POST",
                 headers: {
@@ -480,15 +559,23 @@ class KasirTransaksi {
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || "Gagal membuat transaksi");
+                const errorText = await response.text();
+                let errorMessage = "Gagal membuat transaksi";
+                try {
+                    const errorData = JSON.parse(errorText);
+                    errorMessage = errorData.message || errorMessage;
+                } catch (e) {
+                    errorMessage = errorText || errorMessage;
+                }
+                throw new Error(errorMessage);
             }
 
             const transaction = await response.json();
             console.log("Transaction created:", transaction);
+            this.currentTransaction = transaction;
 
             // Handle berdasarkan metode pembayaran
-            if (paymentMethod === "TUNAI") {
+            if (method === "TUNAI") {
                 await this.handleCashPayment(transaction);
             } else {
                 await this.handleQRISPayment(transaction.idTransaksi);
@@ -496,16 +583,15 @@ class KasirTransaksi {
         } catch (error) {
             console.error("Transaction error:", error);
             this.showError("Gagal menyimpan transaksi: " + error.message);
-        } finally {
             this.setLoadingState(false);
         }
     }
 
-    // ========== CASH PAYMENT FLOW ==========
+    // ========== CASH PAYMENT FLOW (FIXED) ==========
 
     async handleCashPayment(transaction) {
-        const cashAmount =
-            parseFloat(document.getElementById("cash-amount").value) || 0;
+        const cashInput = document.getElementById("cash-amount");
+        const cashAmount = cashInput ? parseFloat(cashInput.value) || 0 : 0;
         const total = transaction.total;
         const change = cashAmount - total;
 
@@ -515,14 +601,16 @@ class KasirTransaksi {
 
     showCashModal(transaction, cashAmount, change) {
         const modal = document.getElementById("cash-modal");
+        if (!modal) return;
 
         // Update informasi di modal
-        document.getElementById("cash-total-amount").textContent =
-            this.formatCurrency(transaction.total);
-        document.getElementById("cash-received-amount").textContent =
-            this.formatCurrency(cashAmount);
-        document.getElementById("cash-change-amount").textContent =
-            this.formatCurrency(change);
+        const cashTotalAmount = document.getElementById("cash-total-amount");
+        const cashReceivedAmount = document.getElementById("cash-received-amount");
+        const cashChangeAmount = document.getElementById("cash-change-amount");
+
+        if (cashTotalAmount) cashTotalAmount.textContent = this.formatCurrency(transaction.total);
+        if (cashReceivedAmount) cashReceivedAmount.textContent = this.formatCurrency(cashAmount);
+        if (cashChangeAmount) cashChangeAmount.textContent = this.formatCurrency(change);
 
         modal.style.display = "flex";
         this.currentTransaction = transaction;
@@ -530,31 +618,73 @@ class KasirTransaksi {
 
     async confirmCashPayment() {
         try {
-            console.log("Transaksi tunai berhasil, status otomatis PAID");
+            if (!this.currentTransaction) {
+                throw new Error("Tidak ada transaksi yang dipilih");
+            }
+
+            console.log("💰 Konfirmasi pembayaran tunai untuk transaksi:", this.currentTransaction.idTransaksi);
+            
+            // API call untuk konfirmasi pembayaran tunai
+            const response = await fetch(
+                `http://localhost:8080/api/transaksi/${this.currentTransaction.idTransaksi}/confirm-cash`,
+                {
+                    method: "POST",
+                    headers: AuthHelper.getAuthHeaders(),
+                }
+            );
+
+            const responseText = await response.text();
+            
+            if (!response.ok) {
+                let errorMessage = "Gagal mengkonfirmasi pembayaran";
+                try {
+                    const errorData = JSON.parse(responseText);
+                    errorMessage = errorData.message || errorMessage;
+                } catch (e) {
+                    errorMessage = responseText || errorMessage;
+                }
+                throw new Error(errorMessage);
+            }
+
+            let updatedTransaction;
+            try {
+                updatedTransaction = JSON.parse(responseText);
+            } catch (e) {
+                throw new Error("Invalid response from server");
+            }
+
+            console.log("✅ Pembayaran tunai berhasil:", updatedTransaction);
 
             this.showSuccess(
                 "Pembayaran tunai berhasil! Transaksi #" +
-                this.currentTransaction.idTransaksi
+                (updatedTransaction.referenceNumber || this.currentTransaction.referenceNumber)
             );
+            
             this.closeCashModal();
             this.resetTransaction();
 
-            // Reload produk untuk update stok
+            // Reload produk untuk update stok yang baru
             await this.loadProducts();
             await this.loadTransactionHistory();
+            
         } catch (error) {
             console.error("Cash payment confirmation error:", error);
             this.showError("Gagal mengkonfirmasi pembayaran: " + error.message);
+            this.closeCashModal();
+            this.setLoadingState(false);
         }
     }
 
     closeCashModal() {
         const modal = document.getElementById("cash-modal");
-        modal.style.display = "none";
+        if (modal) {
+            modal.style.display = "none";
+        }
         this.currentTransaction = null;
+        this.setLoadingState(false);
     }
 
-    // ========== QRIS PAYMENT FLOW ==========
+    // ========== QRIS PAYMENT FLOW (FIXED) ==========
 
     async handleQRISPayment(transactionId) {
         try {
@@ -569,8 +699,15 @@ class KasirTransaksi {
             );
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || "Gagal membuat pembayaran QRIS");
+                const errorText = await response.text();
+                let errorMessage = "Gagal membuat pembayaran QRIS";
+                try {
+                    const errorData = JSON.parse(errorText);
+                    errorMessage = errorData.message || errorMessage;
+                } catch (e) {
+                    errorMessage = errorText || errorMessage;
+                }
+                throw new Error(errorMessage);
             }
 
             const paymentData = await response.json();
@@ -596,12 +733,15 @@ class KasirTransaksi {
         } catch (error) {
             console.error("QRIS payment error:", error);
             this.showError("Gagal membuat pembayaran QRIS: " + error.message);
+            this.setLoadingState(false);
         }
     }
 
     showQRISWaitingModal(transactionId, orderId, paymentData) {
         const modal = document.getElementById("qris-status-modal");
         const container = document.getElementById("payment-status-container");
+
+        if (!modal || !container) return;
 
         container.innerHTML = `
             <div class="status-icon pending">⏳</div>
@@ -618,9 +758,7 @@ class KasirTransaksi {
                 </div>
                 <div class="detail-item">
                     <span>Amount:</span>
-                    <span>${this.formatCurrency(
-            paymentData.amount || this.calculateTotal()
-        )}</span>
+                    <span>${this.formatCurrency(paymentData.amount || this.calculateTotal())}</span>
                 </div>
                 <div class="detail-item">
                     <span>Status:</span>
@@ -638,7 +776,7 @@ class KasirTransaksi {
                 </ol>
                 
                 <div class="alert-info">
-                    💡 <strong>Note:</strong> Pembayaran akan diproses otomatis via webhook
+                    💡 <strong>Note:</strong> Stok akan otomatis berkurang saat pembayaran berhasil
                 </div>
             </div>
         `;
@@ -674,6 +812,9 @@ class KasirTransaksi {
                 // Jika sudah paid, stop polling dan refresh data
                 if (transaction.paymentStatus === "PAID") {
                     this.handleSuccessfulQRISPayment(transaction);
+                } else if (transaction.paymentStatus === "FAILED" || 
+                          transaction.paymentStatus === "EXPIRED") {
+                    this.handleFailedQRISPayment(transaction);
                 }
             }
         } catch (error) {
@@ -708,11 +849,12 @@ class KasirTransaksi {
                 break;
 
             case "FAILED":
+            case "EXPIRED":
                 statusIcon.textContent = "❌";
                 statusIcon.className = "status-icon failed";
                 statusMessage.textContent = "Pembayaran Gagal";
                 statusMessage.style.color = "var(--error)";
-                statusBadge.textContent = "FAILED";
+                statusBadge.textContent = transaction.paymentStatus;
                 statusBadge.className = "status-badge status-failed";
                 break;
         }
@@ -723,22 +865,67 @@ class KasirTransaksi {
 
         setTimeout(() => {
             this.showSuccess(
-                "Pembayaran QRIS berhasil! Transaksi #" + transaction.idTransaksi
+                "Pembayaran QRIS berhasil! Transaksi #" + (transaction.referenceNumber || "")
             );
             this.closeQRISStatusModal();
             this.resetTransaction();
 
-            // Reload produk untuk update stok
+            // Reload produk untuk update stok yang baru
             this.loadProducts();
             this.loadTransactionHistory();
         }, 2000);
     }
 
+    handleFailedQRISPayment(transaction) {
+        this.stopPaymentPolling();
+        
+        const statusMessage = document.querySelector(".status-message");
+        const statusIcon = document.querySelector(".status-icon");
+        const retryBtn = document.getElementById("retry-payment");
+        
+        if (statusMessage && statusIcon) {
+            statusIcon.textContent = "❌";
+            statusIcon.className = "status-icon failed";
+            statusMessage.textContent = "Pembayaran Gagal";
+            statusMessage.style.color = "var(--error)";
+        }
+        
+        // Tampilkan tombol retry
+        if (retryBtn) {
+            retryBtn.style.display = "block";
+        }
+    }
+
+    async retryQRISPayment() {
+        if (!this.currentTransaction) return;
+        
+        // Reset modal
+        const container = document.getElementById("payment-status-container");
+        const retryBtn = document.getElementById("retry-payment");
+        
+        if (container) {
+            container.innerHTML = `
+                <div class="status-icon pending">⏳</div>
+                <div class="status-message">Mencoba kembali...</div>
+            `;
+        }
+        
+        if (retryBtn) {
+            retryBtn.style.display = "none";
+        }
+        
+        // Coba lagi pembayaran QRIS
+        await this.handleQRISPayment(this.currentTransaction.idTransaksi);
+    }
+
     closeQRISStatusModal() {
         const modal = document.getElementById("qris-status-modal");
-        modal.style.display = "none";
+        if (modal) {
+            modal.style.display = "none";
+        }
         this.stopPaymentPolling();
-        this.stopPaymentTimer();
+        this.currentTransaction = null;
+        this.setLoadingState(false);
     }
 
     stopPaymentPolling() {
@@ -746,18 +933,6 @@ class KasirTransaksi {
             clearInterval(this.paymentInterval);
             this.paymentInterval = null;
         }
-    }
-
-    stopPaymentTimer() {
-        if (this.paymentTimer) {
-            clearInterval(this.paymentTimer);
-            this.paymentTimer = null;
-        }
-    }
-
-    async retryQRISPayment() {
-        if (!this.currentTransaction) return;
-        await this.handleQRISPayment(this.currentTransaction.id);
     }
 
     // ========== TRANSACTION HISTORY ==========
@@ -800,9 +975,7 @@ class KasirTransaksi {
             console.error("❌ Error loading transaction history:", error);
 
             if (error.message.includes("Failed to fetch")) {
-                this.showError(
-                    "Tidak dapat terhubung ke server. Periksa koneksi internet Anda."
-                );
+                this.showError("Tidak dapat terhubung ke server. Periksa koneksi internet Anda.");
             } else {
                 this.showError("Gagal memuat riwayat transaksi: " + error.message);
             }
@@ -814,6 +987,8 @@ class KasirTransaksi {
 
     displayEmptyState() {
         const container = document.getElementById("transactions-list");
+        if (!container) return;
+
         container.innerHTML = `
             <div class="empty-state">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" style="margin-bottom: 12px;">
@@ -825,12 +1000,16 @@ class KasirTransaksi {
             </div>
         `;
 
-        document.getElementById("total-transactions").textContent = "0";
-        document.getElementById("total-sales").textContent = this.formatCurrency(0);
+        const totalTransactionsElement = document.getElementById("total-transactions");
+        const totalSalesElement = document.getElementById("total-sales");
+
+        if (totalTransactionsElement) totalTransactionsElement.textContent = "0";
+        if (totalSalesElement) totalSalesElement.textContent = this.formatCurrency(0);
     }
 
     displayTransactionHistory(transactions) {
         const container = document.getElementById("transactions-list");
+        if (!container) return;
 
         if (!transactions || transactions.length === 0) {
             this.displayEmptyState();
@@ -852,11 +1031,9 @@ class KasirTransaksi {
         console.log("Processing transaction:", transaction);
 
         const status = transaction.paymentStatus || "PENDING";
-        const method =
-            transaction.metodePembayaran || transaction.metode_pembayaran || "TUNAI";
+        const method = transaction.metodePembayaran || transaction.metode_pembayaran || "TUNAI";
         const total = transaction.total || 0;
-        const reference =
-            transaction.referenceNumber || `TRX-${transaction.idTransaksi}`;
+        const reference = transaction.referenceNumber || `TRX-${transaction.idTransaksi}`;
         const date = transaction.tanggal || new Date().toISOString();
 
         // Handle details - bisa berupa array atau undefined
@@ -864,18 +1041,13 @@ class KasirTransaksi {
         const itemsCount = Array.isArray(details) ? details.length : 0;
 
         return `
-            <div class="transaction-history-item" data-transaction-id="${transaction.idTransaksi
-            }">
+            <div class="transaction-history-item" data-transaction-id="${transaction.idTransaksi}">
                 <div class="transaction-header">
                     <div class="transaction-main">
                         <span class="transaction-id">${reference}</span>
-                        <span class="transaction-amount">${this.formatCurrency(
-                total
-            )}</span>
+                        <span class="transaction-amount">${this.formatCurrency(total)}</span>
                     </div>
-                    <div class="transaction-status ${this.getStatusClass(
-                status
-            )}">
+                    <div class="transaction-status ${this.getStatusClass(status)}">
                         ${this.getStatusText(status)}
                     </div>
                 </div>
@@ -897,8 +1069,7 @@ class KasirTransaksi {
                         </span>
                     </div>
                     
-                    ${itemsCount > 0
-                ? `
+                    ${itemsCount > 0 ? `
                         <div class="transaction-items">
                             <div class="items-count">
                                 ${itemsCount} item${itemsCount > 1 ? "s" : ""}
@@ -907,23 +1078,17 @@ class KasirTransaksi {
                                 ${this.getItemsPreview(details)}
                             </div>
                         </div>
-                    `
-                : ""
-            }
+                    ` : ""}
                     
                     <div class="transaction-actions">
-                        <button class="btn-view-details" onclick="kasirTransaksi.viewTransactionDetails(${transaction.idTransaksi
-            })">
+                        <button class="btn-view-details" onclick="kasirTransaksi.viewTransactionDetails(${transaction.idTransaksi})">
                             Lihat Detail
                         </button>
-                        ${status === "PENDING" && method === "NON_TUNAI"
-                ? `
+                        ${status === "PENDING" && method === "NON_TUNAI" ? `
                             <button class="btn-check-status" onclick="kasirTransaksi.checkTransactionStatus(${transaction.idTransaksi})">
                                 Cek Status
                             </button>
-                        `
-                : ""
-            }
+                        ` : ""}
                     </div>
                 </div>
             </div>
@@ -941,18 +1106,12 @@ class KasirTransaksi {
                 .map(
                     (detail) => `
                 <span class="item-name">
-                    ${detail.namaProduk ||
-                        detail.product?.namaProduk ||
-                        "Produk"
-                        }
+                    ${detail.namaProduk || detail.product?.namaProduk || "Produk"}
                 </span>
             `
                 )
                 .join("")}
-            ${remaining > 0
-                ? `<span class="more-items">+${remaining} lainnya</span>`
-                : ""
-            }
+            ${remaining > 0 ? `<span class="more-items">+${remaining} lainnya</span>` : ""}
         `;
     }
 
@@ -1030,9 +1189,11 @@ class KasirTransaksi {
 
     updateTransactionSummary(transactions) {
         if (!transactions || transactions.length === 0) {
-            document.getElementById("total-transactions").textContent = "0";
-            document.getElementById("total-sales").textContent =
-                this.formatCurrency(0);
+            const totalTransactionsElement = document.getElementById("total-transactions");
+            const totalSalesElement = document.getElementById("total-sales");
+            
+            if (totalTransactionsElement) totalTransactionsElement.textContent = "0";
+            if (totalSalesElement) totalSalesElement.textContent = this.formatCurrency(0);
             return;
         }
 
@@ -1048,24 +1209,20 @@ class KasirTransaksi {
             (t) => t.paymentStatus === "PENDING"
         ).length;
 
-        document.getElementById("total-transactions").textContent =
-            totalTransactions;
-        document.getElementById("total-sales").textContent =
-            this.formatCurrency(totalSales);
+        const totalTransactionsElement = document.getElementById("total-transactions");
+        const totalSalesElement = document.getElementById("total-sales");
+
+        if (totalTransactionsElement) totalTransactionsElement.textContent = totalTransactions;
+        if (totalSalesElement) totalSalesElement.textContent = this.formatCurrency(totalSales);
 
         // Update dengan info pending jika ada
-        if (pendingTransactions > 0) {
-            const totalElement = document.querySelector(
-                ".summary-card:first-child .summary-value"
-            );
-            if (totalElement) {
-                totalElement.innerHTML = `
-                    ${totalTransactions}
-                    <small style="color: var(--warning); font-size: 12px; margin-left: 4px;">
-                        (${pendingTransactions} pending)
-                    </small>
-                `;
-            }
+        if (pendingTransactions > 0 && totalTransactionsElement) {
+            totalTransactionsElement.innerHTML = `
+                ${totalTransactions}
+                <small style="color: var(--warning); font-size: 12px; margin-left: 4px;">
+                    (${pendingTransactions} pending)
+                </small>
+            `;
         }
     }
 
@@ -1100,16 +1257,11 @@ class KasirTransaksi {
         modal.style.display = "flex";
 
         const details = transaction.details || [];
-        const method =
-            transaction.metodePembayaran || transaction.metode_pembayaran || "TUNAI";
+        const method = transaction.metodePembayaran || transaction.metode_pembayaran || "TUNAI";
         const status = transaction.paymentStatus || "PENDING";
 
-        // ✅ DAPATKAN NAMA KASIR DARI TRANSACTION ATAU AKUN
-        const kasirName =
-            transaction.namaKasir ||
-            transaction.akun?.username ||
-            transaction.kasirName ||
-            "Kasir";
+        // DAPATKAN NAMA KASIR DARI TRANSACTION ATAU AKUN
+        const kasirName = transaction.namaKasir || transaction.akun?.username || transaction.kasirName || "Kasir";
 
         modal.innerHTML = `
         <div class="modal-content" style="max-width: 500px;">
@@ -1124,15 +1276,11 @@ class KasirTransaksi {
                         <div class="detail-grid">
                             <div class="detail-item">
                                 <span>ID Transaksi:</span>
-                                <span>${transaction.referenceNumber ||
-            `TRX-${transaction.idTransaksi}`
-            }</span>
+                                <span>${transaction.referenceNumber || `TRX-${transaction.idTransaksi}`}</span>
                             </div>
                             <div class="detail-item">
                                 <span>Tanggal:</span>
-                                <span>${this.formatDateTime(
-                transaction.tanggal
-            )}</span>
+                                <span>${this.formatDateTime(transaction.tanggal)}</span>
                             </div>
                             <div class="detail-item">
                                 <span>Kasir:</span>
@@ -1152,88 +1300,64 @@ class KasirTransaksi {
                             </div>
                             <div class="detail-item">
                                 <span>Status:</span>
-                                <span class="transaction-status ${this.getStatusClass(
-                status
-            )}">
+                                <span class="transaction-status ${this.getStatusClass(status)}">
                                     ${this.getStatusText(status)}
                                 </span>
                             </div>
                             <div class="detail-item highlight">
                                 <span>Total:</span>
-                                <span>${this.formatCurrency(
-                transaction.total
-            )}</span>
+                                <span>${this.formatCurrency(transaction.total)}</span>
                             </div>
                         </div>
                     </div>
 
-                    ${details.length > 0
-                ? `
+                    ${details.length > 0 ? `
                     <div class="detail-section">
                         <h4>Item Pembelian (${details.length})</h4>
                         <div class="items-list">
                             ${details
-                    .map(
-                        (detail) => `
+                                .map(
+                                    (detail) => `
                                 <div class="item-detail">
                                     <div class="item-info">
-                                        <span class="item-name">${detail.namaProduk ||
-                            detail.product?.namaProduk ||
-                            "Produk"
-                            }</span>
-                                        <span class="item-price">${this.formatCurrency(
-                                detail.hargaSatuan
-                            )} × ${detail.jumlah}</span>
+                                        <span class="item-name">${detail.namaProduk || detail.product?.namaProduk || "Produk"}</span>
+                                        <span class="item-price">${this.formatCurrency(detail.hargaSatuan)} × ${detail.jumlah}</span>
                                     </div>
-                                    <span class="item-subtotal">${this.formatCurrency(
-                                detail.subtotal
-                            )}</span>
+                                    <span class="item-subtotal">${this.formatCurrency(detail.subtotal)}</span>
                                 </div>
                             `
-                    )
-                    .join("")}
+                                )
+                                .join("")}
                         </div>
                     </div>
-                    `
-                : ""
-            }
+                    ` : ""}
 
-                    ${transaction.paymentGatewayId
-                ? `
+                    ${transaction.paymentGatewayId ? `
                     <div class="detail-section">
                         <h4>Informasi Pembayaran</h4>
                         <div class="detail-grid">
                             <div class="detail-item">
                                 <span>Payment ID:</span>
-                                <span class="monospace">${transaction.paymentGatewayId
-                }</span>
+                                <span class="monospace">${transaction.paymentGatewayId}</span>
                             </div>
-                            ${transaction.paymentMethodDetail
-                    ? `
+                            ${transaction.paymentMethodDetail ? `
                             <div class="detail-item">
                                 <span>Metode:</span>
                                 <span>${transaction.paymentMethodDetail}</span>
                             </div>
-                            `
-                    : ""
-                }
+                            ` : ""}
                         </div>
                     </div>
-                    `
-                : ""
-            }
+                    ` : ""}
                 </div>
             </div>
             <div class="modal-actions">
                 <button class="btn-secondary" onclick="this.closest('.modal-overlay').remove()">Tutup</button>
-                ${status === "PENDING" && method === "NON_TUNAI"
-                ? `
+                ${status === "PENDING" && method === "NON_TUNAI" ? `
                 <button class="btn-primary" onclick="kasirTransaksi.checkTransactionStatus(${transaction.idTransaksi}); this.closest('.modal-overlay').remove()">
                     Cek Status Pembayaran
                 </button>
-                `
-                : ""
-            }
+                ` : ""}
             </div>
         </div>
     `;
@@ -1259,13 +1383,9 @@ class KasirTransaksi {
                 if (status === "PAID") {
                     this.showSuccess(`Transaksi #${transactionId} sudah LUNAS`);
                 } else if (status === "PENDING") {
-                    this.showInfo(
-                        `Transaksi #${transactionId} masih MENUNGGU pembayaran`
-                    );
+                    this.showInfo(`Transaksi #${transactionId} masih MENUNGGU pembayaran`);
                 } else {
-                    this.showError(
-                        `Transaksi #${transactionId} - ${this.getStatusText(status)}`
-                    );
+                    this.showError(`Transaksi #${transactionId} - ${this.getStatusText(status)}`);
                 }
 
                 // Refresh history
@@ -1294,10 +1414,11 @@ class KasirTransaksi {
 
     updateSummary() {
         const subtotal = this.calculateTotal();
-        document.getElementById("subtotal").textContent =
-            this.formatCurrency(subtotal);
-        document.getElementById("total-amount").textContent =
-            this.formatCurrency(subtotal);
+        const subtotalElement = document.getElementById("subtotal");
+        const totalAmountElement = document.getElementById("total-amount");
+
+        if (subtotalElement) subtotalElement.textContent = this.formatCurrency(subtotal);
+        if (totalAmountElement) totalAmountElement.textContent = this.formatCurrency(subtotal);
 
         // Update cash change if cash payment is selected
         this.handleCashInput();
@@ -1309,12 +1430,19 @@ class KasirTransaksi {
         this.updateSummary();
 
         // Reset form
-        document.getElementById("product-search").value = "";
-        document.querySelector(
-            'input[name="payment-method"][value="TUNAI"]'
-        ).checked = true;
-        document.getElementById("cash-amount").value = "";
+        const searchInput = document.getElementById("product-search");
+        if (searchInput) searchInput.value = "";
+        
+        const tunaiRadio = document.querySelector('input[name="payment-method"][value="TUNAI"]');
+        if (tunaiRadio) tunaiRadio.checked = true;
+        
+        const cashAmountInput = document.getElementById("cash-amount");
+        if (cashAmountInput) cashAmountInput.value = "";
+        
         this.handlePaymentMethodChange({ target: { value: "TUNAI" } });
+        
+        // Reset loading state
+        this.setLoadingState(false);
     }
 
     getCurrentUserId() {
@@ -1336,7 +1464,6 @@ class KasirTransaksi {
             console.log("Current user:", username, "Role:", userRole);
 
             // Untuk sekarang, return default ID untuk kasir
-            // Nanti bisa diimprove dengan cache atau API call
             return 2; // Default kasir ID
         } catch (error) {
             console.error("Error getting user ID:", error);
@@ -1419,4 +1546,7 @@ let kasirTransaksi;
 
 document.addEventListener("DOMContentLoaded", () => {
     kasirTransaksi = new KasirTransaksi();
+    
+    // Export ke global scope untuk akses dari onclick attributes
+    window.kasirTransaksi = kasirTransaksi;
 });
