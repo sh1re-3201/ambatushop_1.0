@@ -6,9 +6,10 @@ import com.traitor.ambatushop_10.dto.TransaksiRequest;
 import com.traitor.ambatushop_10.dto.TransaksiResponse;
 import com.traitor.ambatushop_10.model.Keuangan;
 import com.traitor.ambatushop_10.model.Transaksi;
-import com.traitor.ambatushop_10.repository.KeuanganRepository;
 import com.traitor.ambatushop_10.service.TransaksiService;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,15 +21,11 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/transaksi")
+@RequiredArgsConstructor
+@Slf4j
 public class TransaksiController {
 
     private final TransaksiService transaksiService;
-    private final KeuanganRepository keuanganRepository;
-
-    public TransaksiController(TransaksiService transaksiService, KeuanganRepository transaksiRepository) {
-        this.transaksiService = transaksiService;
-        this.keuanganRepository = transaksiRepository;
-    }
 
     @GetMapping
     @PreAuthorize("hasAnyRole('KASIR','MANAJER','ADMIN')")
@@ -61,7 +58,7 @@ public class TransaksiController {
         }
     }
 
-    // CREATE transaksi - SUDAH SUPPORT NON_TUNAI,harusnya
+    // CREATE transaksi
     @PostMapping
     @PreAuthorize("hasAnyRole('KASIR')")
     public ResponseEntity<?> createTransaksi(@RequestBody TransaksiRequest request) {
@@ -112,7 +109,7 @@ public class TransaksiController {
     }
 
     /**
-     * Endpoint untuk pembelian stok - KEMBALIKAN TIPE RESPONSE KE Keuangan
+     * Endpoint untuk pembelian stok
      */
     @PostMapping("/stock-purchase")
     @PreAuthorize("hasAnyRole('MANAJER', 'ADMIN')")
@@ -137,10 +134,8 @@ public class TransaksiController {
                                 "Field 'totalAmount' harus > 0", "/api/transaksi/stock-purchase"));
             }
 
-            // GANTI: Panggil method yang benar - return Keuangan bukan Transaksi
             Keuangan keuangan = transaksiService.createStockPurchase(request);
 
-            // Return response khusus
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "Pembelian stok berhasil dicatat sebagai pengeluaran");
@@ -160,4 +155,121 @@ public class TransaksiController {
         }
     }
 
+    /**
+     * Konfirmasi pembayaran tunai
+     */
+    @PostMapping("/{id}/confirm-cash")
+    @PreAuthorize("hasAnyRole('KASIR')")
+    public ResponseEntity<?> confirmCashPayment(@PathVariable Long id) {
+        try {
+            log.info("💰 Konfirmasi pembayaran tunai untuk transaksi: {}", id);
+            
+            Transaksi transaksi = transaksiService.confirmCashPayment(id);
+            
+            log.info("✅ Pembayaran tunai berhasil dikonfirmasi: {}", id);
+            
+            return ResponseEntity.ok(new TransaksiResponse(transaksi));
+            
+        } catch (RuntimeException e) {
+            log.error("❌ Error konfirmasi pembayaran tunai: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ErrorResponse(400, "PAYMENT_ERROR", "Gagal mengkonfirmasi pembayaran", 
+                          e.getMessage(), "/api/transaksi/" + id + "/confirm-cash"));
+        } catch (Exception e) {
+            log.error("❌ Unexpected error: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponse(500, "SERVER_ERROR", "Error sistem", 
+                          e.getMessage(), "/api/transaksi/" + id + "/confirm-cash"));
+        }
+    }
+
+    /**
+     * Update payment status (untuk webhook atau manual)
+     */
+    @PutMapping("/{id}/payment-status")
+    @PreAuthorize("hasAnyRole('KASIR', 'MANAJER', 'ADMIN')")
+    public ResponseEntity<?> updatePaymentStatus(
+            @PathVariable Long id,
+            @RequestParam String status) {
+        try {
+            log.info("🔄 Update payment status untuk transaksi {}: {}", id, status);
+            
+            Transaksi.PaymentStatus paymentStatus;
+            try {
+                paymentStatus = Transaksi.PaymentStatus.valueOf(status.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                return ResponseEntity.badRequest()
+                        .body(new ErrorResponse(400, "INVALID_STATUS", 
+                              "Status tidak valid", 
+                              "Gunakan: PENDING, PAID, FAILED, EXPIRED",
+                              "/api/transaksi/" + id + "/payment-status"));
+            }
+            
+            Transaksi transaksi = transaksiService.updatePaymentStatus(id, paymentStatus);
+            
+            log.info("✅ Status pembayaran diupdate: {} -> {}", id, status);
+            
+            return ResponseEntity.ok(new TransaksiResponse(transaksi));
+            
+        } catch (RuntimeException e) {
+            log.error("❌ Error update payment status: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ErrorResponse(400, "UPDATE_ERROR", "Gagal update status", 
+                          e.getMessage(), "/api/transaksi/" + id + "/payment-status"));
+        } catch (Exception e) {
+            log.error("❌ Unexpected error: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponse(500, "SERVER_ERROR", "Error sistem", 
+                          e.getMessage(), "/api/transaksi/" + id + "/payment-status"));
+        }
+    }
+
+    /**
+     * Cek stok produk untuk transaksi
+     */
+    @GetMapping("/{id}/check-stock")
+    @PreAuthorize("hasAnyRole('KASIR', 'MANAJER', 'ADMIN')")
+    public ResponseEntity<?> checkStockAvailability(@PathVariable Long id) {
+        try {
+            log.info("📦 Cek stok untuk transaksi: {}", id);
+            
+            Transaksi transaksi = transaksiService.getTransaksiById(id);
+            
+            if (transaksi.getDetails() == null || transaksi.getDetails().isEmpty()) {
+                Map<String, Object> response = new HashMap<>();
+                response.put("available", true);
+                response.put("message", "Transaksi tidak memiliki item");
+                response.put("transactionId", id);
+                return ResponseEntity.ok(response);
+            }
+            
+            final boolean[] allInStock = {true}; // Gunakan array untuk mutable reference
+            StringBuilder stockInfo = new StringBuilder();
+            
+            for (var detail : transaksi.getDetails()) {
+                var produk = detail.getProdukId();
+                stockInfo.append(String.format("%s: %d/%d\n", 
+                    produk.getNamaProduk(), 
+                    detail.getJumlah(),
+                    produk.getStok()));
+                
+                if (produk.getStok() < detail.getJumlah()) {
+                    allInStock[0] = false;
+                }
+            }
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("available", allInStock[0]);
+            response.put("stockDetails", stockInfo.toString());
+            response.put("transactionId", id);
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            log.error("❌ Error cek stok: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponse(500, "SERVER_ERROR", "Gagal cek stok", 
+                          e.getMessage(), "/api/transaksi/" + id + "/check-stock"));
+        }
+    }
 }
