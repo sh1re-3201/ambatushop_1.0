@@ -177,20 +177,91 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
+    // javascript
     async function fetchInitialData() {
-        const pageIdInput = document.getElementById('userId');
-        const pageId = (pageIdInput && pageIdInput.value) || document.body.dataset.userId || window.userID || null;
+        // 1) try AuthHelper.checkAuth()
+        let pageId = null;
+        try {
+            if (typeof AuthHelper !== 'undefined' && typeof AuthHelper.checkAuth === 'function') {
+                const auth = AuthHelper.checkAuth();
+                if (auth && (auth.id || auth.userId)) {
+                    pageId = auth.id || auth.userId;
+                }
+            }
+        } catch (e) {
+            // ignore
+        }
+
+        // 2) localStorage.currentUser
+        if (!pageId) {
+            try {
+                const ls = localStorage.getItem('currentUser');
+                if (ls) {
+                    const cu = JSON.parse(ls);
+                    if (cu && (cu.id || cu.userId)) {
+                        pageId = cu.id || cu.userId;
+                    }
+                }
+            } catch (e) {
+                // ignore parse errors
+            }
+        }
+
+        // 3) window.currentUser
+        if (!pageId && window.currentUser) {
+            pageId = window.currentUser.id || window.currentUser.userId || pageId;
+        }
+
+        // 4) hidden input #userId
+        if (!pageId) {
+            const input = document.getElementById('userId');
+            if (input && input.value) pageId = input.value;
+        }
+
+        // 5) body dataset
+        if (!pageId && document.body && document.body.dataset && document.body.dataset.userId) {
+            pageId = document.body.dataset.userId;
+        }
+
+        // 6) window.USER_ID
+        if (!pageId && window.USER_ID) {
+            pageId = window.USER_ID;
+        }
+
+        if (!pageId) {
+            const msg = 'User id not found. Cannot load profile.';
+            if (typeof window.alert === 'function') window.alert(msg);
+            else console.error(msg);
+            return;
+        }
+
+        const endpoint = `/api/admin/akun/${encodeURIComponent(pageId)}`;
+        const headers = (typeof AuthHelper !== 'undefined' && typeof AuthHelper.getAuthHeaders === 'function')
+            ? AuthHelper.getAuthHeaders()
+            : { 'Content-Type': 'application/json' };
 
         try {
-            const res = await fetch('/api/admin/akun/${pageId}');
-            if (!res.ok) return;
+            const res = await fetch(endpoint, { method: 'GET', headers });
+            if (!res.ok) {
+                const msg = `Failed to fetch profile (status ${res.status})`;
+                if (typeof window.alert === 'function') window.alert(msg);
+                else console.warn(msg);
+                return;
+            }
             const json = await res.json();
             const profile = json.data || json.user || json;
-            populateForm(profile);
+            if (typeof populateForm === 'function') {
+                populateForm(profile);
+            } else {
+                console.warn('populateForm not defined');
+            }
         } catch (err) {
-            console.warn('Could not fetch initial profile data', err);
+            const msg = 'Could not fetch initial profile data';
+            if (typeof window.alert === 'function') window.alert(msg);
+            console.error(msg, err);
         }
     }
+
 
     fetchInitialData();
 
@@ -308,4 +379,5 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     console.log('✅ Edit profile page initialized (PUT)');
+
 });

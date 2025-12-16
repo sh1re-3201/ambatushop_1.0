@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const currentAvatar = document.getElementById('current-avatar');
     const defaultAvatar = document.getElementById('default-avatar');
     const logoutBtn = document.getElementById('logout-btn');
+    const profilBtn = document.getElementById('profile-btn')
 
     // Theme toggle
     const themeToggle = document.getElementById('theme-toggle');
@@ -118,6 +119,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (confirm('Apakah Anda yakin ingin logout?')) {
             AuthHelper.logout();
         }
+    });
+
+    // Profile button
+    profilBtn?.addEventListener('click', () => {
+        window.location.href = '/menu_profile.html';
     });
 
     // Menu functionality

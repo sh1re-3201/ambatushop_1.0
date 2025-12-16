@@ -94,7 +94,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/payment/webhook").permitAll()
 
                         // Allow all role to access akun edit
-                        .requestMatchers("api/admin/akun/{id}").permitAll()
+                        .requestMatchers("/api/admin/akun/{id}").permitAll()
 
                         // Barcode endpoints
                         .requestMatchers(HttpMethod.GET, "/api/barcode/produk/*/image").permitAll()

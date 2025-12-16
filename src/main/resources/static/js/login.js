@@ -137,7 +137,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (response.ok) {
                 console.log('✅ Login successful:', data);
-                
+                localStorage.setItem('userId', data.idPegawai);
+                localStorage.setItem('username', data.username);
+                localStorage.setItem('email', data.email);
+                localStorage.setItem('role', data.role);
+
+
                 if (!data.token || !data.role) {
                     throw new Error('Invalid response data from server');
                 }
@@ -149,6 +154,30 @@ document.addEventListener('DOMContentLoaded', () => {
                     data.username || username,
                     data.userId
                 );
+                // === FETCH FULL PROFILE TO GET EMAIL ===
+                try {
+                    const profileRes = await fetch(
+                        `${API_BASE_URL}/api/admin/akun/${data.idPegawai}`,
+                        {
+                            headers: {
+                                'Authorization': 'Bearer ' + data.token
+                            }
+                        }
+                    );
+
+                    if (profileRes.ok) {
+                        const profile = await profileRes.json();
+                        console.log('📦 Profile fetched:', profile);
+
+                        localStorage.setItem('email', profile.email);
+                        localStorage.setItem('username', profile.username);
+                        localStorage.setItem('userId', profile.idPegawai);
+                    } else {
+                        console.warn('⚠️ Failed to fetch profile for email');
+                    }
+                } catch (e) {
+                    console.error('❌ Profile fetch error:', e);
+                }
 
                 console.log('✅ Auth data saved');
                 

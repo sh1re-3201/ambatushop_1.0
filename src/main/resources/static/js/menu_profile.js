@@ -1,76 +1,153 @@
-(function () {
-  const q = (id) => document.getElementById(id);
-  const el = {
-    username: q("username"),
-    email: q("email"),
-    role: q("role"),
-    btnBack: q("btnBack"),
-    btnEdit: q("btnEdit"),
-    btnLogout: q("btnLogout"),
-  };
+// document.addEventListener('DOMContentLoaded', () => {
+//     // ===== BASIC AUTH CHECK (NO BACKEND) =====
+//     const role = localStorage.getItem('role');
+//     const username = localStorage.getItem('username');
+//     const email = localStorage.getItem('email');
+//
+//     if (!role) {
+//         alert('Session habis. Silakan login ulang.');
+//         window.location.href = '/login.html';
+//         return;
+//     }
+//
+//     // ===== DOM ELEMENTS =====
+//     const usernameEl = document.getElementById('username');
+//     const emailEl = document.getElementById('email');
+//     const roleEl = document.getElementById('role');
+//
+//     const btnLogout = document.getElementById('logout-btn');
+//     const btnEdit = document.getElementById('btnEdit');
+//     const btnBack = document.getElementById('btnBack');
+//
+//     // ===== FILL UI DIRECTLY =====
+//     usernameEl.textContent = username || '—';
+//     emailEl.textContent = localStorage.getItem('email') || '—';
+//     roleEl.textContent = role || '—';
+//
+//     // ===== ACTIONS =====
+//     btnLogout?.addEventListener('click', () => {
+//         if (confirm('Apakah Anda yakin ingin logout?')) {
+//             localStorage.clear();
+//             window.location.href = '/login.html';
+//         }
+//     });
+//
+//     btnEdit?.addEventListener('click', () => {
+//         alert('Edit profil belum diimplementasikan');
+//     });
+//
+//     btnBack?.addEventListener('click', () => {
+//         window.history.back();
+//     });
+// });
 
-  function safeText(v) {
-    return v === undefined || v === null || v === "" ? "—" : String(v);
-  }
 
-  function render(user) {
-    if (el.username) el.username.textContent = safeText(user.username);
-    if (el.email) el.email.textContent = safeText(user.email);
-    if (el.role) el.role.textContent = safeText(user.role);
-  }
 
-  function loadUser() {
-    let user = null;
-    try {
-      const ls = localStorage.getItem("currentUser");
-      if (ls) user = JSON.parse(ls);
-    } catch (e) {
-      user = null;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// javascript
+// File: `src/main/resources/static/js/menu_profile.js`
+document.addEventListener('DOMContentLoaded', () => {
+    // Try common storage keys (note: login stores the id as `userId`)
+    const AKUN_ID = localStorage.getItem('userId')
+        || localStorage.getItem('id')
+        || localStorage.getItem('akunId')
+        || document.body?.dataset?.akunId;
+
+    const API_BY_ID = id => `/api/admin/akun/${encodeURIComponent(id)}`;
+    const API_SELF = '/api/profile';
+
+    const usernameEl = document.getElementById('username');
+    const emailEl = document.getElementById('email');
+    const roleEl = document.getElementById('role');
+
+    const btnLogout = document.getElementById('logout-btn');
+    const btnEdit = document.getElementById('btnEdit');
+    const btnBack = document.getElementById('btnBack');
+
+    const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+
+    function populateProfile(data) {
+        if (!usernameEl || !emailEl || !roleEl) return;
+        usernameEl.textContent = data.username || data.name || '—';
+        emailEl.textContent = data.email || '—';
+        if (Array.isArray(data.roles)) roleEl.textContent = data.roles.join(', ');
+        else roleEl.textContent = data.role || data.roles || '—';
     }
-    if (!user && window.currentUser) user = window.currentUser;
-    if (!user) user = { username: "pengguna_demo", email: "demo@contoh.local", role: "kasir" };
-    render(user);
-  }
 
-  function goBack() {
-    try {
-      window.history.back();
-    } catch (e) {}
-  }
-  function editProfile() {
-    try {
-      window.location.href = "profile_edit.html";
-    } catch (e) {}
-  }
-  function logout() {
-    try {
-      localStorage.removeItem("currentUser");
-      window.location.href = "login.html";
-    } catch (e) {}
-  }
+    function fetchById(id) {
+        const headers = token ? { 'Authorization': 'Bearer ' + token } : {};
+        return fetch(API_BY_ID(id), { credentials: 'same-origin', headers })
+            .then(r => {
+                if (r.status === 401) { window.location.href = '/login.html'; throw new Error('unauthorized'); }
+                if (!r.ok) throw new Error('fetch failed: ' + r.status);
+                return r.json();
+            })
+            .then(populateProfile);
+    }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", loadUser);
-  } else {
-    loadUser();
-  }
+    function fetchSelf() {
+        const headers = token ? { 'Authorization': 'Bearer ' + token } : {};
+        return fetch(API_SELF, { credentials: 'same-origin', headers })
+            .then(r => {
+                if (r.status === 401) { window.location.href = '/login.html'; throw new Error('unauthorized'); }
+                if (!r.ok) throw new Error('profile fetch failed: ' + r.status);
+                return r.json();
+            })
+            .then(data => {
+                if (data.id || data.idPegawai) {
+                    // prefer admin endpoint if self profile contains an id required by your admin API
+                    return fetchById(data.id || data.idPegawai);
+                }
+                populateProfile(data);
+            });
+    }
 
-  if (el.btnBack) el.btnBack.addEventListener("click", goBack);
-  if (el.btnEdit) el.btnEdit.addEventListener("click", editProfile);
-  if (el.btnLogout) el.btnLogout.addEventListener("click", logout);
+    if (AKUN_ID) {
+        fetchById(AKUN_ID).catch(err => console.error('Profile fetch error:', err));
+    } else {
+        fetchSelf().catch(err => {
+            console.error('Profile fallback error:', err);
+            // optional: redirect if you want strict behavior
+            // window.location.href = '/login.html';
+        });
+    }
 
-  window.ProfileMenu = {
-    setUser(u) {
-      try {
-        if (u && typeof u === "object") {
-          localStorage.setItem("currentUser", JSON.stringify(u));
-          render(u);
+    btnLogout?.addEventListener('click', () => {
+        if (confirm('Apakah Anda yakin ingin logout?')) {
+            localStorage.clear();
+            window.location.href = '/login.html';
         }
-      } catch (e) {}
-    },
-    clear() {
-      localStorage.removeItem("currentUser");
-      loadUser();
-    },
-  };
-})();
+    });
+
+    btnEdit?.addEventListener('click', () => {
+            window.location.href = '/edit_profile.html';
+    });
+
+    btnBack?.addEventListener('click', () => {
+        window.history.back();
+    });
+});
