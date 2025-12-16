@@ -163,23 +163,60 @@ public class TransaksiController {
     public ResponseEntity<?> confirmCashPayment(@PathVariable Long id) {
         try {
             log.info("💰 Konfirmasi pembayaran tunai untuk transaksi: {}", id);
-            
-            Transaksi transaksi = transaksiService.confirmCashPayment(id);
-            
-            log.info("✅ Pembayaran tunai berhasil dikonfirmasi: {}", id);
-            
-            return ResponseEntity.ok(new TransaksiResponse(transaksi));
-            
+
+            // Cek apakah transaksi ada
+            Transaksi transaksi = transaksiService.getTransaksiById(id);
+            log.info("✅ Transaksi ditemukan: {}, Status: {}, Metode: {}",
+                    transaksi.getReferenceNumber(),
+                    transaksi.getPaymentStatus(),
+                    transaksi.getMetode_pembayaran());
+
+            // Validasi: hanya transaksi TUNAI yang bisa dikonfirmasi
+            if (transaksi.getMetode_pembayaran() != Transaksi.MetodePembayaran.TUNAI) {
+                log.error("❌ Bukan transaksi tunai: {}", transaksi.getMetode_pembayaran());
+                return ResponseEntity.badRequest()
+                        .body(new ErrorResponse(400, "INVALID_METHOD",
+                                "Bukan transaksi tunai",
+                                "Hanya transaksi TUNAI yang bisa dikonfirmasi",
+                                "/api/transaksi/" + id + "/confirm-cash"));
+            }
+
+            // Validasi: hanya transaksi PENDING yang bisa dikonfirmasi
+            if (transaksi.getPaymentStatus() != Transaksi.PaymentStatus.PENDING) {
+                log.error("❌ Status bukan PENDING: {}", transaksi.getPaymentStatus());
+                return ResponseEntity.badRequest()
+                        .body(new ErrorResponse(400, "INVALID_STATUS",
+                                "Transaksi sudah diproses",
+                                "Status transaksi: " + transaksi.getPaymentStatus(),
+                                "/api/transaksi/" + id + "/confirm-cash"));
+            }
+
+            // Konfirmasi pembayaran
+            Transaksi confirmedTransaksi = transaksiService.confirmCashPayment(id);
+
+            log.info("✅ Pembayaran tunai berhasil dikonfirmasi: {}, Status baru: {}",
+                    id, confirmedTransaksi.getPaymentStatus());
+
+            // Return response yang lebih informative
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Pembayaran tunai berhasil dikonfirmasi");
+            response.put("transaction", new TransaksiResponse(confirmedTransaksi));
+            response.put("status", confirmedTransaksi.getPaymentStatus().name());
+            response.put("referenceNumber", confirmedTransaksi.getReferenceNumber());
+
+            return ResponseEntity.ok(response);
+
         } catch (RuntimeException e) {
-            log.error("❌ Error konfirmasi pembayaran tunai: {}", e.getMessage());
+            log.error("❌ Error konfirmasi pembayaran tunai: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ErrorResponse(400, "PAYMENT_ERROR", "Gagal mengkonfirmasi pembayaran", 
-                          e.getMessage(), "/api/transaksi/" + id + "/confirm-cash"));
+                    .body(new ErrorResponse(400, "PAYMENT_ERROR", "Gagal mengkonfirmasi pembayaran",
+                            e.getMessage(), "/api/transaksi/" + id + "/confirm-cash"));
         } catch (Exception e) {
             log.error("❌ Unexpected error: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ErrorResponse(500, "SERVER_ERROR", "Error sistem", 
-                          e.getMessage(), "/api/transaksi/" + id + "/confirm-cash"));
+                    .body(new ErrorResponse(500, "SERVER_ERROR", "Error sistem",
+                            e.getMessage(), "/api/transaksi/" + id + "/confirm-cash"));
         }
     }
 
@@ -193,34 +230,34 @@ public class TransaksiController {
             @RequestParam String status) {
         try {
             log.info("🔄 Update payment status untuk transaksi {}: {}", id, status);
-            
+
             Transaksi.PaymentStatus paymentStatus;
             try {
                 paymentStatus = Transaksi.PaymentStatus.valueOf(status.toUpperCase());
             } catch (IllegalArgumentException e) {
                 return ResponseEntity.badRequest()
-                        .body(new ErrorResponse(400, "INVALID_STATUS", 
-                              "Status tidak valid", 
-                              "Gunakan: PENDING, PAID, FAILED, EXPIRED",
-                              "/api/transaksi/" + id + "/payment-status"));
+                        .body(new ErrorResponse(400, "INVALID_STATUS",
+                                "Status tidak valid",
+                                "Gunakan: PENDING, PAID, FAILED, EXPIRED",
+                                "/api/transaksi/" + id + "/payment-status"));
             }
-            
+
             Transaksi transaksi = transaksiService.updatePaymentStatus(id, paymentStatus);
-            
+
             log.info("✅ Status pembayaran diupdate: {} -> {}", id, status);
-            
+
             return ResponseEntity.ok(new TransaksiResponse(transaksi));
-            
+
         } catch (RuntimeException e) {
             log.error("❌ Error update payment status: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ErrorResponse(400, "UPDATE_ERROR", "Gagal update status", 
-                          e.getMessage(), "/api/transaksi/" + id + "/payment-status"));
+                    .body(new ErrorResponse(400, "UPDATE_ERROR", "Gagal update status",
+                            e.getMessage(), "/api/transaksi/" + id + "/payment-status"));
         } catch (Exception e) {
             log.error("❌ Unexpected error: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ErrorResponse(500, "SERVER_ERROR", "Error sistem", 
-                          e.getMessage(), "/api/transaksi/" + id + "/payment-status"));
+                    .body(new ErrorResponse(500, "SERVER_ERROR", "Error sistem",
+                            e.getMessage(), "/api/transaksi/" + id + "/payment-status"));
         }
     }
 
@@ -232,9 +269,9 @@ public class TransaksiController {
     public ResponseEntity<?> checkStockAvailability(@PathVariable Long id) {
         try {
             log.info("📦 Cek stok untuk transaksi: {}", id);
-            
+
             Transaksi transaksi = transaksiService.getTransaksiById(id);
-            
+
             if (transaksi.getDetails() == null || transaksi.getDetails().isEmpty()) {
                 Map<String, Object> response = new HashMap<>();
                 response.put("available", true);
@@ -242,34 +279,34 @@ public class TransaksiController {
                 response.put("transactionId", id);
                 return ResponseEntity.ok(response);
             }
-            
-            final boolean[] allInStock = {true}; // Gunakan array untuk mutable reference
+
+            final boolean[] allInStock = { true }; // Gunakan array untuk mutable reference
             StringBuilder stockInfo = new StringBuilder();
-            
+
             for (var detail : transaksi.getDetails()) {
                 var produk = detail.getProdukId();
-                stockInfo.append(String.format("%s: %d/%d\n", 
-                    produk.getNamaProduk(), 
-                    detail.getJumlah(),
-                    produk.getStok()));
-                
+                stockInfo.append(String.format("%s: %d/%d\n",
+                        produk.getNamaProduk(),
+                        detail.getJumlah(),
+                        produk.getStok()));
+
                 if (produk.getStok() < detail.getJumlah()) {
                     allInStock[0] = false;
                 }
             }
-            
+
             Map<String, Object> response = new HashMap<>();
             response.put("available", allInStock[0]);
             response.put("stockDetails", stockInfo.toString());
             response.put("transactionId", id);
-            
+
             return ResponseEntity.ok(response);
-            
+
         } catch (Exception e) {
             log.error("❌ Error cek stok: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ErrorResponse(500, "SERVER_ERROR", "Gagal cek stok", 
-                          e.getMessage(), "/api/transaksi/" + id + "/check-stock"));
+                    .body(new ErrorResponse(500, "SERVER_ERROR", "Gagal cek stok",
+                            e.getMessage(), "/api/transaksi/" + id + "/check-stock"));
         }
     }
 }
