@@ -26,11 +26,11 @@ public class Produk {
     @Column(nullable = false)
     private short stok;
 
-    @Column(unique = true, length = 50)
-    private String barcode;
+    // @Column(unique = true, length = 50)
+    // private String barcode;
 
-    @Column(name = "barcode_image_path", length = 255)
-    private String barcodeImagePath;
+    // @Column(name = "barcode_image_path", length = 255)
+    // private String barcodeImagePath;
 
     public Produk(String namaProduk, Double harga, short stok) {
         this.namaProduk = namaProduk;
