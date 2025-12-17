@@ -10,6 +10,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * @TODO : Akun controller endpoint harus diubah
+ *
+ */
+
 @RestController
 @RequestMapping("/api/admin/akun")
 public class AkunController {
@@ -36,7 +41,7 @@ public class AkunController {
     }
     // GET akun by ID - hanya ADMIN, MANAJER read-only
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAJER','KASIR')")
     public ResponseEntity<?> getAkunById(@PathVariable Long id) {
         try {
             Akun akun = akunService.getAkunById(id);
@@ -90,9 +95,9 @@ public class AkunController {
         }
     }
 
-    // UPDATE akun - hanya ADMIN
+    // UPDATE akun - bisa SEMUA ROLE
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAJER','KASIR')") // All user can edit
     public ResponseEntity<?> updateAkun(@PathVariable Long id, @RequestBody Akun akun) {
         try {
             Akun updatedAkun = akunService.updateAkun(id, akun);

@@ -24,6 +24,9 @@ public class PageController {
         return "forward:/register.html"; 
     }
 
+    @GetMapping("/edit_profile")
+    public String editProfile() {return "forward:/edit_profil.html"; }
+
     // Admin Pages
     @GetMapping({"/admin", "/admin/dashboard"})
     public String adminDashboard() {

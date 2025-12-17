@@ -46,7 +46,7 @@ public class SecurityConfig {
     // .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
     // .authorizeHttpRequests(authz -> authz
     // // Public endpoints - HTML pages and static resources
-    // .requestMatchers("/", "/login.html", "/register.html", "/css/**", "/js/**",
+    // .requestMatchers("/", "/login.html", "/edit_profil.html", "/css/**", "/js/**",
     // "/images/**")
     // .permitAll()
     // .requestMatchers("/api/auth/**").permitAll()
@@ -86,12 +86,18 @@ public class SecurityConfig {
                         .requestMatchers("/*.html").permitAll()
 
                         // Controller routes - allow
-                        .requestMatchers("/", "/login", "/admin", "/admin/**", "/manager/**", "/manajer/**",
-                                "/kasir/**")
+                        .requestMatchers("/", "/login", "/admin", "/admin/**", "/manager/**", "/manajer/**"
+                                ,"/kasir/**")
                         .permitAll()
 
                         // FIX: Allow Midtrans webhook without authentication
                         .requestMatchers("/api/payment/webhook").permitAll()
+
+                        // Allow all role to access akun edit
+                        .requestMatchers("/api/admin/akun/{id}").permitAll()
+
+                        // Edit Profil
+                        .requestMatchers(HttpMethod.GET, "/edit_profile").permitAll()
 
                         // Barcode endpoints
                         .requestMatchers(HttpMethod.GET, "/api/barcode/produk/*/image").permitAll()
@@ -108,6 +114,10 @@ public class SecurityConfig {
                         // API Export
                         .requestMatchers("/api/export/**").hasAnyRole("MANAJER", "ADMIN")
 
+
+                        /**
+                         * @TODO : API endpoints protection buat /api/admin/** dimodifikasi buat role biasa bisa edit
+                         */
                         // Protect API endpoints
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/manajer/**").hasAnyRole("MANAJER", "ADMIN")
