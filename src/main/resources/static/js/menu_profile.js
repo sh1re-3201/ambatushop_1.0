@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btnEdit?.addEventListener('click', showEditSelfModal);
 
     btnBack?.addEventListener('click', () => {
-        window.location.href = '/menu_profile.html';
+        window.history.back();
     });
 
 
@@ -281,7 +281,7 @@ async function showEditSelfModal() {
                     </div>
 
                     <!-- Role shown but locked -->
-                    <div class="form-group">
+                    <div class="form-group" style="opacity: 0.6;">
                         <label>Role</label>
                         <input type="text" value="${user.role}" disabled>
                     </div>
