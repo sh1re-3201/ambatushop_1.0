@@ -2,16 +2,10 @@ package com.traitor.ambatushop_10.service;
 
 import com.traitor.ambatushop_10.dto.StockPurchaseRequest;
 import com.traitor.ambatushop_10.dto.TransaksiRequest;
-import com.traitor.ambatushop_10.model.Akun;
-import com.traitor.ambatushop_10.model.Keuangan;
-import com.traitor.ambatushop_10.model.Produk;
-import com.traitor.ambatushop_10.model.Transaksi;
-import com.traitor.ambatushop_10.model.TransaksiDetail;
-import com.traitor.ambatushop_10.repository.AkunRepository;
-import com.traitor.ambatushop_10.repository.KeuanganRepository;
-import com.traitor.ambatushop_10.repository.ProdukRepository;
-import com.traitor.ambatushop_10.repository.TransaksiRepository;
+import com.traitor.ambatushop_10.model.*;
+import com.traitor.ambatushop_10.repository.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -26,14 +20,18 @@ public class TransaksiService {
     private final ProdukRepository produkRepository;
     private final AkunRepository akunRepository;
     private final KeuanganRepository keuanganRepository;
+    private final TransaksiDetailRepository transaksiDetailRepository;
 
     public TransaksiService(TransaksiRepository transaksiRepository,
             ProdukRepository produkRepository,
-            AkunRepository akunRepository, KeuanganRepository keuanganRepository) {
+            AkunRepository akunRepository, 
+            KeuanganRepository keuanganRepository,
+            TransaksiDetailRepository transaksiDetailRepository) {
         this.transaksiRepository = transaksiRepository;
         this.produkRepository = produkRepository;
         this.akunRepository = akunRepository;
         this.keuanganRepository = keuanganRepository;
+        this.transaksiDetailRepository = transaksiDetailRepository;
     }
 
     // GET semua transaksi
@@ -47,11 +45,19 @@ public class TransaksiService {
                 .orElseThrow(() -> new RuntimeException("Transaksi tidak ditemukan dengan ID: " + id));
     }
 
-    // CREATE transaksi dengan DTO
+    // CREATE transaksi dengan DTO - TANPA UPDATE STOK DULU
+    @Transactional
     public Transaksi createTransaksi(TransaksiRequest request) {
+        System.out.println("🛒 Creating transaction for akunId: " + request.getAkunId());
+        
         // Validasi akun exists
         Akun akun = akunRepository.findById(request.getAkunId())
-                .orElseThrow(() -> new RuntimeException("Akun tidak ditemukan dengan ID: " + request.getAkunId()));
+                .orElseThrow(() -> {
+                    System.out.println("❌ Akun tidak ditemukan: " + request.getAkunId());
+                    return new RuntimeException("Akun tidak ditemukan dengan ID: " + request.getAkunId());
+                });
+
+        System.out.println("✅ Akun ditemukan: " + akun.getUsername());
 
         // Convert String to Enum
         Transaksi.MetodePembayaran metodePembayaran;
@@ -62,9 +68,12 @@ public class TransaksiService {
         }
 
         // Untuk TUNAI langsung PAID, untuk NON_TUNAI tetap PENDING
-        Transaksi.PaymentStatus initialStatus = (metodePembayaran == Transaksi.MetodePembayaran.TUNAI)
-                ? Transaksi.PaymentStatus.PAID
-                : Transaksi.PaymentStatus.PENDING;
+        Transaksi.PaymentStatus initialStatus = Transaksi.PaymentStatus.PENDING;
+        
+        // Hanya jika tunai langsung paid
+        if (metodePembayaran == Transaksi.MetodePembayaran.TUNAI) {
+            initialStatus = Transaksi.PaymentStatus.PAID;
+        }
 
         // Create transaksi entity
         Transaksi transaksi = new Transaksi();
@@ -72,55 +81,136 @@ public class TransaksiService {
         transaksi.setTotal(request.getTotal());
         transaksi.setAkun(akun);
         transaksi.setKasirName(request.getKasirName());
-        transaksi.setPaymentStatus(initialStatus); // Status berdasarkan metode
+        transaksi.setPaymentStatus(initialStatus);
         transaksi.setReferenceNumber(generateReferenceNumber());
+        transaksi.setTanggal(LocalDateTime.now());
 
-        // Validasi & proses details
+        System.out.println("📝 Transaction created with reference: " + transaksi.getReferenceNumber());
+
+        // Validasi stock availability TAPI JANGAN UPDATE STOK DULU
         if (request.getDetails() != null && !request.getDetails().isEmpty()) {
             validateStockAvailability(request.getDetails());
-            List<TransaksiDetail> details = createTransaksiDetails(request.getDetails(), transaksi);
-            transaksi.setDetails(details);
-
-            // Kurangi stok
-            updateProductStock(request.getDetails(), false);
+            
+            // Simpan transaksi dulu untuk mendapatkan ID
+            Transaksi savedTransaksi = transaksiRepository.save(transaksi);
+            
+            // Create details
+            List<TransaksiDetail> details = createTransaksiDetails(request.getDetails(), savedTransaksi);
+            transaksiDetailRepository.saveAll(details);
+            savedTransaksi.setDetails(details);
+            
+            // JANGAN UPDATE STOK DI SINI! Stok hanya dikurangi saat pembayaran berhasil
+            
+            return savedTransaksi;
         }
 
         return transaksiRepository.save(transaksi);
     }
 
-    // UPDATE transaksi
-    public Transaksi updateTransaksi(Transaksi transaksi) {
+    // Method baru: Update payment status DAN kurangi stok jika berhasil
+    @Transactional
+    public Transaksi updatePaymentStatus(Long transactionId, Transaksi.PaymentStatus newStatus) {
+        Transaksi transaksi = transaksiRepository.findById(transactionId)
+                .orElseThrow(() -> new RuntimeException("Transaksi tidak ditemukan: " + transactionId));
+
+        Transaksi.PaymentStatus oldStatus = transaksi.getPaymentStatus();
+        transaksi.setPaymentStatus(newStatus);
+
+        // HANYA jika status berubah dari PENDING ke PAID, maka kurangi stok
+        if (oldStatus == Transaksi.PaymentStatus.PENDING && newStatus == Transaksi.PaymentStatus.PAID) {
+            System.out.println("✅ Payment successful, reducing stock for transaction: " + transactionId);
+            reduceProductStock(transaksi.getDetails());
+        }
+        // Jika transaksi dibatalkan (FAILED/EXPIRED) dan sebelumnya PAID, kembalikan stok
+        else if (oldStatus == Transaksi.PaymentStatus.PAID && 
+                (newStatus == Transaksi.PaymentStatus.FAILED || newStatus == Transaksi.PaymentStatus.EXPIRED)) {
+            System.out.println("🔄 Transaction cancelled, restoring stock for transaction: " + transactionId);
+            restoreProductStock(transaksi.getDetails());
+        }
+
         return transaksiRepository.save(transaksi);
     }
 
-    // DELETE transaksi
-    public void deleteTransaksi(Long id) {
-        Transaksi transaksi = getTransaksiById(id);
+    // Method untuk konfirmasi pembayaran tunai
+    @Transactional
+    public Transaksi confirmCashPayment(Long transactionId) {
+        Transaksi transaksi = transaksiRepository.findById(transactionId)
+                .orElseThrow(() -> new RuntimeException("Transaksi tidak ditemukan: " + transactionId));
 
-        // Kembalikan stok jika transaksi dihapus
+        if (transaksi.getMetode_pembayaran() != Transaksi.MetodePembayaran.TUNAI) {
+            throw new RuntimeException("Hanya transaksi tunai yang bisa dikonfirmasi");
+        }
+
+        if (transaksi.getPaymentStatus() != Transaksi.PaymentStatus.PENDING) {
+            throw new RuntimeException("Transaksi sudah diproses sebelumnya");
+        }
+
+        // Update status ke PAID dan kurangi stok
+        transaksi.setPaymentStatus(Transaksi.PaymentStatus.PAID);
+        
+        // Kurangi stok
         if (transaksi.getDetails() != null) {
-            updateProductStockFromEntity(transaksi.getDetails(), true);
+            reduceProductStock(transaksi.getDetails());
         }
 
-        transaksiRepository.delete(transaksi);
-    }
-
-    // FIND by payment gateway ID
-    public Optional<Transaksi> findByPaymentGatewayId(String paymentGatewayId) {
-        return transaksiRepository.findByPaymentGatewayId(paymentGatewayId);
-    }
-
-    // NEW: Update payment status
-    public Transaksi updatePaymentStatus(String paymentGatewayId, Transaksi.PaymentStatus status) {
-        Transaksi transaksi = transaksiRepository.findByPaymentGatewayId(paymentGatewayId)
-                .orElseThrow(
-                        () -> new RuntimeException("Transaksi tidak ditemukan dengan payment ID: " + paymentGatewayId));
-
-        transaksi.setPaymentStatus(status);
         return transaksiRepository.save(transaksi);
     }
 
-    // Helper methods
+    // Method untuk mengurangi stok saat pembayaran berhasil
+    private void reduceProductStock(List<TransaksiDetail> details) {
+        if (details == null) return;
+        
+        for (TransaksiDetail detail : details) {
+            Produk produk = detail.getProdukId();
+            if (produk == null) {
+                // Load produk dari repository jika null
+                produk = produkRepository.findById(detail.getProdukId().getIdProduk())
+                        .orElseThrow(() -> new RuntimeException("Produk tidak ditemukan"));
+            }
+            
+            short requestedQty = detail.getJumlah();
+            short currentStock = produk.getStok();
+            
+            System.out.println("📦 Reducing stock for product: " + produk.getNamaProduk() + 
+                             ", Current: " + currentStock + ", Requested: " + requestedQty);
+            
+            if (currentStock < requestedQty) {
+                throw new RuntimeException("Stok " + produk.getNamaProduk() + " tidak mencukupi. " +
+                        "Stok tersedia: " + currentStock + ", diminta: " + requestedQty);
+            }
+            
+            produk.setStok((short)(currentStock - requestedQty));
+            produkRepository.save(produk);
+            
+            System.out.println("✅ Stock reduced to: " + produk.getStok());
+        }
+    }
+
+    // Method untuk mengembalikan stok jika transaksi dibatalkan
+    private void restoreProductStock(List<TransaksiDetail> details) {
+        if (details == null) return;
+        
+        for (TransaksiDetail detail : details) {
+            Produk produk = detail.getProdukId();
+            if (produk == null) {
+                produk = produkRepository.findById(detail.getProdukId().getIdProduk())
+                        .orElseThrow(() -> new RuntimeException("Produk tidak ditemukan"));
+            }
+            
+            short returnedQty = detail.getJumlah();
+            short currentStock = produk.getStok();
+            
+            System.out.println("🔄 Restoring stock for product: " + produk.getNamaProduk() + 
+                             ", Current: " + currentStock + ", Restored: " + returnedQty);
+            
+            produk.setStok((short)(currentStock + returnedQty));
+            produkRepository.save(produk);
+            
+            System.out.println("✅ Stock restored to: " + produk.getStok());
+        }
+    }
+
+    // Validasi stok (hanya cek, tidak kurangi)
     private void validateStockAvailability(List<com.traitor.ambatushop_10.dto.TransaksiDetailRequest> details) {
         for (com.traitor.ambatushop_10.dto.TransaksiDetailRequest detail : details) {
             Produk produk = produkRepository.findById(detail.getProdukId())
@@ -153,38 +243,39 @@ public class TransaksiService {
         }).toList();
     }
 
+    // UPDATE transaksi
+    public Transaksi updateTransaksi(Transaksi transaksi) {
+        return transaksiRepository.save(transaksi);
+    }
+
+    // DELETE transaksi - kembalikan stok jika sudah paid
+    @Transactional
+    public void deleteTransaksi(Long id) {
+        Transaksi transaksi = getTransaksiById(id);
+
+        // Kembalikan stok jika transaksi dihapus dan sudah paid
+        if (transaksi.getDetails() != null && transaksi.getPaymentStatus() == Transaksi.PaymentStatus.PAID) {
+            restoreProductStock(transaksi.getDetails());
+        }
+
+        transaksiRepository.delete(transaksi);
+    }
+
+    // FIND by payment gateway ID
+    public Optional<Transaksi> findByPaymentGatewayId(String paymentGatewayId) {
+        return transaksiRepository.findByPaymentGatewayId(paymentGatewayId);
+    }
+
     public void updateOldTransactionsWithKasirName() {
         List<Transaksi> allTransactions = transaksiRepository.findAll();
 
         for (Transaksi transaksi : allTransactions) {
             if (transaksi.getKasirName() == null && transaksi.getAkun() != null) {
-                // Set kasir name dari akun
                 transaksi.setKasirName(transaksi.getAkun().getUsername());
                 transaksiRepository.save(transaksi);
                 System.out.println("Updated transaction " + transaksi.getIdTransaksi() +
                         " with kasir: " + transaksi.getAkun().getUsername());
             }
-        }
-    }
-
-    private void updateProductStock(List<com.traitor.ambatushop_10.dto.TransaksiDetailRequest> details,
-            boolean restore) {
-        for (com.traitor.ambatushop_10.dto.TransaksiDetailRequest detail : details) {
-            Produk produk = produkRepository.findById(detail.getProdukId())
-                    .orElseThrow(() -> new RuntimeException("Produk tidak ditemukan"));
-
-            short stockChange = (short) (restore ? detail.getJumlah() : -detail.getJumlah());
-            produk.setStok((short) (produk.getStok() + stockChange));
-            produkRepository.save(produk);
-        }
-    }
-
-    private void updateProductStockFromEntity(List<TransaksiDetail> details, boolean restore) {
-        for (TransaksiDetail detail : details) {
-            Produk produk = detail.getProdukId();
-            short stockChange = (short) (restore ? detail.getJumlah() : -detail.getJumlah());
-            produk.setStok((short) (produk.getStok() + stockChange));
-            produkRepository.save(produk);
         }
     }
 
@@ -196,12 +287,10 @@ public class TransaksiService {
 
     /**
      * CREATE stock purchase - HANYA sebagai pengeluaran, BUKAN transaksi
-     * Method ini diubah total logic-nya
      */
     public Keuangan createStockPurchase(StockPurchaseRequest request) {
         System.out.println("🛒 Creating stock purchase (PENGELUARAN only): " + request);
 
-        // Validasi akun
         Akun akun = akunRepository.findById(request.getAkunId())
                 .orElseThrow(() -> {
                     System.out.println("❌ Akun tidak ditemukan: " + request.getAkunId());
@@ -210,11 +299,9 @@ public class TransaksiService {
 
         System.out.println("✅ Akun ditemukan: " + akun.getUsername());
 
-        // HANYA CREATE KEUANGAN ENTRY, BUKAN TRANSAKSI
         Keuangan keuangan = new Keuangan();
         keuangan.setJenis(Keuangan.JenisTransaksi.PENGELUARAN);
 
-        // Buat keterangan yang informative
         String keterangan = "Pembelian stok: " + request.getProductName();
         if (request.getSupplierName() != null && !request.getSupplierName().isEmpty()) {
             keterangan += " (Supplier: " + request.getSupplierName() + ")";
@@ -233,7 +320,6 @@ public class TransaksiService {
         System.out.println("✅ Pengeluaran stok dicatat: " + savedKeuangan.getIdKeuangan() +
                 " - " + keterangan + " - Rp" + request.getTotalAmount());
 
-        return savedKeuangan; // Return Keuangan, bukan Transaksi
+        return savedKeuangan;
     }
-
 }

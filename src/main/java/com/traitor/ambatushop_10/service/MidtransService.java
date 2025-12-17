@@ -252,9 +252,12 @@ public class MidtransService {
                     .orElseThrow(() -> new RuntimeException("Transaksi tidak ditemukan: " + orderId));
 
             Transaksi.PaymentStatus newStatus = mapMidtransStatus(transactionStatus, fraudStatus);
-            transaksi.setPaymentStatus(newStatus);
-            transaksi.setPaymentGatewayResponse(new JSONObject(payload).toString());
 
+            // Gunakan service yang baru untuk update status dengan logika stok
+            transaksiService.updatePaymentStatus(transaksi.getIdTransaksi(), newStatus);
+
+            // Update field tambahan
+            transaksi.setPaymentGatewayResponse(new JSONObject(payload).toString());
             transaksiService.updateTransaksi(transaksi);
 
             log.info("Updated transaction {} to status: {}", orderId, newStatus);
