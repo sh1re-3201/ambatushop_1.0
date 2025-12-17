@@ -86,8 +86,8 @@ public class SecurityConfig {
                         .requestMatchers("/*.html").permitAll()
 
                         // Controller routes - allow
-                        .requestMatchers("/", "/login", "/admin", "/admin/**", "/manager/**", "/manajer/**",
-                                "/kasir/**")
+                        .requestMatchers("/", "/login", "/admin", "/admin/**", "/manager/**", "/manajer/**"
+                                ,"/kasir/**")
                         .permitAll()
 
                         // FIX: Allow Midtrans webhook without authentication
@@ -95,6 +95,9 @@ public class SecurityConfig {
 
                         // Allow all role to access akun edit
                         .requestMatchers("/api/admin/akun/{id}").permitAll()
+
+                        // Edit Profil
+                        .requestMatchers(HttpMethod.GET, "/edit_profile").permitAll()
 
                         // Barcode endpoints
                         .requestMatchers(HttpMethod.GET, "/api/barcode/produk/*/image").permitAll()
